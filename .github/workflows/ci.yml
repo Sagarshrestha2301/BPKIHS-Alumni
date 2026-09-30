@@ -15,21 +15,25 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: alumni_test
+          # Role and database names mirror .env so migrations run under the same
+          # identity as local. The password is intentionally a CI-only throwaway:
+          # the runner creates this database from scratch, so it has no access to
+          # your local instance and nothing depends on reusing that credential.
+          POSTGRES_USER: bpkihs_app
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: bpkihs_alumni
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U bpkihs_app -d bpkihs_alumni"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
       # Runtime pooler URL. Read by src/lib/db.ts through getAuthEnvironment().
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/alumni_test?schema=public
+      DATABASE_URL: postgresql://bpkihs_app:ci-only-not-a-real-secret@127.0.0.1:5432/bpkihs_alumni?schema=public
       # Direct URL used by the Prisma CLI. prisma.config.ts reads DIRECT_DATABASE_URL.
-      DIRECT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/alumni_test?schema=public
+      DIRECT_DATABASE_URL: postgresql://bpkihs_app:ci-only-not-a-real-secret@127.0.0.1:5432/bpkihs_alumni?schema=public
       BETTER_AUTH_SECRET: ci-only-secret-that-is-long-enough-for-validation
       BETTER_AUTH_URL: http://localhost:3000
       RESEND_API_KEY: re_ci_placeholder
