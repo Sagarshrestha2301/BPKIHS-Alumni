@@ -20,7 +20,7 @@ jobs:
           # the runner creates this database from scratch, so it has no access to
           # your local instance and nothing depends on reusing that credential.
           POSTGRES_USER: bpkihs_app
-          POSTGRES_PASSWORD: root
+          POSTGRES_PASSWORD: ci-only-not-a-real-secret
           POSTGRES_DB: bpkihs_alumni
         ports:
           - 5432:5432
