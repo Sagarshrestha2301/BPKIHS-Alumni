@@ -16,6 +16,7 @@ AlumniProfile
 Programme
 Batch
 Verification
+RateLimit
 Role
 Permission
 RolePermission
@@ -57,6 +58,19 @@ Potential fields:
 - authentication relation
 - created_at
 - updated_at
+
+## RateLimit
+
+Better Auth stores shared request-throttle state in this operational table.
+
+```text
+id (primary key)
+key (unique)
+count
+last_request (epoch milliseconds)
+```
+
+This is not user activity history and must not be used as an audit log.
 
 ## AlumniProfile
 Potential fields:

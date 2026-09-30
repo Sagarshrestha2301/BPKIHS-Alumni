@@ -2,8 +2,8 @@
 title: BPKIHS Alumni Association — Alumni Verification
 status: Draft
 owner: Project Lead
-version: 0.2
-last_updated: 2026-09-25
+version: 0.3
+last_updated: 2026-09-30
 tags: [bpkihs, verification]
 ---
 # Alumni Verification
@@ -90,6 +90,17 @@ If files are required:
 - size limits,
 - retention policy,
 - appropriate audit trail.
+
+## Initial Implementation Boundary
+
+The initial migration and API establish a claim record, immutable programme/batch
+snapshot, status history, and the alumnus' own submission/status endpoints.
+
+- A registered user must have a verified email, programme, and batch before
+  submitting a claim.
+- Evidence upload and staff review actions are intentionally not implemented.
+- The database can store the proposed workflow states, but this does **not**
+  approve reviewer authority, evidence, resubmission, appeal, or suspension rules.
 
 ## Admin Queue
 Show:

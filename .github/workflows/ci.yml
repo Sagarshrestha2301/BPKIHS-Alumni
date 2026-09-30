@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: alumni_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Runtime pooler URL. Read by src/lib/db.ts through getAuthEnvironment().
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/alumni_test?schema=public
+      # Direct URL used by the Prisma CLI. prisma.config.ts reads DIRECT_DATABASE_URL.
+      DIRECT_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/alumni_test?schema=public
+      BETTER_AUTH_SECRET: ci-only-secret-that-is-long-enough-for-validation
+      BETTER_AUTH_URL: http://localhost:3000
+      RESEND_API_KEY: re_ci_placeholder
+      EMAIL_FROM: ci@example.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx prisma migrate deploy
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

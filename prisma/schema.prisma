@@ -1,10 +1,196 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum ProfileVisibility {
+  PRIVATE
+  ALUMNI_ONLY
+  PUBLIC
+}
+
+// These are the proposed workflow states from docs/10 - Alumni Verification.md.
+// No staff transition is implemented until the Association approves the policy.
+enum AlumniVerificationStatus {
+  NOT_STARTED
+  PENDING
+  UNDER_REVIEW
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accounts                Account[]
+  sessions                Session[]
+  alumniProfile           AlumniProfile?
+  reviewedVerifications   AlumniVerification[]     @relation("VerificationReviewer")
+  verificationAuditEvents VerificationAuditEvent[] @relation("VerificationAuditActor")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
+model Programme {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  batches            Batch[]
+  alumniProfiles     AlumniProfile[]
+  verificationClaims AlumniVerification[] @relation("ClaimedProgramme")
+}
+
+model Batch {
+  id             String    @id @default(cuid())
+  programmeId    String
+  label          String
+  admissionYear  Int?
+  graduationYear Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  programme          Programme            @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  alumniProfiles     AlumniProfile[]
+  verificationClaims AlumniVerification[] @relation("ClaimedBatch")
+
+  @@unique([programmeId, label])
+  @@index([programmeId])
+}
+
+model AlumniProfile {
+  id                      String                   @id @default(cuid())
+  userId                  String                   @unique
+  firstName               String?
+  lastName                String?
+  programmeId             String?
+  batchId                 String?
+  admissionYear           Int?
+  graduationYear          Int?
+  specialization          String?
+  currentPosition         String?
+  organization            String?
+  city                    String?
+  country                 String?
+  furtherStudy            String?
+  furtherStudyInstitution String?
+  biography               String?
+  profileVisibility       ProfileVisibility        @default(PRIVATE)
+  verificationStatus      AlumniVerificationStatus @default(NOT_STARTED)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programme     Programme?           @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  batch         Batch?               @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  verifications AlumniVerification[]
+
+  @@index([programmeId])
+  @@index([batchId])
+  @@index([country])
+  @@index([specialization])
+  @@index([verificationStatus])
+}
+
+model AlumniVerification {
+  id                    String                   @id @default(cuid())
+  alumniProfileId       String
+  claimedProgrammeId    String
+  claimedBatchId        String
+  claimedAdmissionYear  Int?
+  claimedGraduationYear Int?
+  status                AlumniVerificationStatus @default(PENDING)
+  submittedAt           DateTime                 @default(now())
+  reviewedAt            DateTime?
+  reviewedByUserId      String?
+  decisionReason        String?
+  reviewNotes           String?
+
+  alumniProfile    AlumniProfile            @relation(fields: [alumniProfileId], references: [id], onDelete: Restrict)
+  claimedProgramme Programme                @relation("ClaimedProgramme", fields: [claimedProgrammeId], references: [id], onDelete: Restrict)
+  claimedBatch     Batch                    @relation("ClaimedBatch", fields: [claimedBatchId], references: [id], onDelete: Restrict)
+  reviewedBy       User?                    @relation("VerificationReviewer", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  auditEvents      VerificationAuditEvent[]
+
+  // The initial migration adds a PostgreSQL partial unique index that permits
+  // request history while allowing only one PENDING or UNDER_REVIEW claim.
+  @@index([alumniProfileId, submittedAt])
+  @@index([status, submittedAt])
+}
+
+model VerificationAuditEvent {
+  id                   String                    @id @default(cuid())
+  alumniVerificationId String
+  actorUserId          String?
+  previousStatus       AlumniVerificationStatus?
+  newStatus            AlumniVerificationStatus
+  reason               String?
+  createdAt            DateTime                  @default(now())
+
+  alumniVerification AlumniVerification @relation(fields: [alumniVerificationId], references: [id], onDelete: Restrict)
+  actor              User?              @relation("VerificationAuditActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([alumniVerificationId, createdAt])
 }

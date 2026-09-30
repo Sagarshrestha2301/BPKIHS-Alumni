@@ -2,38 +2,67 @@
 title: BPKIHS Alumni Association — API Specification
 status: Draft
 owner: Project Lead
-version: 0.2
-last_updated: 2026-09-25
+version: 0.3
+last_updated: 2026-09-30
 tags: [bpkihs, api]
 ---
 # API Specification
 
 > [!note]
-> Route shapes are a starting contract. Final payload schemas should be written alongside implementation and requirements.
+> Only routes marked **Implemented** exist today. Planned routes are not an API
+> contract until their requirements and response schemas are approved.
 
 ## Auth
+
+**Implemented — Better Auth managed.** The catch-all handler at
+`/api/auth/[...all]` delegates these routes to Better Auth. Clients should use
+the configured Better Auth client rather than construct requests manually.
+
 ```text
-POST /api/auth/register
-POST /api/auth/verify-email
-POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/forgot-password
-POST /api/auth/reset-password
-GET  /api/auth/session
+POST /api/auth/sign-up/email
+POST /api/auth/email-otp/verify-email
+POST /api/auth/sign-in/email
+POST /api/auth/sign-out
+POST /api/auth/email-otp/request-password-reset
+POST /api/auth/email-otp/reset-password
+GET  /api/auth/get-session
 ```
 
+Authentication responses and errors use Better Auth's provider contract. The
+application error envelope below applies to application-owned routes.
+
+Authentication requests are rate-limited using shared database storage.
+
 ## Alumni
+
+**Implemented:**
+
 ```text
-GET   /api/alumni
-GET   /api/alumni/:id
 GET   /api/alumni/me
 PATCH /api/alumni/me
 ```
 
+`GET /api/alumni` and `GET /api/alumni/:id` are planned. They remain blocked
+by the directory-access and profile-visibility decisions.
+
 ## Verification
+
+**Implemented:**
+
 ```text
 POST /api/verification
 GET  /api/verification/me
+```
+
+`POST /api/verification` requires an authenticated user with a verified email,
+programme, and batch. It creates one pending claim and an audit event. Claim
+snapshots are immutable after submission. `GET /api/verification/me` returns
+only the caller's current claim status and timestamps; reviewer notes and
+decision reasons are not exposed.
+
+**Planned — no routes exist:**
+
+```text
 GET  /api/admin/verification
 GET  /api/admin/verification/:id
 POST /api/admin/verification/:id/approve
@@ -96,6 +125,14 @@ GET /api/faq
 ```
 
 ## Error Contract
+
+Application-owned APIs return this envelope for validation and domain errors.
+`fields` is included for payload validation when field-specific details are
+available.
+
+Authenticated profile and verification responses send `Cache-Control: private,
+no-store` and never include stack traces or internal error details.
+
 ```json
 {
   "error": {
