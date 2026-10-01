@@ -93,6 +93,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx prisma generate
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
       - name: Upload Playwright artifacts
