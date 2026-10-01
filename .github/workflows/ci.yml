@@ -51,3 +51,56 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    concurrency:
+      group: ci-e2e-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: bpkihs_app
+          POSTGRES_PASSWORD: ci-only-e2e-password
+          POSTGRES_DB: bpkihs_alumni_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bpkihs_app -d bpkihs_alumni_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # This differs from E2E_DATABASE_URL so the E2E database guard rejects
+      # accidental use of the normal application database.
+      DATABASE_URL: postgresql://bpkihs_app:ci-only-e2e-password@127.0.0.1:5432/bpkihs_alumni?schema=public
+      DIRECT_DATABASE_URL: postgresql://bpkihs_app:ci-only-e2e-password@127.0.0.1:5432/bpkihs_alumni?schema=public
+      E2E_DATABASE_URL: postgresql://bpkihs_app:ci-only-e2e-password@127.0.0.1:5432/bpkihs_alumni_e2e?schema=public
+      E2E_DIRECT_DATABASE_URL: postgresql://bpkihs_app:ci-only-e2e-password@127.0.0.1:5432/bpkihs_alumni_e2e?schema=public
+      BETTER_AUTH_SECRET: ci-only-e2e-secret-that-is-long-enough-for-validation
+      BETTER_AUTH_URL: http://localhost:3000
+      RESEND_API_KEY: re_ci_e2e_placeholder
+      EMAIL_FROM: ci-e2e@example.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
