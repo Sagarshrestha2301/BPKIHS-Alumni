@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import {
   collectCspConsoleMessages,
@@ -9,20 +10,34 @@ import {
   type CspReport,
 } from "./csp-monitor";
 
-type E2eOtp = {
-  email: string;
-  otp: string;
-  type: string;
+type CapturedEmail = {
+  to?: string[];
+  subject?: string;
+  text?: string;
 };
 
 async function waitForOtp(email: string, type: string) {
+  const expectedSubject =
+    type === "email-verification"
+      ? "Verify your BPKIHS Alumni email"
+      : "Reset your BPKIHS Alumni password";
+  const emailFile = path.resolve("test-results/e2e-emails.jsonl");
+
   await expect
     .poll(
       async () => {
         try {
-          const content = await readFile("test-results/e2e-otp.json", "utf8");
-          const otp = JSON.parse(content) as E2eOtp;
-          return otp.email === email && otp.type === type ? otp.otp : "";
+          const messages = (await readFile(emailFile, "utf8"))
+            .trim()
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => JSON.parse(line) as CapturedEmail);
+          const message = messages.find(
+            (candidate) =>
+              candidate.to?.includes(email) &&
+              candidate.subject === expectedSubject,
+          );
+          return message?.text?.match(/\bis (\d{6})\./)?.[1] ?? "";
         } catch {
           return "";
         }
@@ -31,8 +46,17 @@ async function waitForOtp(email: string, type: string) {
     )
     .toMatch(/^[0-9]{6}$/);
 
-  const content = await readFile("test-results/e2e-otp.json", "utf8");
-  return (JSON.parse(content) as E2eOtp).otp;
+  const messages = (await readFile(emailFile, "utf8"))
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as CapturedEmail);
+  const message = messages.find(
+    (candidate) =>
+      candidate.to?.includes(email) && candidate.subject === expectedSubject,
+  );
+
+  return message?.text?.match(/\bis (\d{6})\./)?.[1] ?? "";
 }
 
 test("registration, session, sign-out, and password reset work end to end", async ({
@@ -66,6 +90,13 @@ test("registration, session, sign-out, and password reset work end to end", asyn
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL("/");
+
+  const sessionCookies = await page.context().cookies();
+  expect(
+    sessionCookies.some(
+      (cookie) => cookie.name.includes("session") && cookie.secure,
+    ),
+  ).toBe(true);
 
   const profileResponse = await page.request.get("/api/alumni/me");
   expect(profileResponse.status()).toBe(200);

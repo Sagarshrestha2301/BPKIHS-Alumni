@@ -4,10 +4,9 @@ import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function CspCanaryPage() {
-  const nodeEnvironment = Reflect.get(process.env, "NODE_ENV");
   const isE2e = Reflect.get(process.env, "E2E") === "1";
 
-  if (!isE2e || nodeEnvironment === "production") {
+  if (!isE2e) {
     notFound();
   }
 

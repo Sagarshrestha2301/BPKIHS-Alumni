@@ -1,9 +1,12 @@
 import { spawn } from "node:child_process";
+import { appendFile, rm } from "node:fs/promises";
+import { createServer } from "node:http";
+import path from "node:path";
 
 const environment = {
   ...process.env,
   E2E: "1",
-  NODE_ENV: "test",
+  NODE_ENV: "production",
 };
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
@@ -27,21 +30,65 @@ function run(command, args) {
   });
 }
 
-async function start() {
-  await run(npxCommand, ["prisma", "migrate", "deploy"]);
-  await run(npmCommand, ["run", "build"]);
+async function startFakeResend(emailFile) {
+  await rm(emailFile, { force: true });
 
-  const server = spawn(npmCommand, ["start"], {
-    env: environment,
-    stdio: "inherit",
-    shell: process.platform === "win32",
+  const server = createServer(async (request, response) => {
+    if (request.method !== "POST" || request.url !== "/emails") {
+      response.writeHead(404).end();
+      return;
+    }
+
+    const chunks = [];
+    for await (const chunk of request) {
+      chunks.push(chunk);
+    }
+
+    await appendFile(emailFile, `${Buffer.concat(chunks).toString("utf8")}\n`);
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ id: `fake-email-${Date.now()}` }));
   });
 
-  const stopServer = () => server.kill();
-  process.on("SIGINT", stopServer);
-  process.on("SIGTERM", stopServer);
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  return server;
+}
 
-  server.on("exit", (code) => process.exit(code ?? 1));
+async function start() {
+  const emailFile = path.resolve("test-results/e2e-emails.jsonl");
+  const fakeResend = await startFakeResend(emailFile);
+  const fakeResendAddress = fakeResend.address();
+
+  if (fakeResendAddress === null || typeof fakeResendAddress === "string") {
+    throw new Error("The fake Resend server did not expose a TCP address.");
+  }
+
+  environment.RESEND_BASE_URL = `http://127.0.0.1:${fakeResendAddress.port}`;
+
+  try {
+    await run(npxCommand, ["prisma", "migrate", "deploy"]);
+    await run(npmCommand, ["run", "build"]);
+
+    const server = spawn(npmCommand, ["start"], {
+      env: environment,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+
+    const stopServer = () => {
+      server.kill();
+      fakeResend.close();
+    };
+    process.on("SIGINT", stopServer);
+    process.on("SIGTERM", stopServer);
+
+    server.on("exit", (code) => {
+      fakeResend.close();
+      process.exit(code ?? 1);
+    });
+  } catch (error) {
+    fakeResend.close();
+    throw error;
+  }
 }
 
 start().catch((error) => {

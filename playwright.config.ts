@@ -1,7 +1,6 @@
 import "dotenv/config";
 
 import { defineConfig, devices } from "@playwright/test";
-import path from "node:path";
 
 import { validateE2eDatabaseEnvironment } from "./src/lib/e2e-database-guard";
 
@@ -13,8 +12,6 @@ validateE2eDatabaseEnvironment({
   directDatabaseUrl: e2eDirectDatabaseUrl,
   runtimeDatabaseUrl: process.env.DATABASE_URL,
 });
-
-const e2eOtpFile = path.resolve("test-results/e2e-otp.json");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -39,8 +36,7 @@ export default defineConfig({
       DATABASE_URL: e2eDatabaseUrl,
       DIRECT_DATABASE_URL: e2eDirectDatabaseUrl,
       E2E: "1",
-      E2E_OTP_FILE: e2eOtpFile,
-      NODE_ENV: "test",
+      NODE_ENV: "production",
     },
   },
 

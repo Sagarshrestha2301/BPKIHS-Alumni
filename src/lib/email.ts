@@ -1,8 +1,5 @@
 import "server-only";
 
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-
 import { Resend } from "resend";
 
 import { getEmailEnvironment } from "@/lib/env.server";
@@ -32,36 +29,6 @@ const emailContent: Record<AuthenticationEmailType, { subject: string; action: s
   },
 };
 
-async function writeE2eOtp({
-  email,
-  otp,
-  type,
-}: {
-  email: string;
-  otp: string;
-  type: AuthenticationEmailType;
-}) {
-  const otpFile = process.env.E2E_OTP_FILE;
-
-  if (!otpFile) {
-    throw new Error("E2E_OTP_FILE must be configured when E2E is enabled.");
-  }
-
-  await mkdir(path.dirname(otpFile), { recursive: true });
-  await writeFile(
-    otpFile,
-    JSON.stringify({ email, otp, type, createdAt: new Date().toISOString() }),
-    "utf8",
-  );
-}
-
-export function isE2eOtpCaptureEnabled(environment = process.env) {
-  return (
-    Reflect.get(environment, "E2E") === "1" &&
-    Reflect.get(environment, "NODE_ENV") !== "production"
-  );
-}
-
 export async function sendAuthenticationOtp({
   email,
   otp,
@@ -71,11 +38,6 @@ export async function sendAuthenticationOtp({
   otp: string;
   type: AuthenticationEmailType;
 }) {
-  if (isE2eOtpCaptureEnabled()) {
-    await writeE2eOtp({ email, otp, type });
-    return;
-  }
-
   const { EMAIL_FROM, RESEND_API_KEY } = getEmailEnvironment();
   const content = emailContent[type];
   const resend = new Resend(RESEND_API_KEY);
