@@ -86,3 +86,35 @@ Use FR / NFR / SEC / PRV / ACC / PERF / OPS / BR prefixes.
 ## DEC-018 — Obsidian
 **Status:** Accepted
 Use YAML frontmatter, wikilinks, callouts, and structured markdown.
+
+## Accepted Risks — 2026-10-01
+
+The following npm audit findings are accepted for the current release because
+the vulnerable packages are not present in `.next/server` output or production
+`.nft.json` traces. Runtime database access uses PostgreSQL only through
+`@prisma/adapter-pg`; the application does not use MySQL, and no application
+path passes cyclic object graphs to `deepmerge-ts`.
+
+- **GHSA-ggr8-5vv4-36mx** (`deepmerge-ts`, inherited by `@prisma/config` and
+	`prisma`): the recursive-object stack exhaustion is unreachable because the
+	vulnerable package is CLI/config tooling only and the application does not
+	accept or construct cyclic merge inputs.
+- **GHSA-3f6p-5ww8-9rcr** (`mysql2`): the cleartext authentication downgrade
+	requires a MySQL connection to a rogue or MITM server; this application uses
+	PostgreSQL only.
+- **GHSA-rgwj-5xj2-c3m3** (`mysql2`): the compressed-protocol decompression
+	bomb requires `compress: true` and a malicious or compromised MySQL endpoint;
+	this application uses neither MySQL nor MySQL compression.
+
+Revisit this acceptance when either of these conditions occurs:
+
+1. A Prisma 7 release newer than 7.10.0 is published and can be evaluated for
+	 patched transitive dependencies.
+2. Any audited package becomes reachable from the deployed runtime.
+
+Re-check with:
+
+```text
+npm audit --omit=dev
+npm ls deepmerge-ts mysql2
+```
