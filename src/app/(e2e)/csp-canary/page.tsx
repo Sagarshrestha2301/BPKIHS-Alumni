@@ -15,12 +15,22 @@ export default async function CspCanaryPage() {
   return (
     <main>
       <h1>CSP canary</h1>
+      {/* Intentional blocked resource for the E2E CSP canary. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        id="csp-canary-server-image"
+        src="https://csp-canary.invalid/server-rendered.png"
+        alt=""
+      />
       <script
         nonce={nonce ?? undefined}
         dangerouslySetInnerHTML={{
           __html: `
-            void fetch("https://csp-canary.invalid/blocked", { mode: "no-cors" }).catch(() => undefined);
+            const serverImage = document.getElementById("csp-canary-server-image");
+            serverImage?.addEventListener("error", () => { window.__cspCanaryServerImageFailed = true; });
+            void fetch("https://csp-canary.invalid/blocked", { mode: "no-cors" }).catch(() => { window.__cspCanaryFetchFailed = true; });
             const image = new Image();
+            image.addEventListener("error", () => { window.__cspCanaryDynamicImageFailed = true; });
             image.src = "https://csp-canary.invalid/blocked.png";
             document.body.append(image);
           `,
@@ -31,9 +41,6 @@ export default async function CspCanaryPage() {
           __html: "window.__cspCanaryInlineScript = true;",
         }}
       />
-      {/* Intentional blocked resource for the E2E CSP canary. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="https://csp-canary.invalid/server-rendered.png" alt="" />
     </main>
   );
 }

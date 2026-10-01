@@ -25,10 +25,7 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
 
   requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set(
-    "Content-Security-Policy-Report-Only",
-    contentSecurityPolicy,
-  );
+  requestHeaders.set("Content-Security-Policy", contentSecurityPolicy);
 
   const response = NextResponse.next({
     request: {
@@ -36,10 +33,7 @@ export function proxy(request: NextRequest) {
     },
   });
 
-  response.headers.set(
-    "Content-Security-Policy-Report-Only",
-    contentSecurityPolicy,
-  );
+  response.headers.set("Content-Security-Policy", contentSecurityPolicy);
 
   return response;
 }

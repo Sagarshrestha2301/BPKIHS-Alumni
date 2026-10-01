@@ -18,6 +18,34 @@ test("CSP monitor detects canary script and network violations", async ({
   await page.goto("/csp-canary", { waitUntil: "domcontentloaded" });
 
   await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const browserWindow = window as typeof window & {
+          __cspCanaryInlineScript?: boolean;
+          __cspCanaryFetchFailed?: boolean;
+          __cspCanaryServerImageFailed?: boolean;
+          __cspCanaryDynamicImageFailed?: boolean;
+        };
+
+        return {
+          inlineScriptExecuted: Boolean(browserWindow.__cspCanaryInlineScript),
+          fetchFailed: Boolean(browserWindow.__cspCanaryFetchFailed),
+          dynamicImageFailed: Boolean(browserWindow.__cspCanaryDynamicImageFailed),
+        };
+      }),
+    )
+    .toEqual({
+      inlineScriptExecuted: false,
+      fetchFailed: true,
+      dynamicImageFailed: true,
+    });
+
+  const response = await page.request.get("/csp-canary");
+  const csp = response.headers()["content-security-policy"];
+  expect(csp).toBeTruthy();
+  expect(response.headers()["content-security-policy-report-only"]).toBeUndefined();
+
+  await expect
     .poll(async () => readCspReports(page), { timeout: 10_000 })
     .toEqual(
       expect.arrayContaining([
@@ -42,6 +70,10 @@ test("CSP monitor detects canary script and network violations", async ({
       expect.objectContaining({
         violatedDirective: "img-src",
         blockedUri: "https://csp-canary.invalid/blocked.png",
+      }),
+      expect.objectContaining({
+        violatedDirective: "img-src",
+        blockedUri: "https://csp-canary.invalid/server-rendered.png",
       }),
     ]),
   );
