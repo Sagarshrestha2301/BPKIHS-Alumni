@@ -12,6 +12,9 @@ import { getCurrentSession } from "@/lib/auth-session";
 export const runtime = "nodejs";
 
 export async function POST() {
+  const startedAt = Date.now();
+  const requestId = crypto.randomUUID();
+
   try {
     const session = await getCurrentSession();
 
@@ -37,7 +40,11 @@ export async function POST() {
 
       throw error;
     }
-  } catch {
-    return internalServerError();
+  } catch (error) {
+    return internalServerError(error, {
+      requestId,
+      route: "verification.submit",
+      startedAt,
+    });
   }
 }

@@ -13,11 +13,16 @@ import { getCurrentSession } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
+const route = "alumni.me";
+
 function unauthenticatedResponse() {
   return apiError(401, "UNAUTHENTICATED", "Sign in to continue.");
 }
 
 export async function GET() {
+  const startedAt = Date.now();
+  const requestId = crypto.randomUUID();
+
   try {
     const session = await getCurrentSession();
 
@@ -27,12 +32,15 @@ export async function GET() {
 
     const profile = await getOwnAlumniProfile(session.user.id);
     return privateJson({ data: profile });
-  } catch {
-    return internalServerError();
+  } catch (error) {
+    return internalServerError(error, { requestId, route, startedAt });
   }
 }
 
 export async function PATCH(request: Request) {
+  const startedAt = Date.now();
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+
   try {
     const session = await getCurrentSession();
 
@@ -77,7 +85,7 @@ export async function PATCH(request: Request) {
 
       throw error;
     }
-  } catch {
-    return internalServerError();
+  } catch (error) {
+    return internalServerError(error, { requestId, route, startedAt });
   }
 }
