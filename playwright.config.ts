@@ -31,7 +31,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "node e2e/start-server.cjs",
+    command: "node e2e/start-server.mjs",
     url: "http://localhost:3000",
     reuseExistingServer: false,
     timeout: 120_000,

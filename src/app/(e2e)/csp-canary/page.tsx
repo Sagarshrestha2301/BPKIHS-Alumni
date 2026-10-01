@@ -32,6 +32,8 @@ export default async function CspCanaryPage() {
           __html: "window.__cspCanaryInlineScript = true;",
         }}
       />
+      {/* Intentional blocked resource for the E2E CSP canary. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="https://csp-canary.invalid/server-rendered.png" alt="" />
     </main>
   );
