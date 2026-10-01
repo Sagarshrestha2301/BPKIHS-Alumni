@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Official alumni website and alumni connection platform.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
