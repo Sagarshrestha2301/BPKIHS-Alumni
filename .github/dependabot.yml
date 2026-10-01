@@ -5,3 +5,17 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # Group all minor and patch bumps into a single PR per week.
+    # Major bumps are intentionally excluded so they get individual PRs
+    # and can be reviewed one at a time before merging.
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # @types/node must track the Node runtime version in use (22).
+      # Major bumps (e.g. to 24 or 26) are ahead of the runtime and
+      # can introduce type mismatches with the installed Node binary.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
