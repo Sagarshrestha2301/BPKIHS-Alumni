@@ -44,4 +44,9 @@ npm test
 npm run build
 ```
 
+For Playwright, create a dedicated PostgreSQL database and set both
+`E2E_DATABASE_URL` and `E2E_DIRECT_DATABASE_URL` before running
+`npm run test:e2e`. E2E mode writes authentication codes only to the local
+`test-results/e2e-otp.json` file and never enables that path in production.
+
 GitHub Actions runs these checks for pull requests and pushes to `main`.
