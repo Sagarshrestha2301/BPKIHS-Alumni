@@ -3,7 +3,7 @@
 > **Purpose:** One file to paste or upload into any new chat so work continues without loss.
 > **Companion files:** `ROADMAP.md` (phases and checklists) and `DESIGN.md` (visual system and per-page specs).
 > **Scope:** Frontend only. Do not design or write backend code yet. Everything must be backend-ready.
-> **Last updated:** 12 Oct 2026 (Session 9: Phase 3 data layer complete)
+> **Last updated:** 12 Oct 2026 (Session 6: proposal reconciled, D25–D28 added)
 
 ---
 
@@ -87,20 +87,11 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D21 | Class helper | `cn` = `clsx` + `tailwind-merge` in `src/lib/utils.ts`. shadcn components import it from `@/lib/utils` |
 | D22 | Quality gate | Pre-commit: lint-staged + typecheck (Husky). Before a milestone: `npm run ci` and `npm run test:e2e`. Unit tests are `*.test.ts(x)` under `src/`; end-to-end tests are `*.spec.ts` under `e2e/` |
 | D23 | Forms | Every field uses `FormField` (label above, hint, inline error with icon, `aria-describedby`/`aria-invalid` linked). Required fields show `*` plus `aria-required`. Errors are never shown by colour alone |
-| D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
 | D25 | Registration (proposal §2.2) | Public form, **no account** (A3 stands). The proposal's "create account" is a backend concern; the mock `useAuth()` is designed so registrants and donors can share one account later |
 | D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter has signup **and** subscribe/unsubscribe management; the automated digest is backend work |
 | D27 | Admin dashboard | Stays in the plan as Phase 9 (approval and moderation queues depend on it). Q6 answered: build it, mock only, after the public pages |
 | D28 | Proposal additions | `BMIT` programme; board `visionStatement`; stats = alumni, funds raised, active programmes; search by name, specialisation, location/country; Donate button on every profile; tribute recipient (batch, mentor, alumnus); event-linked donation drives; past-event galleries; helpdesk topics (account, profile verification, donation receipt); welcome message as text or video |
-| D29 | Toasts | `sonner` via shadcn, fixed to the light theme; no `next-themes` dependency |
-| D30 | Currency | **NPR only** (Q5). No USD toggle or amounts. Money stays integer minor units with a currency code |
-| D31 | Logo | Institute logo `public/bp-koirala_logo.png` beside the text wordmark. An Association logo replaces it by editing `src/content/site.ts` |
-| D32 | Form control borders | Use `neutral-500` (`#7b8794`, 3.66:1 on white) so inputs meet WCAG 2.2 non-text contrast; cards and dividers keep `neutral-300` |
-| D33 | API contract names | The contract uses `login` and `signup` (not `mockLogin` and `mockSignup`); the word "mock" belongs to the adapter. Methods take the Zod input objects, for example `reportPost(id, { reason })` and `subscribeNewsletter({ email, interests })` |
-| D34 | Viewer and privacy | The public site has no login, so every visitor is treated as an alumnus viewer and `alumni_only` details are visible. Hidden and unapproved profiles return `not_found`, identical to a missing id. Hidden fields are removed from the object, never blanked |
-| D35 | Mock session | `useAuth()` keeps the session in memory only; a reload signs out. It is mounted around checkout in Phase 6, not site-wide |
-| D36 | Simulation | Mock calls take 300 to 800 ms in development, never fail unless `NEXT_PUBLIC_MOCK_ERROR_RATE` is set, and have no delay or errors under test. A failed call changes no data |
-| D37 | Adapter mode | `NEXT_PUBLIC_API_MODE` must be `mock` or `http`; blank means mock; anything else throws |
+| D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
@@ -108,39 +99,31 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 - A2: Payment methods shown in UI: eSewa, Khalti, ConnectIPS, Fonepay QR (national); card and PayPal-style option (international). UI only.
 - A3: Alumni registration is a public form with **no account**; it submits to the mock API and is "pending approval".
 - A4: The admin dashboard UI is built last, behind a mock gate, and may be deferred (Q6).
-- A5: Currency is NPR only (see D30).
+- A5: Currency displayed in NPR with a USD toggle (display only, fixed mock rate).
 - A6: Hosting and deployment are out of scope for now.
 
 ### 3.3 Current status (update at the end of every step)
 
 | Item | State |
 |---|---|
-| Phase | **4 - Home and About/Governance** (plan next, awaiting approval). Phases 1 to 3 complete |
-| Done so far | **Phase 2**: tokens, type scale, layout and form primitives, surfaces, overlays, feedback, header, mobile menu, bottom bar, footer, skip link, 404/error/loading, contrast audit, e2e tests, dev-only `/styleguide`. **Phase 3**: `lib/api` types and Zod schemas, `ApiClient` contract (22 methods), adapter switch, mock adapter (simulation, privacy, moderation), http stub, sample data, NPR and date formatters, list helpers, `useAuth` (not mounted yet), shared contract test suite |
-| Next | **Phase 4**: home page and About, Board and How We Work. Plan first, wait for "approved". Decide the data-fetching pattern for Cache Components with the first page |
-| Quality gate | `npm run ci` (format check, typecheck, lint, unit tests, build); 265 unit tests in 27 files; `npm run test:e2e` 34 passed, 6 skipped (viewport-specific). Pre-commit hook runs lint-staged and typecheck |
-| Waiting on owner | Association-specific logo and brand colours (Q2/Q3; institute logo and provisional palette in use meanwhile); Q4, Q7 to Q10. Q1, Q5 and Q6 answered |
-| Placeholder in use | Institute logo plus text wordmark "BPKIHS Alumni Association" until an Association logo is supplied |
+| Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
+| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean |
+| Next | **Step 11**: surfaces and feedback components (see `ROADMAP.md` Phase 2 table) |
+| Quality gate | `npm run ci` passes (format check, typecheck, lint, 7 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
+| Waiting on owner | Q2/Q3 (logo, brand colours, name) before Step 12; Q5. Q1 and Q6 answered |
+| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
 
-**Versions in use (12 Oct 2026):** Node 22.23, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.21 (Base UI, Nova), Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react, zod.
+**Versions in use (12 Oct 2026):** Node 22.23, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.21 (Base UI, Nova), Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react.
 
 **Scripts:** `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test`, `test:watch`, `test:e2e`, `ci`.
 
 **Components built so far (`src/components`):**
-- `layout/`: `container`, `section` (tone: default, tint, muted), `site-header`, `mobile-nav`, `bottom-bar`, `site-footer`, `nav-styles`
-- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field`, `stat-card`, `empty-state`, `error-state`, `progress-bar` (also exports `getPercent`), `stepper`, `newsletter-form`
-- `ui/` (shadcn, Base UI): `accordion`, `badge`, `breadcrumb`, `button`, `card`, `checkbox`, `dialog`, `input`, `label`, `pagination`, `progress`, `radio-group`, `select`, `sheet`, `skeleton`, `sonner`, `switch`, `tabs`, `textarea`
-- Unit tests (Vitest): `nav`, `contrast`, `utils`, `button`, `section-heading`, `donate-button`, `form-field`, `newsletter-form`, `progress-bar`, `stepper`, `states`
-- E2E tests (Playwright, `e2e/`): `home`, `navigation`, `skip-link`, `not-found`, `no-overflow`, `styleguide`
-- `src/app/page.tsx` is a **temporary page** (Phase 4 replaces it); `/styleguide` is dev only and returns 404 in production
-**Data layer built so far (`src/lib`, `src/features`):**
-- `constants/domain.ts`: value lists (programmes, visibility, payment methods, post types and so on) shared by the types, the schemas and the UI
-- `api/`: `types.ts`, `schemas.ts` (form input), `record-schemas.ts` (stored records), `errors.ts` (`ApiError`), `contract.ts` (`ApiClient`, 22 methods), `client.ts` (`getApiClient()`), `list-helpers.ts`, `queries.ts`, `contract-suite.ts`
-- `api/mock/`: `index.ts` (adapter), `store.ts`, `privacy.ts`, `simulate.ts`, `validate.ts`, `data/` (seeds)
-- `api/http/`: stub that rejects every call with `not_implemented`
-- `format/`: `money.ts` (`formatNpr`, `formatNprCompact`, `rupees`), `dates.ts` (Nepal time, fixed month names)
-- `features/auth/auth-context.tsx`: `AuthProvider` and `useAuth()` (not mounted yet)
-- Seeds: about 60 alumni (all three statuses, hidden profiles), 6 goals (general fund first), 14 board members over 3 terms, 12 events, 14 posts (one pending, one rejected), 10 FAQ items, 1 welcome message
+- `layout/`: `container.tsx`, `section.tsx` (tone: default, tint, muted)
+- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field` (render-prop: `{(control) => <Input {...control} />}`)
+- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`
+- Tests: `button`, `utils`, `section-heading`, `donate-button`, `form-field`
+- `src/app/page.tsx` is a **temporary design-check page** (Phase 4 replaces it)
+
 **Base UI notes (shadcn components use Base UI primitives, not Radix):** `Checkbox` uses `CheckboxPrimitive.Root.Props`; `RadioGroup` and `RadioGroupItem` use Base UI radio props; `Select` exports `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`, `SelectGroup`, `SelectLabel`, `SelectSeparator`. Check each component's `Props` type before wiring state (for example `onCheckedChange`, `onValueChange`).
 
 **If the owner pastes an error:** fix that error first, then repeat the step's verification before moving on.
@@ -282,8 +265,6 @@ Shapes the backend must later match. All IDs are strings; dates are ISO 8601.
 
 ### 7.1 Core types
 
-> The code is now the source of truth: `src/lib/api/types.ts` (shapes), `schemas.ts` (form input, with `z.infer` input types) and `record-schemas.ts` (stored records). The block below is the original design and may lag behind it. Currency is NPR only (D30).
-
 ```ts
 type Programme =
   | 'MBBS' | 'BDS' | 'BMIT' | 'BSc Nursing' | 'Allied Health'
@@ -315,13 +296,13 @@ interface Alumnus {
 
 interface DonationGoal {
   id: string; title: string; description: string;
-  targetMinor: number; raisedMinor: number; currency: 'NPR';
+  targetMinor: number; raisedMinor: number; currency: 'NPR' | 'USD';
   deadline?: string; imageUrl?: string; placeholder?: boolean;
 }
 
 interface DonationInput {
   goalId?: string;                 // undefined = general fund
-  amountMinor: number; currency: 'NPR';
+  amountMinor: number; currency: 'NPR' | 'USD';
   method: 'esewa' | 'khalti' | 'connectips' | 'fonepay' | 'card' | 'paypal';
   anonymous: boolean;
   tribute?: {
@@ -364,7 +345,7 @@ type HelpdeskTopic = 'account' | 'profile_verification' | 'donation_receipt' | '
 interface WelcomeMessage { author: string; role: string; text: string; videoUrl?: string; photoUrl?: string }
 ```
 
-### 7.2 Mock API functions (`lib/api`; see D33 for the final names)
+### 7.2 Mock API functions (`lib/api`)
 
 | Function | Returns |
 |---|---|
@@ -394,16 +375,6 @@ interface WelcomeMessage { author: string; role: string; text: string; videoUrl?
 - Names and organisations are **fictional**. No real person's data is ever used as a placeholder.
 - Real BPKIHS logo and images are used only where taken from bpkihs.edu (D4).
 - The written alumni register will later arrive via **CSV import** (`source: 'csv_import'`); the type already supports it.
-
----
-
-## 7.4 Notes from building the data layer (Phase 3)
-
-- `submitRsvp` returns `{ ok: true }` for both a confirmed place and a waitlist entry. Phase 7 needs the result to say which; add `waitlisted: boolean` to `OkResult` for RSVP and update the contract and tests then.
-- Seed dates are fixed around 12 Oct 2026. Event `status` comes from the data, not the clock, so past and upcoming tabs stay stable.
-- The funds breakdown is recomputed from the goals on every read, so it always adds up to the total raised.
-- Registrations and member posts are stored as `pending` and stay invisible; there is no approval method yet (Phase 9 admin).
-- A backend adapter must pass `src/lib/api/contract-suite.ts`.
 
 ---
 
@@ -446,10 +417,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | 3 | 12 Oct 2026 | Steps 2–3 finished and committed (Prettier, strict TS, folders, env, docs; shadcn/ui init with Base UI + Nova, `button`). Found Next.js 16.4 and Tailwind v4. **Step 4** issued (fonts, tokens, metadata). | D18–D19 added. Colour fixes: `warning-600` darkened to `#9A6200`; added `accent-700` for donate hover (see `DESIGN.md` §2) |
 | 4 | 12 Oct 2026 | Step 4 committed (fonts, tokens, metadata). **Step 5** image host + README. **Step 6** Husky, lint-staged, import sorting; hook proven by a deliberately broken commit that was blocked. **Step 7** replaced the `cn` package with `clsx` + `tailwind-merge`; Vitest + Testing Library (3 tests); fixed a pasted-into-wrong-file mistake (`button.tsx`) and a leftover `from 'cn'` import. **Step 8** Playwright (4 tests), `npm run ci`, missing `playwright.config.ts` fixed. | D20–D22 added. Phase 1 complete. Phase 2 plan drafted (Steps 9–14) |
 | 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
-| 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Steps 11 to 13 done (see 3.3); D29 to D31 added. Step 14 next |
-| 7 | 12 Oct 2026 | Steps 11 to 13 finished and committed locally (nothing pushed): surfaces and feedback components, `/demo` page, header with institute logo, mobile menu, bottom bar, footer with newsletter strip, skip link, main landmark, 404, error and loading pages. Docs updated for NPR only and the logo. Step 14a (colour contrast audit test) issued | D29 to D31 added. Open finding: input border `neutral-300` is about 1.5:1 on white, WCAG 2.2 wants 3:1; propose a darker input border token (about `#7B8794`) in the styleguide step and ask the owner first |
-| 8 | 12 Oct 2026 | **14a** contrast audit finished (21 tests): added `neutral-500` (`#7b8794`, 3.66:1) for form control borders and mapped `--input` to it; 3:1 checks for focus ring, large text and graphics. **14b** e2e tests for navigation, skip link, 404 and no sideways scroll at 1440 and 360 px (Playwright viewports changed); they caught a duplicate `<main>` and a second `<h1>` on the temporary home page, both fixed. **14c** dev-only `/styleguide` (404 in production, colours read from `tokens.css`) replaces `/demo`; home page trimmed. **14d** README restored and updated, docs cleanup. Owner approved `/styleguide`; **Phase 2 closed**. `typecheck` now runs `next typegen` first. Lessons: PowerShell `$home` is reserved; `export const dynamic` is not allowed with Cache Components; deleting `.next` removes the generated `LayoutProps` type (run `npx next typegen`); Playwright reuses a running dev server, so stop it after big changes | D32: form control borders use `neutral-500` |
-| 9 | 12 Oct 2026 | **Phase 3 built, one sub-step at a time.** 3a types, domain constants, Zod schemas. 3b money and date formatters, list helpers, query functions. 3c `ApiClient` contract, adapter switch, simulation helpers, http stub. 3d about 60 sample alumni, then goals, boards, events, posts, FAQ, welcome message, with strict record schemas. 3e mock adapter, reads then writes (privacy, moderation, validation, waitlist, donations). 3f `useAuth`. 3g shared contract suite and docs. Lessons: a script that removes a test by exact text fails silently once Prettier reflows it (match on the title); `git status` before each commit, because two seed commits were skipped and had to be made together | D33 to D37 |
+| 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 next |
 
 *Append a new row after every working session.*
 
@@ -463,7 +431,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | Q2 | Exact brand colours and the logo file for the Association (not just BPKIHS)? | Provisional palette in `DESIGN.md` |
 | Q3 | Association name and tagline (e.g. "BPKIHS Alumni Association")? | "BPKIHS Alumni Association" |
 | Q4 | Is there a domain or a Nepali-year (BS) date requirement? | Gregorian dates only |
-| Q5 | ~~Donation currencies~~ **Answered, see 12.1** | - |
+| Q5 | Donation currencies: NPR only, or NPR and USD? | NPR and USD |
 | Q6 | ~~Admin dashboard timing~~ **Answered, see 12.1** | — |
 | Q7 | Should the directory show alumni photos? Consent wording? | Optional photo with consent checkbox |
 | Q8 | Who is the contact for helpdesk copy and FAQ answers? (Proposal names Kushal Adhikari as Project Lead; that is the developer's contact, not Association copy) | Placeholder FAQ |
@@ -480,7 +448,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | Q2 | | |
 | Q3 | | |
 | Q4 | | |
-| Q5 | NPR only, no USD toggle (D30) | 12 Oct 2026 |
+| Q5 | | |
 | Q6 | Build admin UI in Phase 9, mock only (D27) | 12 Oct 2026 |
 | Q7 | | |
 | Q8 | | |
@@ -511,24 +479,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 - **Run the whole gate before committing.** The hook checks types and lint only, not tests. Run `npm run ci` first; a failing test can otherwise slip into a commit.
 - **Testing Library cleanup:** with Vitest globals off, add `afterEach(cleanup)` in `vitest.setup.ts`, or tests see each other's output.
 - **Pasting through PowerShell here-strings can drop spaces** (for example `gap-1.5text-sm`). After pasting a large block, scan for run-together class names or let Prettier and the tests catch them.
-- **shadcn can re-introduce the old `cn` import** (`from 'cn'`). After every `shadcn add`, search for it and point it at `@/lib/utils`. Search for both quote styles, because eslint and Prettier rewrite the quotes.
-- **`shadcn add -y` overwrites existing files** (it replaced our fixed `button.tsx`). Run it without `-y`, answer **no** to any overwrite prompt, or `git restore` the file afterwards.
-- **shadcn `sonner` pulls in `next-themes`.** We are light only (D19), so `sonner.tsx` was rewritten with `theme="light"` and `next-themes` removed.
-- **A mangled paste can create a stray file** in the project root. Prettier fails on it. Check `git status --short` for unexpected `??` entries and delete them with `Remove-Item -LiteralPath`.
-- **Do not name a PowerShell helper `R`.** It is a built-in alias for `Invoke-History` and wins over functions. Use `Rep` and `W`.
-- **Terminal copy drops a space where a long line wraps.** A pasted result can show `(seeD30)` when the file is fine. Verify with a regex count on the file before assuming damage.
-- **A re-run of an edit script prints `NOT FOUND` for every edit that already applied.** That is not a failure. Check the file before debugging.
-- **Keep pasted replacement lines short.** Long single-line anchors are hard to verify; prefer short inner-text anchors.
-- **Prettier re-pads markdown tables.** When scripting edits to the docs, match short inner text, not text that touches a table pipe.
-
-**Phase 3 lessons**
-- Never put Markdown backticks inside a PowerShell double-quoted string: a backtick followed by `n` becomes a newline and splits the line (this corrupted the D32 row). Use single-quoted strings or here-strings.
-- `$home` is a reserved PowerShell variable. Name script variables something else (`$homePageSource`).
-- A script that removes a test by exact text fails silently once Prettier reflows the file. Match on a short title and print a red NOT FOUND.
-- Run `git status --short` before each commit. Two seed-data commits were skipped and had to be made later.
-- Next 16 with Cache Components rejects `export const dynamic` on a route.
-- Deleting `.next` removes the generated `LayoutProps` type. `typecheck` now runs `next typegen` first.
-- Playwright reuses a running dev server, so stop it (and clear `.next`) after large changes.
+- **shadcn can re-introduce the old `cn` import** (`from 'cn'`). After every `shadcn add`, search for it and point it at `@/lib/utils`.
 
 ---
 
