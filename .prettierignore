@@ -4,3 +4,6 @@ package-lock.json
 public
 docs
 .husky
+test-results
+playwright-report
+blob-report
