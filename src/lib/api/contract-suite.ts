@@ -16,6 +16,16 @@ const caught = (promise: Promise<unknown>) =>
 
 export function runContractSuite(name: string, create: () => ApiClient) {
   describe(`API contract: ${name}`, () => {
+    it('offers filter options that match real results', async () => {
+      const api = create();
+      const options = await api.getAlumniFilterOptions();
+      expect(new Set(options.countries).size).toBe(options.countries.length);
+      expect(options.batchYears.every((year) => typeof year === 'number')).toBe(true);
+      const country = options.countries[0];
+      expect(country).toBeDefined();
+      if (country) expect((await api.listAlumni({ country })).items.length).toBeGreaterThan(0);
+    });
+
     it('returns paginated lists in the agreed shape', async () => {
       const api = create();
       for (const page of [await api.listAlumni(), await api.listEvents(), await api.listFeed()]) {

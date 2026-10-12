@@ -17,6 +17,7 @@ import type {
 } from './schemas';
 import type {
   AlumniEvent,
+  AlumniFilterOptions,
   AlumniListParams,
   Alumnus,
   BoardMember,
@@ -45,6 +46,8 @@ export interface ApiClient {
   /* alumni */
   listAlumni(params?: AlumniListParams): Promise<Paginated<Alumnus>>;
   getAlumnus(id: string): Promise<Alumnus>;
+  /** Countries and batch years that exist among listed alumni, for the filter menus. */
+  getAlumniFilterOptions(): Promise<AlumniFilterOptions>;
   submitRegistration(input: RegistrationInput): Promise<RegistrationResult>;
 
   /* donations */
@@ -86,6 +89,7 @@ const METHODS: { [K in keyof ApiClient]: true } = {
   getWelcomeMessage: true,
   listAlumni: true,
   getAlumnus: true,
+  getAlumniFilterOptions: true,
   submitRegistration: true,
   listGoals: true,
   getGoal: true,

@@ -1,6 +1,6 @@
 import type { ApiClient } from '../contract';
 import { ApiError } from '../errors';
-import { queryAlumni, queryEvents, queryFeed } from '../queries';
+import { buildAlumniFilterOptions, queryAlumni, queryEvents, queryFeed } from '../queries';
 import {
   donationSchema,
   helpdeskSchema,
@@ -125,6 +125,8 @@ export function createMockAdapter(options: MockAdapterOptions = {}): ApiClient {
         if (!person || !isListable(person, viewer)) throw notFound('That profile');
         return toPublicView(person, viewer);
       }),
+
+    getAlumniFilterOptions: () => run(() => buildAlumniFilterOptions(visibleAlumni())),
 
     listGoals: () => run(() => copy(store.goals)),
 

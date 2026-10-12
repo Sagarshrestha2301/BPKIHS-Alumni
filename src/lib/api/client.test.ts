@@ -44,9 +44,9 @@ describe('createApiClient and getApiClient', () => {
 });
 
 describe('adapter shape', () => {
-  it('lists 22 methods', () => {
-    expect(API_METHOD_NAMES).toHaveLength(22);
-    expect(new Set(API_METHOD_NAMES).size).toBe(22);
+  it('lists 23 methods', () => {
+    expect(API_METHOD_NAMES).toHaveLength(23);
+    expect(new Set(API_METHOD_NAMES).size).toBe(23);
   });
 
   it.each([

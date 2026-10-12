@@ -6,6 +6,7 @@
 import { by, matchesQuery, normaliseText, paginate, sortBy } from './list-helpers';
 import type {
   AlumniEvent,
+  AlumniFilterOptions,
   AlumniListParams,
   Alumnus,
   EventListParams,
@@ -116,4 +117,13 @@ export function queryFeed(
     by((post: FeedPost) => post.title),
   );
   return paginate(sorted, params);
+}
+
+/** Distinct countries (A to Z) and batch years (newest first) among the given alumni. */
+export function buildAlumniFilterOptions(alumni: readonly Alumnus[]): AlumniFilterOptions {
+  const countries = [...new Set(alumni.map((person) => person.country))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const batchYears = [...new Set(alumni.map((person) => person.batchYear))].sort((a, b) => b - a);
+  return { countries, batchYears };
 }

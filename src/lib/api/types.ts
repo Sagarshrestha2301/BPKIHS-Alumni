@@ -200,6 +200,13 @@ export interface AlumniListParams extends ListParams {
   furtherStudies?: boolean;
 }
 
+/** What the directory filter menus offer. Built only from listed profiles. */
+export interface AlumniFilterOptions {
+  countries: string[];
+  /** Newest first. */
+  batchYears: number[];
+}
+
 export type EventSort = 'soonest' | 'latest';
 
 export interface EventListParams extends ListParams {
