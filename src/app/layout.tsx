@@ -2,6 +2,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari, Source_Serif_4 } from 'next/font/google';
+import { Suspense } from 'react';
 
 import { BottomBar } from '@/components/layout/bottom-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -49,12 +50,20 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         >
           Skip to main content
         </a>
-        <SiteHeader />
+        <Suspense
+          fallback={
+            <div className="h-16 border-b border-neutral-300 bg-white lg:h-24" aria-hidden="true" />
+          }
+        >
+          <SiteHeader />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
         <SiteFooter />
-        <BottomBar />
+        <Suspense fallback={null}>
+          <BottomBar />
+        </Suspense>
       </body>
     </html>
   );
