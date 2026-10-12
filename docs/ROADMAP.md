@@ -93,7 +93,7 @@
 |---|---|---|
 | 9 | Type scale, spacing, container and shadow tokens; `Container`, `Section`, `Eyebrow`, `SectionHeading`; `DonateButton` and `DonateLink`; heading sizes in `globals.css` | [x] Done, committed (`5d38959`) |
 | 10 | Form primitives via shadcn (input, label, textarea, select, checkbox, radio group, switch); `FormField` wrapper (label, hint, error with icon, aria links); tests; `vitest.setup.ts` cleanup fix | [x] Done, committed (`92e70c1`, fix `540a0b7`); 7 tests pass |
-| 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [ ] **Next** |
+| 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [x] Done (`041a1aa` shadcn components; custom components and temporary `/demo` page); 12 tests |
 | 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [ ] |
 | 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [ ] |
 | 14 | Dev-only `/styleguide`; contrast audit test; e2e tests for navigation at 360 and 1440 px | [ ] |
@@ -307,6 +307,6 @@ All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ## Next step
 
-**Now:** Phase 2, **Step 11** (cards, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination, plus custom StatCard, EmptyState, ErrorState, ProgressBar, Stepper).
+**Now:** Phase 2, **Step 12** (header, mobile menu sheet, mobile bottom action bar, logo).
 
 **Still open:** README script rows (`test`, `test:e2e`, `ci`) not yet added; Q2/Q3 (logo, colours, name) before Step 12; Q5.

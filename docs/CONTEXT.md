@@ -107,9 +107,9 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | Item | State |
 |---|---|
 | Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
-| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean |
-| Next | **Step 11**: surfaces and feedback components (see `ROADMAP.md` Phase 2 table) |
-| Quality gate | `npm run ci` passes (format check, typecheck, lint, 7 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
+| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean. **Step 11** (shadcn card, badge, tabs, accordion, dialog, sheet, skeleton, progress, breadcrumb, pagination, sonner; custom `StatCard`, `EmptyState`, `ErrorState`, `ProgressBar`, `Stepper`; temporary `/demo` page; 12 tests) |
+| Next | **Step 12**: header (desktop), mobile menu sheet, mobile bottom action bar, logo (see `ROADMAP.md` Phase 2 table) |
+| Quality gate | `npm run ci` passes (format check, typecheck, lint, 13 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
 | Waiting on owner | Q2/Q3 (logo, brand colours, name) before Step 12; Q5. Q1 and Q6 answered |
 | Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
 
@@ -119,8 +119,8 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 **Components built so far (`src/components`):**
 - `layout/`: `container.tsx`, `section.tsx` (tone: default, tint, muted)
-- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field` (render-prop: `{(control) => <Input {...control} />}`)
-- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`
+- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field`, `stat-card`, `empty-state`, `error-state`, `progress-bar` (also exports `getPercent`), `stepper` (render-prop: `{(control) => <Input {...control} />}`)
+- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`, `card`, `badge`, `tabs`, `accordion`, `dialog`, `sheet`, `skeleton`, `progress`, `breadcrumb`, `pagination`, `sonner`
 - Tests: `button`, `utils`, `section-heading`, `donate-button`, `form-field`
 - `src/app/page.tsx` is a **temporary design-check page** (Phase 4 replaces it)
 
@@ -417,7 +417,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | 3 | 12 Oct 2026 | Steps 2–3 finished and committed (Prettier, strict TS, folders, env, docs; shadcn/ui init with Base UI + Nova, `button`). Found Next.js 16.4 and Tailwind v4. **Step 4** issued (fonts, tokens, metadata). | D18–D19 added. Colour fixes: `warning-600` darkened to `#9A6200`; added `accent-700` for donate hover (see `DESIGN.md` §2) |
 | 4 | 12 Oct 2026 | Step 4 committed (fonts, tokens, metadata). **Step 5** image host + README. **Step 6** Husky, lint-staged, import sorting; hook proven by a deliberately broken commit that was blocked. **Step 7** replaced the `cn` package with `clsx` + `tailwind-merge`; Vitest + Testing Library (3 tests); fixed a pasted-into-wrong-file mistake (`button.tsx`) and a leftover `from 'cn'` import. **Step 8** Playwright (4 tests), `npm run ci`, missing `playwright.config.ts` fixed. | D20–D22 added. Phase 1 complete. Phase 2 plan drafted (Steps 9–14) |
 | 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
-| 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 next |
+| 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 done (see 3.3). Step 12 next |
 
 *Append a new row after every working session.*
 
@@ -479,7 +479,12 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 - **Run the whole gate before committing.** The hook checks types and lint only, not tests. Run `npm run ci` first; a failing test can otherwise slip into a commit.
 - **Testing Library cleanup:** with Vitest globals off, add `afterEach(cleanup)` in `vitest.setup.ts`, or tests see each other's output.
 - **Pasting through PowerShell here-strings can drop spaces** (for example `gap-1.5text-sm`). After pasting a large block, scan for run-together class names or let Prettier and the tests catch them.
-- **shadcn can re-introduce the old `cn` import** (`from 'cn'`). After every `shadcn add`, search for it and point it at `@/lib/utils`.
+- **shadcn can re-introduce the old `cn` import** (`from 'cn'`). After every `shadcn add`, search for it and point it at `@/lib/utils`. Search for both quote styles, because eslint and Prettier rewrite the quotes.
+- **`shadcn add -y` overwrites existing files** (it replaced our fixed `button.tsx`). Run it without `-y`, answer **no** to any overwrite prompt, or `git restore` the file afterwards.
+- **shadcn `sonner` pulls in `next-themes`.** We are light only (D19), so `sonner.tsx` was rewritten with `theme="light"` and `next-themes` removed.
+- **A mangled paste can create a stray file** in the project root. Prettier fails on it. Check `git status --short` for unexpected `??` entries and delete them with `Remove-Item -LiteralPath`.
+- **Do not name a PowerShell helper `R`.** It is a built-in alias for `Invoke-History` and wins over functions. Use `Rep` and `W`.
+- **Prettier re-pads markdown tables.** When scripting edits to the docs, match short inner text, not text that touches a table pipe.
 
 ---
 
