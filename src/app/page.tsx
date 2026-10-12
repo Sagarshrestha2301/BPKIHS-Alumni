@@ -1,5 +1,6 @@
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+
+import { Button } from '@/components/ui/button';
 const swatches = [
   { name: 'primary-900', className: 'bg-primary-900' },
   { name: 'primary-700', className: 'bg-primary-700' },

@@ -1,6 +1,7 @@
+import './globals.css';
+
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari, Source_Serif_4 } from 'next/font/google';
-import './globals.css';
 
 const inter = Inter({
   variable: '--font-inter',
