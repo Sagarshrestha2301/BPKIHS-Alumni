@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-
+import Image from 'next/image';
 const swatches = [
   { name: 'primary-900', className: 'bg-primary-900' },
   { name: 'primary-700', className: 'bg-primary-700' },
@@ -29,6 +29,16 @@ export default function HomePage() {
         </p>
       </header>
 
+      <section className="space-y-3">
+        <h2 className="text-2xl font-semibold">Image test</h2>
+        <Image
+          src="https://bpkihs.edu/file/show/images/BPKIHS520X320.jpg"
+          alt="B.P. Koirala Institute of Health Sciences"
+          width={520}
+          height={320}
+          className="h-auto w-full max-w-md rounded-xl border"
+        />
+      </section>
       <section className="space-y-3">
         <h2 className="text-2xl font-semibold">Buttons</h2>
         <div className="flex flex-wrap gap-3">
