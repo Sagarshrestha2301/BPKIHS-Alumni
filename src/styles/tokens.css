@@ -1,0 +1,23 @@
+/* Brand tokens (provisional until the Association logo and colours are confirmed).
+   Change the brand here; nothing else needs editing. */
+@theme static {
+  --color-primary-900: #0b2a4a;
+  --color-primary-700: #12467a;
+  --color-primary-500: #2a6bb0;
+  --color-primary-100: #e6eef7;
+
+  /* Donate colour. Not the same as shadcn's "accent" tint. */
+  --color-accent-700: #8f3f1d;
+  --color-accent-600: #b4532a;
+  --color-accent-500: #d9722f;
+  --color-accent-100: #fbebdd;
+
+  --color-success-600: #1f7a4d;
+  --color-warning-600: #9a6200;
+  --color-danger-600: #b3261e;
+
+  --color-neutral-900: #16202b;
+  --color-neutral-600: #4a5866;
+  --color-neutral-300: #cbd3db;
+  --color-neutral-100: #f4f6f8;
+}

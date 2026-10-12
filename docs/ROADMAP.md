@@ -10,22 +10,22 @@
 
 ## Phase overview
 
-| Phase | Name                                   | Est.   | Depends on | Status |
-| ----- | -------------------------------------- | ------ | ---------- | ------ |
-| 0     | Alignment and docs                     | 1 day  | —          | [x]    |
-| 1     | Project setup and tooling              | 2 days | 0          | [~]    |
-| 2     | Design system and layout shell         | 4 days | 1          | [ ]    |
-| 3     | Data layer (types, mocks, API client)  | 3 days | 1          | [ ]    |
-| 4     | Home and About/Governance pages        | 5 days | 2, 3       | [ ]    |
-| 5     | Directory and Registration             | 6 days | 2, 3       | [ ]    |
-| 6     | Donate flow (with login gate)          | 6 days | 2, 3       | [ ]    |
-| 7     | Events and Community                   | 5 days | 2, 3       | [ ]    |
-| 8     | Support and Legal                      | 3 days | 2          | [ ]    |
-| 9     | Admin dashboard UI (mock) 🔒           | 5 days | 3–8        | [ ]    |
-| 10    | Polish, accessibility, performance, QA | 5 days | all        | [ ]    |
-| 11    | Backend handoff package                | 2 days | all        | [ ]    |
+| Phase | Name | Est. | Depends on | Status |
+|---|---|---|---|---|
+| 0 | Alignment and docs | 1 day | — | [x] |
+| 1 | Project setup and tooling | 2 days | 0 | [~] |
+| 2 | Design system and layout shell | 4 days | 1 | [ ] |
+| 3 | Data layer (types, mocks, API client) | 3 days | 1 | [ ] |
+| 4 | Home and About/Governance pages | 5 days | 2, 3 | [ ] |
+| 5 | Directory and Registration | 6 days | 2, 3 | [ ] |
+| 6 | Donate flow (with login gate) | 6 days | 2, 3 | [ ] |
+| 7 | Events and Community | 5 days | 2, 3 | [ ] |
+| 8 | Support and Legal | 3 days | 2 | [ ] |
+| 9 | Admin dashboard UI (mock) 🔒 | 5 days | 3–8 | [ ] |
+| 10 | Polish, accessibility, performance, QA | 5 days | all | [ ] |
+| 11 | Backend handoff package | 2 days | all | [ ] |
 
-_Phases 4–8 can run in parallel after 2 and 3 if more than one person works on it._
+*Phases 4–8 can run in parallel after 2 and 3 if more than one person works on it.*
 
 ---
 
@@ -48,14 +48,14 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 
 ### Step tracker
 
-| Step | Scope                                                                                                                                                                                                                                                                                 | Status                          |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| 1    | Check Node, npm, git, VS Code; create Next.js project; run dev server; install VS Code extensions                                                                                                                                                                                     | [x] **Done**                    |
-| 2    | Prettier + Tailwind plugin; `.prettierrc`, `.prettierignore`, `.gitattributes`, `.vscode/settings.json`; package scripts; TS strict + `noUncheckedIndexedAccess`; folder structure; `.env.example` / `.env.local`; copy docs to `docs/`; format, typecheck, lint, build; first commit | [~] **Issued, awaiting "done"** |
-| 3    | shadcn/ui init; fonts (Inter, Source Serif 4, Noto Sans Devanagari) via `next/font`; design tokens (`styles/tokens.css`) and Tailwind theme mapping                                                                                                                                   | [ ]                             |
-| 4    | Remote image host for bpkihs.edu in `next.config.ts`; `next/image` smoke test; `README.md` with run, build, conventions                                                                                                                                                               | [ ]                             |
-| 5    | Husky pre-commit (lint, typecheck); import sorting; optional lint-staged                                                                                                                                                                                                              | [ ]                             |
-| 6    | Testing setup: Vitest + React Testing Library; Playwright config for key flows; CI script placeholder                                                                                                                                                                                 | [ ]                             |
+| Step | Scope | Status |
+|---|---|---|
+| 1 | Check Node, npm, git, VS Code; create Next.js project; run dev server; install VS Code extensions | [x] **Done** |
+| 2 | Prettier + Tailwind plugin; `.prettierrc`, `.prettierignore`, `.gitattributes`, `.vscode/settings.json`; package scripts; TS strict + `noUncheckedIndexedAccess`; folder structure; `.env.example` / `.env.local`; copy docs to `docs/`; format, typecheck, lint, build; first commit | [~] **Issued, awaiting "done"** |
+| 3 | shadcn/ui init; fonts (Inter, Source Serif 4, Noto Sans Devanagari) via `next/font`; design tokens (`styles/tokens.css`) and Tailwind theme mapping | [ ] |
+| 4 | Remote image host for bpkihs.edu in `next.config.ts`; `next/image` smoke test; `README.md` with run, build, conventions | [ ] |
+| 5 | Husky pre-commit (lint, typecheck); import sorting; optional lint-staged | [ ] |
+| 6 | Testing setup: Vitest + React Testing Library; Playwright config for key flows; CI script placeholder | [ ] |
 
 ### Checklist
 
@@ -121,7 +121,6 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 ## Phase 4 — Home and About/Governance
 
 **Home `/`** (`DESIGN.md` §8.1)
-
 - [ ] Hero with three equal CTAs
 - [ ] Stats band
 - [ ] Three doors
@@ -134,7 +133,6 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 - [ ] SEO metadata and Open Graph
 
 **About / Board / How We Work** (§8.2)
-
 - [ ] `/about`
 - [ ] `/about/board` with Current/Previous tabs and member dialog
 - [ ] `/about/how-we-work` accordion
@@ -146,7 +144,6 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 ## Phase 5 — Directory and Registration
 
 **Directory** (§8.3)
-
 - [ ] Search and filters (programme, batch, country/city, further studies)
 - [ ] Desktop sidebar; mobile bottom-sheet filters with active-filter chips
 - [ ] Person cards, sorting, pagination (12 per page)
@@ -154,7 +151,6 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 - [ ] Loading, empty, error states
 
 **Register** (§8.4)
-
 - [ ] 3-step form with Zod validation
 - [ ] Consent and privacy switches
 - [ ] Photo upload UI (stub)
@@ -187,13 +183,11 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 ## Phase 7 — Events and Community
 
 **Events** (§8.11)
-
 - [ ] Listing with Upcoming/Past tabs and filters
 - [ ] Detail page with RSVP form (no login), capacity meter, calendar button (UI)
 - [ ] Past-event recap layout
 
 **Community** (§8.10)
-
 - [ ] Feed with filter chips and "Load more"
 - [ ] Notice-board style list
 - [ ] Post detail view
@@ -216,7 +210,7 @@ _Phases 4–8 can run in parallel after 2 and 3 if more than one person works on
 
 ## Phase 9 — Admin dashboard UI (mock) 🔒
 
-_Confirm in Q6 whether to build now or defer._
+*Confirm in Q6 whether to build now or defer.*
 
 - [ ] Mock admin gate
 - [ ] Overview
@@ -250,7 +244,7 @@ _Confirm in Q6 whether to build now or defer._
 
 ## Phase 11 — Backend handoff package
 
-_Produces documents only; no backend code._
+*Produces documents only; no backend code.*
 
 - [ ] `API_CONTRACT.md`: every function in `lib/api`, with request/response JSON examples
 - [ ] Zod schemas exported as the validation spec
@@ -266,23 +260,21 @@ _Produces documents only; no backend code._
 ## Cross-cutting checklists
 
 ### Per-page Definition of Done
-
 (See `CONTEXT.md` §9.) Copy it into each page's task.
 
 ### Risks and mitigations
 
-| Risk                          | Impact                   | Mitigation                                          |
-| ----------------------------- | ------------------------ | --------------------------------------------------- |
-| Proposal not reconciled       | Missing features         | Resolve Q1 before Phase 4                           |
-| Brand colours unknown         | Rework of design         | Tokens only; swap in one file                       |
-| No real content               | Pages look empty or fake | Flagged placeholders; CSV import path               |
-| Payment UI misread as live    | Trust issue              | "Demo only" notices until backend                   |
-| Privacy mistakes in directory | Reputation               | Visibility rules enforced in API contract and tests |
-| Slow connections in Nepal     | Poor UX                  | Performance budget, lazy images, minimal JS         |
-| Scope creep into backend      | Delay                    | Working Protocol rule 5                             |
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Proposal not reconciled | Missing features | Resolve Q1 before Phase 4 |
+| Brand colours unknown | Rework of design | Tokens only; swap in one file |
+| No real content | Pages look empty or fake | Flagged placeholders; CSV import path |
+| Payment UI misread as live | Trust issue | "Demo only" notices until backend |
+| Privacy mistakes in directory | Reputation | Visibility rules enforced in API contract and tests |
+| Slow connections in Nepal | Poor UX | Performance budget, lazy images, minimal JS |
+| Scope creep into backend | Delay | Working Protocol rule 5 |
 
 ### Decision log pointers
-
 All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ---

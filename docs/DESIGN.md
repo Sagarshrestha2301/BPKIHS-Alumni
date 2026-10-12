@@ -1,7 +1,7 @@
 # DESIGN.md — BPKIHS Alumni Website (Frontend)
 
 > Companion to `CONTEXT.md` and `ROADMAP.md`.
-> **Direction (D11):** Hybrid — _institutional trust with a modern layout._
+> **Direction (D11):** Hybrid — *institutional trust with a modern layout.*
 > **Homepage emphasis (D12):** Balanced mix of donations, directory/registration, and events/community.
 > **Status:** Palette and fonts are **provisional** until the Association logo and brand colours are confirmed (Context Q2).
 > **Implementation:** Tokens are applied in code in Phase 1 Step 3 and Phase 2. See section 11 for how they map to Tailwind and shadcn/ui.
@@ -12,7 +12,7 @@
 
 1. **Trust first.** This is a medical institution. Calm, credible, no gimmicks. Real structure, real names, clear numbers.
 2. **Modern, not flashy.** Generous whitespace, clean cards, one strong hero, restrained motion.
-3. **Balanced paths.** Three equal doors from the homepage: _Give_, _Find / Join alumni_, _Attend / Read_.
+3. **Balanced paths.** Three equal doors from the homepage: *Give*, *Find / Join alumni*, *Attend / Read*.
 4. **Transparent by default.** Every donation surface shows where money goes.
 5. **Mobile-first, desktop-rich.** Design at 360 px, then enhance.
 6. **Accessible always.** WCAG 2.2 AA is a requirement, not a polish step.
@@ -26,26 +26,25 @@
 
 Inspired by medical-institutional blue with a warm accent. **Verify against the real logo before build.**
 
-| Token                 | Hex (provisional) | Use                                     |
-| --------------------- | ----------------- | --------------------------------------- |
-| `--color-primary-900` | `#0B2A4A`         | Header, footer, headings on light       |
-| `--color-primary-700` | `#12467A`         | Primary buttons, links                  |
-| `--color-primary-500` | `#2A6BB0`         | Hover, charts                           |
-| `--color-primary-100` | `#E6EEF7`         | Tints, section backgrounds              |
-| `--color-accent-600`  | `#B4532A`         | Donate CTA (warm, stands out from blue) |
-| `--color-accent-500`  | `#D9722F`         | Donate hover, highlights                |
-| `--color-accent-100`  | `#FBEBDD`         | Donation tint                           |
-| `--color-success-600` | `#1F7A4D`         | Success, "approved"                     |
-| `--color-warning-600` | `#A66A00`         | Warnings, "pending"                     |
-| `--color-danger-600`  | `#B3261E`         | Errors                                  |
-| `--color-neutral-900` | `#16202B`         | Body text                               |
-| `--color-neutral-600` | `#4A5866`         | Secondary text                          |
-| `--color-neutral-300` | `#CBD3DB`         | Borders                                 |
-| `--color-neutral-100` | `#F4F6F8`         | Page alt background                     |
-| `--color-white`       | `#FFFFFF`         | Surfaces                                |
+| Token | Hex (provisional) | Use |
+|---|---|---|
+| `--color-primary-900` | `#0B2A4A` | Header, footer, headings on light |
+| `--color-primary-700` | `#12467A` | Primary buttons, links |
+| `--color-primary-500` | `#2A6BB0` | Hover, charts |
+| `--color-primary-100` | `#E6EEF7` | Tints, section backgrounds |
+| `--color-accent-600` | `#B4532A` | Donate CTA (warm, stands out from blue) |
+| `--color-accent-500` | `#D9722F` | Donate hover, highlights |
+| `--color-accent-100` | `#FBEBDD` | Donation tint |
+| `--color-success-600` | `#1F7A4D` | Success, "approved" |
+| `--color-warning-600` | `#A66A00` | Warnings, "pending" |
+| `--color-danger-600` | `#B3261E` | Errors |
+| `--color-neutral-900` | `#16202B` | Body text |
+| `--color-neutral-600` | `#4A5866` | Secondary text |
+| `--color-neutral-300` | `#CBD3DB` | Borders |
+| `--color-neutral-100` | `#F4F6F8` | Page alt background |
+| `--color-white` | `#FFFFFF` | Surfaces |
 
 **Rules**
-
 - Donate is the only element in the warm accent, so it is always findable.
 - Body text on white must meet 4.5:1; large text 3:1. Check every pairing before finalising.
 - Never use colour alone to convey state (add icon and text).
@@ -55,24 +54,24 @@ Inspired by medical-institutional blue with a warm accent. **Verify against the 
 
 ## 3. Typography
 
-| Role       | Font                         | Fallbacks             | Notes                                        |
-| ---------- | ---------------------------- | --------------------- | -------------------------------------------- |
-| Headings   | **Source Serif 4** (600–700) | Georgia, serif        | Adds institutional gravity                   |
-| Body / UI  | **Inter** (400, 500, 600)    | system-ui, sans-serif | Clear at small sizes                         |
-| Devanagari | **Noto Sans Devanagari**     | sans-serif            | For bilingual notices copied from bpkihs.edu |
+| Role | Font | Fallbacks | Notes |
+|---|---|---|---|
+| Headings | **Source Serif 4** (600–700) | Georgia, serif | Adds institutional gravity |
+| Body / UI | **Inter** (400, 500, 600) | system-ui, sans-serif | Clear at small sizes |
+| Devanagari | **Noto Sans Devanagari** | sans-serif | For bilingual notices copied from bpkihs.edu |
 
 **Scale (mobile → desktop)**
 
-| Style          | Mobile | Desktop | Weight / line-height             |
-| -------------- | ------ | ------- | -------------------------------- |
-| Display (hero) | 36 px  | 56 px   | 700 / 1.1                        |
-| H1             | 30 px  | 44 px   | 700 / 1.15                       |
-| H2             | 24 px  | 34 px   | 600 / 1.2                        |
-| H3             | 20 px  | 24 px   | 600 / 1.3                        |
-| Body L         | 18 px  | 18 px   | 400 / 1.6                        |
-| Body           | 16 px  | 16 px   | 400 / 1.6                        |
-| Small          | 14 px  | 14 px   | 400 / 1.5                        |
-| Eyebrow        | 12 px  | 13 px   | 600, uppercase, +0.08em tracking |
+| Style | Mobile | Desktop | Weight / line-height |
+|---|---|---|---|
+| Display (hero) | 36 px | 56 px | 700 / 1.1 |
+| H1 | 30 px | 44 px | 700 / 1.15 |
+| H2 | 24 px | 34 px | 600 / 1.2 |
+| H3 | 20 px | 24 px | 600 / 1.3 |
+| Body L | 18 px | 18 px | 400 / 1.6 |
+| Body | 16 px | 16 px | 400 / 1.6 |
+| Small | 14 px | 14 px | 400 / 1.5 |
+| Eyebrow | 12 px | 13 px | 600, uppercase, +0.08em tracking |
 
 Body never below 16 px on mobile. Max line length ~70 characters.
 
@@ -95,44 +94,41 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 ### 5.1 Global layout
 
 **Header (desktop)**
-
 - Row 1 (utility, thin): link to bpkihs.edu, Contact, Support.
 - Row 2: logo + name left; nav centre; **Donate button** (accent) and **Register** (outline) right.
 - Nav: About · Directory · Events · Community · Donate · Support.
 - Sticky on scroll with reduced height.
 
 **Header (mobile)**
-
 - Logo (compact) and a menu button. Full-screen menu sheet with large links, then Donate and Register.
 - **Bottom action bar** (always visible on mobile): `Donate` · `Find alumni` · `Events`. Hide on checkout pages.
 
 **Footer**
-
 - Columns: About the Association · Get involved · Support · Legal.
 - Newsletter signup row, social icons, BPKIHS link, contact details (placeholder).
 - Bottom line: © 2026 BPKIHS Alumni Association · Privacy · Terms · Accessibility.
 
 ### 5.2 Component list
 
-| Component                                        | Variants / notes                                                                                 |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Button                                           | primary, secondary (outline), donate (accent), ghost, destructive; sizes sm/md/lg; loading state |
-| Input, Select, Textarea, Checkbox, Radio, Switch | Label above, helper text, inline error with icon                                                 |
-| Combobox                                         | For country, programme, batch                                                                    |
-| Card                                             | basic, goal card, event card, person card, post card                                             |
-| StatCard                                         | Number, label, icon; animated count-up respecting reduced motion                                 |
-| ProgressBar                                      | For goals; shows raised, target, percent, supporters                                             |
-| Badge/Chip                                       | status (pending/approved), programme, "Sample"                                                   |
-| Tabs                                             | For board (Current / Previous), FAQ categories                                                   |
-| Accordion                                        | FAQ, "How we work"                                                                               |
-| Dialog / Sheet                                   | Mobile filters, login gate, RSVP                                                                 |
-| Pagination                                       | Numbered on desktop; "Load more" on mobile feeds                                                 |
-| Toast                                            | Success and error confirmations                                                                  |
-| Skeleton                                         | For every list and card                                                                          |
-| EmptyState                                       | Illustration-free, icon + sentence + action                                                      |
-| Breadcrumb                                       | On inner pages                                                                                   |
-| FundsChart                                       | Pie or donut with legend and table fallback                                                      |
-| Stepper                                          | Registration and checkout                                                                        |
+| Component | Variants / notes |
+|---|---|
+| Button | primary, secondary (outline), donate (accent), ghost, destructive; sizes sm/md/lg; loading state |
+| Input, Select, Textarea, Checkbox, Radio, Switch | Label above, helper text, inline error with icon |
+| Combobox | For country, programme, batch |
+| Card | basic, goal card, event card, person card, post card |
+| StatCard | Number, label, icon; animated count-up respecting reduced motion |
+| ProgressBar | For goals; shows raised, target, percent, supporters |
+| Badge/Chip | status (pending/approved), programme, "Sample" |
+| Tabs | For board (Current / Previous), FAQ categories |
+| Accordion | FAQ, "How we work" |
+| Dialog / Sheet | Mobile filters, login gate, RSVP |
+| Pagination | Numbered on desktop; "Load more" on mobile feeds |
+| Toast | Success and error confirmations |
+| Skeleton | For every list and card |
+| EmptyState | Illustration-free, icon + sentence + action |
+| Breadcrumb | On inner pages |
+| FundsChart | Pie or donut with legend and table fallback |
+| Stepper | Registration and checkout |
 
 ### 5.3 Interaction and motion
 
@@ -152,14 +148,14 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 
 ## 6. Responsive behaviour
 
-| Area              | 360 px                    | 768 px            | 1024+ px                |
-| ----------------- | ------------------------- | ----------------- | ----------------------- |
-| Nav               | Menu sheet + bottom bar   | Menu sheet        | Full inline nav         |
-| Hero              | Stacked, image below text | Stacked, larger   | Split text/image        |
-| Card grids        | 1 column                  | 2 columns         | 3–4 columns             |
-| Directory filters | Bottom sheet              | Collapsible panel | Sticky left sidebar     |
-| Tables            | Card list                 | Scroll container  | Full table              |
-| Forms             | 1 column                  | 1–2 columns       | 2 columns where logical |
+| Area | 360 px | 768 px | 1024+ px |
+|---|---|---|---|
+| Nav | Menu sheet + bottom bar | Menu sheet | Full inline nav |
+| Hero | Stacked, image below text | Stacked, larger | Split text/image |
+| Card grids | 1 column | 2 columns | 3–4 columns |
+| Directory filters | Bottom sheet | Collapsible panel | Sticky left sidebar |
+| Tables | Card list | Scroll container | Full table |
+| Forms | 1 column | 1–2 columns | 2 columns where logical |
 
 No horizontal page scroll at any width. Test at 360, 390, 768, 1024, 1440.
 
@@ -190,8 +186,7 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 **Goal:** Give a first-time visitor three clear paths with equal weight and build trust quickly.
 
 **Sections (in order)**
-
-1. **Hero:** eyebrow "BPKIHS Alumni Association"; headline (placeholder: "Once BPKIHS, always BPKIHS"); one-line mission; three equal CTAs: _Give_, _Find alumni_, _Join the network_. Background: campus image with gradient.
+1. **Hero:** eyebrow "BPKIHS Alumni Association"; headline (placeholder: "Once BPKIHS, always BPKIHS"); one-line mission; three equal CTAs: *Give*, *Find alumni*, *Join the network*. Background: campus image with gradient.
 2. **Stats band:** alumni registered, countries, funds raised, events held (`getSiteStats`).
 3. **Three doors:** cards for Donate / Directory + Register / Events + Community, each with a short line and arrow link.
 4. **Featured giving:** top 2–3 goals with progress bars and a "See all goals" link.
@@ -210,7 +205,7 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 ### 8.2 About `/about`, Board `/about/board`, How We Work `/about/how-we-work`
 
 **About:** mission, vision, history timeline (placeholder), what the Association does, link to BPKIHS.
-**Board:** Tabs _Current board_ / _Previous boards_. Person cards (photo, name, role, term, batch). Click opens a dialog with bio. Previous boards grouped by term year.
+**Board:** Tabs *Current board* / *Previous boards*. Person cards (photo, name, role, term, batch). Click opens a dialog with bio. Previous boards grouped by term year.
 **How We Work With BPKIHS:** accordion explaining the relationship, decision-making, how funds are handled, and how alumni can get involved.
 **Data:** `listBoard({ current })`; static copy in `content/`.
 **Checklist:** [ ] about [ ] board tabs [ ] member dialog [ ] how-we-work accordion [ ] breadcrumbs
@@ -236,7 +231,6 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 **Goal:** Public, no account (A3). Submit and see "pending approval."
 
 **Stepper (3 steps)**
-
 1. **About you:** full name, programme, batch year, country, city.
 2. **Career:** current position, organisation, further studies, short note, optional photo.
 3. **Privacy and consent:** visibility switches for email, phone, profile; email (required, for verification), phone (optional); consent checkbox; terms link.
@@ -252,9 +246,8 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 **Goal:** Make giving easy and trustworthy.
 
 **Sections**
-
 1. **Intro:** why give; a one-line transparency promise with link to `/donate/transparency`.
-2. **Goal cards:** image, title, description, progress bar (raised / target, percent), supporter count, _Give to this goal_ button. A "General fund" card sits first.
+2. **Goal cards:** image, title, description, progress bar (raised / target, percent), supporter count, *Give to this goal* button. A "General fund" card sits first.
 3. **Quick amounts:** preset chips (NPR 1,000 / 2,500 / 5,000 / custom; USD equivalents) with currency toggle.
 4. **Where it goes:** small funds donut with link to transparency.
 5. **Tribute giving:** teaser card linking to `/donate/tribute`.
@@ -265,13 +258,12 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 ### 8.6 Checkout `/donate/checkout`
 
 **Flow (stepper, 3 steps)**
-
 1. **Amount:** goal, amount, currency, anonymous toggle, optional tribute details.
-2. **Login gate (D3):** dialog or step: _Sign in_ or _Create account_ (email + name; mock). Explains "We ask you to sign in only to give, so we can send your receipt." Returning mock user skips this.
+2. **Login gate (D3):** dialog or step: *Sign in* or *Create account* (email + name; mock). Explains "We ask you to sign in only to give, so we can send your receipt." Returning mock user skips this.
 3. **Payment method:** two groups.
    - **Nepal:** eSewa, Khalti, ConnectIPS, Fonepay QR
    - **International:** Card, PayPal-style
-     Selecting a method shows the matching UI panel (QR block, card form fields, wallet redirect notice). **No real gateway**; the submit button calls `createDonation` on the mock adapter.
+   Selecting a method shows the matching UI panel (QR block, card form fields, wallet redirect notice). **No real gateway**; the submit button calls `createDonation` on the mock adapter.
 
 **Summary panel:** sticky on desktop, collapsible on mobile; shows goal, amount, fees note (placeholder), total.
 **States:** processing, success → `/donate/thank-you`, failure with retry and "try another method."
@@ -305,7 +297,7 @@ Explains in-honour and in-memory giving; form (type, name, message, optional not
 
 ### 8.11 Events `/events` and detail `/events/[slug]`
 
-**Listing:** Tabs _Upcoming_ / _Past_; event cards with date block, title, venue, mode badge, RSVP count; filter by city and mode.
+**Listing:** Tabs *Upcoming* / *Past*; event cards with date block, title, venue, mode badge, RSVP count; filter by city and mode.
 **Detail:** hero, date/time, venue and map placeholder, description, agenda, speakers (placeholder), capacity meter, **RSVP form** (name, email, guests; no login), add-to-calendar button (UI), share.
 **States:** full event shows "Waitlist" wording; past events show recap with photos (placeholder).
 **Checklist:** [ ] tabs [ ] cards [ ] detail [ ] RSVP form [ ] capacity [ ] past recap [ ] calendar button
@@ -411,17 +403,17 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
 
 ### 11.3 shadcn/ui mapping (concept)
 
-| shadcn variable                      | Points to                     |
-| ------------------------------------ | ----------------------------- |
-| `--background`                       | `--color-white`               |
-| `--foreground`                       | `--color-neutral-900`         |
+| shadcn variable | Points to |
+|---|---|
+| `--background` | `--color-white` |
+| `--foreground` | `--color-neutral-900` |
 | `--primary` / `--primary-foreground` | `--color-primary-700` / white |
-| `--secondary`                        | `--color-primary-100`         |
-| `--muted-foreground`                 | `--color-neutral-600`         |
-| `--border`, `--input`                | `--color-neutral-300`         |
-| `--ring`                             | `--color-primary-700`         |
-| `--destructive`                      | `--color-danger-600`          |
-| `--radius`                           | `--radius-control`            |
+| `--secondary` | `--color-primary-100` |
+| `--muted-foreground` | `--color-neutral-600` |
+| `--border`, `--input` | `--color-neutral-300` |
+| `--ring` | `--color-primary-700` |
+| `--destructive` | `--color-danger-600` |
+| `--radius` | `--radius-control` |
 
 ### 11.4 Fonts
 
@@ -431,14 +423,14 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
 
 ### 11.5 Contrast pairs to verify in Phase 2
 
-| Foreground                     | Background  | Needed                           |
-| ------------------------------ | ----------- | -------------------------------- |
-| white                          | primary-700 | 4.5:1 (buttons)                  |
-| white                          | accent-600  | 4.5:1 (donate button)            |
-| neutral-600                    | white       | 4.5:1 (secondary text)           |
-| neutral-600                    | neutral-100 | 4.5:1                            |
-| primary-700                    | primary-100 | 4.5:1 (links on tinted sections) |
-| success / warning / danger-600 | white       | 4.5:1 (status text)              |
+| Foreground | Background | Needed |
+|---|---|---|
+| white | primary-700 | 4.5:1 (buttons) |
+| white | accent-600 | 4.5:1 (donate button) |
+| neutral-600 | white | 4.5:1 (secondary text) |
+| neutral-600 | neutral-100 | 4.5:1 |
+| primary-700 | primary-100 | 4.5:1 (links on tinted sections) |
+| success / warning / danger-600 | white | 4.5:1 (status text) |
 
 ### 11.6 Styleguide page
 
@@ -448,7 +440,7 @@ Phase 2 produces a dev-only `/styleguide` that shows every token, type style and
 
 ## 12. Change log
 
-| Date        | Change                                                          |
-| ----------- | --------------------------------------------------------------- |
-| 12 Oct 2026 | Initial design system and page specs (Sessions 1–2)             |
+| Date | Change |
+|---|---|
+| 12 Oct 2026 | Initial design system and page specs (Sessions 1–2) |
 | 12 Oct 2026 | Added section 11 (implementation notes) ahead of Phase 1 Step 3 |

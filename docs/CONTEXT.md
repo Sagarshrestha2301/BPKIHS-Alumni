@@ -45,16 +45,16 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 **Eight functional areas** (from the proposal, as summarised in Session 1):
 
-| #   | Area             | Summary                                                                          |
-| --- | ---------------- | -------------------------------------------------------------------------------- |
-| 1   | Landing page     | Board, mission, live stats                                                       |
-| 2   | Alumni directory | Self-registration, programme and batch filters, admin approval, privacy controls |
-| 3   | Donations        | Named goals with progress bars, transparency dashboard, tribute giving           |
-| 4   | Community        | Feed and newsletter                                                              |
-| 5   | Governance       | Current and previous boards, "How We Work With BPKIHS"                           |
-| 6   | Events           | Listing and RSVP                                                                 |
-| 7   | Support          | Contact, helpdesk, FAQ                                                           |
-| 8   | Trust and admin  | Privacy, Terms, Accessibility, plus an admin dashboard                           |
+| # | Area | Summary |
+|---|------|---------|
+| 1 | Landing page | Board, mission, live stats |
+| 2 | Alumni directory | Self-registration, programme and batch filters, admin approval, privacy controls |
+| 3 | Donations | Named goals with progress bars, transparency dashboard, tribute giving |
+| 4 | Community | Feed and newsletter |
+| 5 | Governance | Current and previous boards, "How We Work With BPKIHS" |
+| 6 | Events | Listing and RSVP |
+| 7 | Support | Contact, helpdesk, FAQ |
+| 8 | Trust and admin | Privacy, Terms, Accessibility, plus an admin dashboard |
 
 **Proposal timeline:** about 9–10 weeks over 7 phases; frontend covers design (phase 2) and most of phases 3–4.
 
@@ -62,25 +62,25 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 ### 3.1 Locked decisions
 
-| #   | Topic             | Decision                                                                                                                                                  |
-| --- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Stack             | Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui                                                                                              |
-| D2  | Backend           | None yet. Mock data behind a typed API layer; swapping to a real backend must not require UI rewrites                                                     |
-| D3  | Login             | No login across the public site. **Login/signup is requested only when a person chooses to donate** (mock auth gate for now)                              |
-| D4  | Branding          | Use logos and images from bpkihs.edu                                                                                                                      |
-| D5  | Language          | English only. Do not build i18n yet (but keep strings out of deep logic so it can be added)                                                               |
-| D6  | Payments          | **UI only**, national and international options; no real gateway                                                                                          |
-| D7  | Process           | Build pages straight away; no separate wireframe approval step                                                                                            |
-| D8  | Content           | No digital content exists (the alumni register is on paper). Use clearly labelled placeholders                                                            |
-| D9  | Responsiveness    | Mobile and desktop, fully responsive                                                                                                                      |
-| D10 | Files             | Separate files: `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md`                                                                                                   |
-| D11 | Look              | **Hybrid:** institutional trust (formal, credible) with a modern layout (clean, airy, card-based)                                                         |
-| D12 | Homepage emphasis | **Balanced mix** of donations, directory/registration, and events/community                                                                               |
-| D13 | Detail level      | Very detailed documentation with per-page specs and checklists                                                                                            |
-| D14 | Environment       | **Windows 11, VS Code, PowerShell**, Node.js 20.9+ (22 LTS preferred), npm, git. Project path `C:\dev\bpkihs-alumni` (short, no spaces, outside OneDrive) |
-| D15 | Delivery mode     | Coding one step at a time; advance only on **"done"**; every step ends with a **File order** tree (see Working Protocol rule 8)                           |
-| D16 | Package manager   | npm (`--use-npm`). Do not mix with pnpm or yarn                                                                                                           |
-| D17 | Docs location     | The three `.md` files live in `docs/` inside the repo and are committed                                                                                   |
+| # | Topic | Decision |
+|---|-------|----------|
+| D1 | Stack | Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
+| D2 | Backend | None yet. Mock data behind a typed API layer; swapping to a real backend must not require UI rewrites |
+| D3 | Login | No login across the public site. **Login/signup is requested only when a person chooses to donate** (mock auth gate for now) |
+| D4 | Branding | Use logos and images from bpkihs.edu |
+| D5 | Language | English only. Do not build i18n yet (but keep strings out of deep logic so it can be added) |
+| D6 | Payments | **UI only**, national and international options; no real gateway |
+| D7 | Process | Build pages straight away; no separate wireframe approval step |
+| D8 | Content | No digital content exists (the alumni register is on paper). Use clearly labelled placeholders |
+| D9 | Responsiveness | Mobile and desktop, fully responsive |
+| D10 | Files | Separate files: `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md` |
+| D11 | Look | **Hybrid:** institutional trust (formal, credible) with a modern layout (clean, airy, card-based) |
+| D12 | Homepage emphasis | **Balanced mix** of donations, directory/registration, and events/community |
+| D13 | Detail level | Very detailed documentation with per-page specs and checklists |
+| D14 | Environment | **Windows 11, VS Code, PowerShell**, Node.js 20.9+ (22 LTS preferred), npm, git. Project path `C:\dev\bpkihs-alumni` (short, no spaces, outside OneDrive) |
+| D15 | Delivery mode | Coding one step at a time; advance only on **"done"**; every step ends with a **File order** tree (see Working Protocol rule 8) |
+| D16 | Package manager | npm (`--use-npm`). Do not mix with pnpm or yarn |
+| D17 | Docs location | The three `.md` files live in `docs/` inside the repo and are committed |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
@@ -93,13 +93,13 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 ### 3.3 Current status (update at the end of every step)
 
-| Item             | State                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase            | **1 — Project setup and tooling** (in progress)                                                                                                                                                                                                                                                                                                                                                                                  |
-| Step 1           | **Done.** Tools checked; project created with `npx create-next-app@latest bpkihs-alumni --ts --eslint --tailwind --src-dir --app --import-alias "@/*" --use-npm`; dev server verified at http://localhost:3000; VS Code extensions installed (ESLint, Prettier, Tailwind CSS IntelliSense, Error Lens optional)                                                                                                                  |
-| Step 2           | **Issued, awaiting "done".** Prettier (+ Tailwind plugin), `.prettierrc`, `.prettierignore`, `.gitattributes`, `.vscode/settings.json`, package scripts (`typecheck`, `format`, `format:check`), TS strict + `noUncheckedIndexedAccess`, folder structure with `.gitkeep`, `.env.example` / `.env.local`, `!.env.example` in `.gitignore`, docs copied to `docs/`, then `format`, `typecheck`, `lint`, `build`, and first commit |
-| Next (Step 3)    | shadcn/ui setup, fonts via `next/font`, design tokens from `DESIGN.md` §2–4                                                                                                                                                                                                                                                                                                                                                      |
-| Waiting on owner | Q1 (re-upload proposal), Q2/Q3 (brand colours, logo, name), Q5, Q6 (see section 12)                                                                                                                                                                                                                                                                                                                                              |
+| Item | State |
+|---|---|
+| Phase | **1 — Project setup and tooling** (in progress) |
+| Step 1 | **Done.** Tools checked; project created with `npx create-next-app@latest bpkihs-alumni --ts --eslint --tailwind --src-dir --app --import-alias "@/*" --use-npm`; dev server verified at http://localhost:3000; VS Code extensions installed (ESLint, Prettier, Tailwind CSS IntelliSense, Error Lens optional) |
+| Step 2 | **Issued, awaiting "done".** Prettier (+ Tailwind plugin), `.prettierrc`, `.prettierignore`, `.gitattributes`, `.vscode/settings.json`, package scripts (`typecheck`, `format`, `format:check`), TS strict + `noUncheckedIndexedAccess`, folder structure with `.gitkeep`, `.env.example` / `.env.local`, `!.env.example` in `.gitignore`, docs copied to `docs/`, then `format`, `typecheck`, `lint`, `build`, and first commit |
+| Next (Step 3) | shadcn/ui setup, fonts via `next/font`, design tokens from `DESIGN.md` §2–4 |
+| Waiting on owner | Q1 (re-upload proposal), Q2/Q3 (brand colours, logo, name), Q5, Q6 (see section 12) |
 
 **If the owner pastes an error:** fix that error first, then repeat the step's verification before moving on.
 
@@ -132,15 +132,15 @@ Stat counters, partner logo strip, project and story cards, mixed Nepali and Eng
 
 ### 4.4 What we borrow
 
-| Borrowed idea                    | From    | Used in                                 |
-| -------------------------------- | ------- | --------------------------------------- |
-| Persistent donate CTA            | DYF     | Header and mobile bottom bar            |
-| Funds-use chart and transparency | DYF     | `/donate/transparency`                  |
-| Board and team pages             | DYF     | `/about/board`                          |
-| Stat counters                    | Aarogya | Homepage stats band                     |
-| Notice board pattern             | BPKIHS  | Alumni notices on home and `/community` |
-| Programme taxonomy               | BPKIHS  | Directory filters, registration form    |
-| Footer legal trio                | BPKIHS  | Footer                                  |
+| Borrowed idea | From | Used in |
+|---|---|---|
+| Persistent donate CTA | DYF | Header and mobile bottom bar |
+| Funds-use chart and transparency | DYF | `/donate/transparency` |
+| Board and team pages | DYF | `/about/board` |
+| Stat counters | Aarogya | Homepage stats band |
+| Notice board pattern | BPKIHS | Alumni notices on home and `/community` |
+| Programme taxonomy | BPKIHS | Directory filters, registration form |
+| Footer legal trio | BPKIHS | Footer |
 
 ---
 
@@ -209,28 +209,28 @@ src/
 
 ## 6. Sitemap and routes
 
-| Route                                                    | Page                                | Auth                       |
-| -------------------------------------------------------- | ----------------------------------- | -------------------------- |
-| `/`                                                      | Home                                | none                       |
-| `/about`                                                 | About the Association               | none                       |
-| `/about/board`                                           | Current and previous boards         | none                       |
-| `/about/how-we-work`                                     | How We Work With BPKIHS             | none                       |
-| `/directory`                                             | Alumni directory                    | none                       |
-| `/directory/[id]`                                        | Alumni profile (privacy-respecting) | none                       |
-| `/register`                                              | Register as alumni (public form)    | none                       |
-| `/donate`                                                | Goals and giving                    | none to view               |
-| `/donate/checkout`                                       | Amount, details, payment method     | **login gate**             |
-| `/donate/thank-you`                                      | Confirmation and receipt            | after donation             |
-| `/donate/transparency`                                   | Funds dashboard                     | none                       |
-| `/donate/tribute`                                        | Tribute / in-memory giving          | login gate to submit       |
-| `/community`                                             | Feed, notices                       | none                       |
-| `/community/newsletter`                                  | Newsletter signup and archive       | none                       |
-| `/events`                                                | Events listing                      | none                       |
-| `/events/[slug]`                                         | Event detail and RSVP               | none (RSVP form is public) |
-| `/support`                                               | Contact and helpdesk                | none                       |
-| `/support/faq`                                           | FAQ                                 | none                       |
-| `/legal/privacy`, `/legal/terms`, `/legal/accessibility` | Trust pages                         | none                       |
-| `/admin/*`                                               | Admin dashboard UI (mock gate)      | mock admin                 |
+| Route | Page | Auth |
+|---|---|---|
+| `/` | Home | none |
+| `/about` | About the Association | none |
+| `/about/board` | Current and previous boards | none |
+| `/about/how-we-work` | How We Work With BPKIHS | none |
+| `/directory` | Alumni directory | none |
+| `/directory/[id]` | Alumni profile (privacy-respecting) | none |
+| `/register` | Register as alumni (public form) | none |
+| `/donate` | Goals and giving | none to view |
+| `/donate/checkout` | Amount, details, payment method | **login gate** |
+| `/donate/thank-you` | Confirmation and receipt | after donation |
+| `/donate/transparency` | Funds dashboard | none |
+| `/donate/tribute` | Tribute / in-memory giving | login gate to submit |
+| `/community` | Feed, notices | none |
+| `/community/newsletter` | Newsletter signup and archive | none |
+| `/events` | Events listing | none |
+| `/events/[slug]` | Event detail and RSVP | none (RSVP form is public) |
+| `/support` | Contact and helpdesk | none |
+| `/support/faq` | FAQ | none |
+| `/legal/privacy`, `/legal/terms`, `/legal/accessibility` | Trust pages | none |
+| `/admin/*` | Admin dashboard UI (mock gate) | mock admin |
 
 ---
 
@@ -242,16 +242,8 @@ Shapes the backend must later match. All IDs are strings; dates are ISO 8601.
 
 ```ts
 type Programme =
-  | 'MBBS'
-  | 'BDS'
-  | 'BSc Nursing'
-  | 'Allied Health'
-  | 'MD/MS'
-  | 'MSc'
-  | 'MDS'
-  | 'DM/MCh'
-  | 'PhD'
-  | 'Fellowship';
+  | 'MBBS' | 'BDS' | 'BSc Nursing' | 'Allied Health'
+  | 'MD/MS' | 'MSc' | 'MDS' | 'DM/MCh' | 'PhD' | 'Fellowship';
 
 type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 type Visibility = 'public' | 'alumni_only' | 'hidden';
@@ -260,7 +252,7 @@ interface Alumnus {
   id: string;
   fullName: string;
   programme: Programme;
-  batchYear: number; // graduation or batch year
+  batchYear: number;               // graduation or batch year
   furtherStudies?: string;
   currentPosition?: string;
   organisation?: string;
@@ -268,121 +260,71 @@ interface Alumnus {
   country: string;
   note?: string;
   photoUrl?: string;
-  email?: string; // visibility-controlled
-  phone?: string; // visibility-controlled
+  email?: string;                  // visibility-controlled
+  phone?: string;                  // visibility-controlled
   privacy: { email: Visibility; phone: Visibility; profile: Visibility };
   status: ApprovalStatus;
-  source: 'self_registered' | 'csv_import'; // written register imported later
+  source: 'self_registered' | 'csv_import';   // written register imported later
   placeholder?: boolean;
   createdAt: string;
 }
 
 interface DonationGoal {
-  id: string;
-  title: string;
-  description: string;
-  targetMinor: number;
-  raisedMinor: number;
-  currency: 'NPR' | 'USD';
-  deadline?: string;
-  imageUrl?: string;
-  placeholder?: boolean;
+  id: string; title: string; description: string;
+  targetMinor: number; raisedMinor: number; currency: 'NPR' | 'USD';
+  deadline?: string; imageUrl?: string; placeholder?: boolean;
 }
 
 interface DonationInput {
-  goalId?: string; // undefined = general fund
-  amountMinor: number;
-  currency: 'NPR' | 'USD';
+  goalId?: string;                 // undefined = general fund
+  amountMinor: number; currency: 'NPR' | 'USD';
   method: 'esewa' | 'khalti' | 'connectips' | 'fonepay' | 'card' | 'paypal';
   anonymous: boolean;
-  tribute?: {
-    type: 'in_honour' | 'in_memory';
-    name: string;
-    message?: string;
-    notifyEmail?: string;
-  };
+  tribute?: { type: 'in_honour' | 'in_memory'; name: string; message?: string; notifyEmail?: string };
 }
 
-interface FundsBreakdownItem {
-  category: string;
-  sharePercent: number;
-  amountMinor: number;
-}
+interface FundsBreakdownItem { category: string; sharePercent: number; amountMinor: number }
 
 interface BoardMember {
-  id: string;
-  name: string;
-  role: string;
-  term: string;
-  batch?: string;
-  photoUrl?: string;
-  bio?: string;
-  isCurrent: boolean;
-  placeholder?: boolean;
+  id: string; name: string; role: string; term: string;
+  batch?: string; photoUrl?: string; bio?: string; isCurrent: boolean; placeholder?: boolean;
 }
 
 interface AlumniEvent {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  description: string;
-  startsAt: string;
-  endsAt?: string;
-  venue: string;
-  city: string;
-  mode: 'in_person' | 'online' | 'hybrid';
-  capacity?: number;
-  rsvpCount: number;
-  imageUrl?: string;
-  status: 'upcoming' | 'past';
+  id: string; slug: string; title: string; summary: string; description: string;
+  startsAt: string; endsAt?: string; venue: string; city: string; mode: 'in_person' | 'online' | 'hybrid';
+  capacity?: number; rsvpCount: number; imageUrl?: string; status: 'upcoming' | 'past';
 }
 
 interface FeedPost {
-  id: string;
-  type: 'news' | 'story' | 'notice' | 'achievement';
-  title: string;
-  excerpt: string;
-  body: string;
-  author: string;
-  publishedAt: string;
-  imageUrl?: string;
-  tags: string[];
+  id: string; type: 'news' | 'story' | 'notice' | 'achievement';
+  title: string; excerpt: string; body: string; author: string;
+  publishedAt: string; imageUrl?: string; tags: string[];
 }
 
-interface FaqItem {
-  id: string;
-  category: string;
-  question: string;
-  answer: string;
-}
-interface SiteStats {
-  alumniCount: number;
-  countries: number;
-  raisedMinor: number;
-  eventsHeld: number;
-}
+interface FaqItem { id: string; category: string; question: string; answer: string }
+interface SiteStats { alumniCount: number; countries: number; raisedMinor: number; eventsHeld: number }
 ```
 
 ### 7.2 Mock API functions (`lib/api`)
 
-| Function                                 | Returns                                         |
-| ---------------------------------------- | ----------------------------------------------- |
-| `getSiteStats()`                         | `SiteStats`                                     |
-| `listAlumni(params)`                     | Paginated `Alumnus` (approved and visible only) |
-| `getAlumnus(id)`                         | `Alumnus` or 404                                |
-| `submitRegistration(input)`              | `{ id, status: 'pending' }`                     |
-| `listGoals()` / `getGoal(id)`            | `DonationGoal`                                  |
-| `createDonation(input)`                  | `{ donationId, status, receiptUrl? }` (mock)    |
-| `getFundsBreakdown()`                    | `FundsBreakdownItem[]`                          |
-| `listBoard({ current })`                 | `BoardMember[]`                                 |
-| `listEvents(params)` / `getEvent(slug)`  | `AlumniEvent`                                   |
-| `submitRsvp(eventId, input)`             | `{ ok: true }`                                  |
-| `listFeed(params)`                       | Paginated `FeedPost`                            |
-| `subscribeNewsletter(email)`             | `{ ok: true }`                                  |
-| `listFaq()`                              | `FaqItem[]`                                     |
-| `submitSupportTicket(input)`             | `{ ticketId }`                                  |
-| `mockLogin(email)` / `mockSignup(input)` | session (donation gate only)                    |
+| Function | Returns |
+|---|---|
+| `getSiteStats()` | `SiteStats` |
+| `listAlumni(params)` | Paginated `Alumnus` (approved and visible only) |
+| `getAlumnus(id)` | `Alumnus` or 404 |
+| `submitRegistration(input)` | `{ id, status: 'pending' }` |
+| `listGoals()` / `getGoal(id)` | `DonationGoal` |
+| `createDonation(input)` | `{ donationId, status, receiptUrl? }` (mock) |
+| `getFundsBreakdown()` | `FundsBreakdownItem[]` |
+| `listBoard({ current })` | `BoardMember[]` |
+| `listEvents(params)` / `getEvent(slug)` | `AlumniEvent` |
+| `submitRsvp(eventId, input)` | `{ ok: true }` |
+| `listFeed(params)` | Paginated `FeedPost` |
+| `subscribeNewsletter(email)` | `{ ok: true }` |
+| `listFaq()` | `FaqItem[]` |
+| `submitSupportTicket(input)` | `{ ticketId }` |
+| `mockLogin(email)` / `mockSignup(input)` | session (donation gate only) |
 
 ### 7.3 Placeholder rule
 
@@ -426,47 +368,47 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 ## 11. Session log
 
-| #   | Date        | What happened                                                                                                                                                                                                                                                                                                           | Decisions / outputs                                                                                                                            |
-| --- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | 12 Oct 2026 | Reviewed proposal summary and three reference sites; asked 10 clarifying questions; confirmed decisions D1–D10; asked 3 more (look, homepage emphasis, file detail)                                                                                                                                                     | D11–D13 added. Created `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md`. Proposal `.docx` not available in this session.                                |
-| 2   | 12 Oct 2026 | Asked 3 more questions (look, homepage emphasis, file detail); fetched bpkihs.edu for structure; wrote the three files in full. Owner asked to start coding on Windows 11 + VS Code, one step at a time. **Step 1** completed (project created, runs). **Step 2** issued (tooling, structure, env, docs, first commit). | D14–D17 added. Working Protocol rules 8–9 added. Folder structure from §5.3 created in Step 2 (empty, `.gitkeep`). Awaiting "done" for Step 2. |
-| 3   | —           | —                                                                                                                                                                                                                                                                                                                       | —                                                                                                                                              |
+| # | Date | What happened | Decisions / outputs |
+|---|------|---------------|---------------------|
+| 1 | 12 Oct 2026 | Reviewed proposal summary and three reference sites; asked 10 clarifying questions; confirmed decisions D1–D10; asked 3 more (look, homepage emphasis, file detail) | D11–D13 added. Created `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md`. Proposal `.docx` not available in this session. |
+| 2 | 12 Oct 2026 | Asked 3 more questions (look, homepage emphasis, file detail); fetched bpkihs.edu for structure; wrote the three files in full. Owner asked to start coding on Windows 11 + VS Code, one step at a time. **Step 1** completed (project created, runs). **Step 2** issued (tooling, structure, env, docs, first commit). | D14–D17 added. Working Protocol rules 8–9 added. Folder structure from §5.3 created in Step 2 (empty, `.gitkeep`). Awaiting "done" for Step 2. |
+| 3 | — | — | — |
 
-_Append a new row after every working session._
+*Append a new row after every working session.*
 
 ---
 
 ## 12. Open questions (answer these next)
 
-| #   | Question                                                                          | Default if unanswered                |
-| --- | --------------------------------------------------------------------------------- | ------------------------------------ |
-| Q1  | Please re-upload the proposal `.docx` so I can reconcile sections 3 and 8         | Proceed on the earlier summary       |
-| Q2  | Exact brand colours and the logo file for the Association (not just BPKIHS)?      | Provisional palette in `DESIGN.md`   |
-| Q3  | Association name and tagline (e.g. "BPKIHS Alumni Association")?                  | "BPKIHS Alumni Association"          |
-| Q4  | Is there a domain or a Nepali-year (BS) date requirement?                         | Gregorian dates only                 |
-| Q5  | Donation currencies: NPR only, or NPR and USD?                                    | NPR and USD                          |
-| Q6  | Build the admin dashboard UI now, or defer?                                       | Build last (Phase 9), mock only      |
-| Q7  | Should the directory show alumni photos? Consent wording?                         | Optional photo with consent checkbox |
-| Q8  | Who is the contact for helpdesk copy and FAQ answers?                             | Placeholder FAQ                      |
-| Q9  | Social links to include (Facebook, LinkedIn, etc.)?                               | Facebook (from bpkihs.edu)           |
-| Q10 | Any compliance wording needed for donations (receipts, tax exemption, 80G-style)? | Generic "receipt by email" text      |
+| # | Question | Default if unanswered |
+|---|----------|----------------------|
+| Q1 | Please re-upload the proposal `.docx` so I can reconcile sections 3 and 8 | Proceed on the earlier summary |
+| Q2 | Exact brand colours and the logo file for the Association (not just BPKIHS)? | Provisional palette in `DESIGN.md` |
+| Q3 | Association name and tagline (e.g. "BPKIHS Alumni Association")? | "BPKIHS Alumni Association" |
+| Q4 | Is there a domain or a Nepali-year (BS) date requirement? | Gregorian dates only |
+| Q5 | Donation currencies: NPR only, or NPR and USD? | NPR and USD |
+| Q6 | Build the admin dashboard UI now, or defer? | Build last (Phase 9), mock only |
+| Q7 | Should the directory show alumni photos? Consent wording? | Optional photo with consent checkbox |
+| Q8 | Who is the contact for helpdesk copy and FAQ answers? | Placeholder FAQ |
+| Q9 | Social links to include (Facebook, LinkedIn, etc.)? | Facebook (from bpkihs.edu) |
+| Q10 | Any compliance wording needed for donations (receipts, tax exemption, 80G-style)? | Generic "receipt by email" text |
 
 ---
 
 ## 12.1 Decision log for open questions (fill in when answered)
 
-| #   | Answer | Date |
-| --- | ------ | ---- |
-| Q1  |        |      |
-| Q2  |        |      |
-| Q3  |        |      |
-| Q4  |        |      |
-| Q5  |        |      |
-| Q6  |        |      |
-| Q7  |        |      |
-| Q8  |        |      |
-| Q9  |        |      |
-| Q10 |        |      |
+| # | Answer | Date |
+|---|--------|------|
+| Q1 | | |
+| Q2 | | |
+| Q3 | | |
+| Q4 | | |
+| Q5 | | |
+| Q6 | | |
+| Q7 | | |
+| Q8 | | |
+| Q9 | | |
+| Q10 | | |
 
 ---
 
