@@ -53,7 +53,6 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | 4 | Community | Feed and newsletter |
 | 5 | Governance | Current and previous boards, "How We Work With BPKIHS" |
 | 6 | Events | Listing and RSVP |
-| 7 | 12 Oct 2026 | Steps 11 to 13 finished and committed locally (nothing pushed): surfaces and feedback components, `/demo` page, header with institute logo, mobile menu, bottom bar, footer with newsletter strip, skip link, main landmark, 404, error and loading pages. Docs updated for NPR only and the logo. Step 14a (colour contrast audit test) issued, result pending | D29 to D31 added. Open finding: input border `neutral-300` is about 1.5:1 on white, WCAG 2.2 wants 3:1; propose a darker input border token (about `#7B8794`) in the styleguide step and ask the owner first |
 | 7 | Support | Contact, helpdesk, FAQ |
 | 8 | Trust and admin | Privacy, Terms, Accessibility, plus an admin dashboard |
 
@@ -96,6 +95,9 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D29 | Toasts | `sonner` via shadcn, fixed to the light theme; no `next-themes` dependency |
 | D30 | Currency | **NPR only** (Q5). No USD toggle or amounts. Money stays integer minor units with a currency code |
 | D31 | Logo | Institute logo `public/bp-koirala_logo.png` beside the text wordmark. An Association logo replaces it by editing `src/content/site.ts` |
+| D32 | Form control borders | Use 
+eutral-500 (#7b8794, 3.66:1 on white) so inputs meet WCAG 2.2 non-text contrast; cards and dividers keep 
+eutral-300 |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
@@ -110,10 +112,10 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 | Item | State |
 |---|---|
-| Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
-| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean. **Step 11** (shadcn card, badge, tabs, accordion, dialog, sheet, skeleton, progress, breadcrumb, pagination, sonner; custom `StatCard`, `EmptyState`, `ErrorState`, `ProgressBar`, `Stepper`; temporary `/demo` page; 12 tests). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit) |
-| Next | **Step 14** (14a contrast test issued, result pending; then 14b e2e, 14c styleguide, 14d README): dev-only `/styleguide`, contrast audit test, end-to-end tests (navigation, 404, skip link) at 360 and 1440 px, README script rows (see `ROADMAP.md` Phase 2 table) |
-| Quality gate | `npm run ci` passes (format check, typecheck, lint, 13 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
+| Phase | **3 — Data layer** (plan sent, awaiting approval). Phases 1 and 2 complete; owner approved `/styleguide` |
+| Done in Phase 2 | **Steps 9 to 11**: tokens, type scale, layout primitives, form primitives and `FormField`, surfaces, overlays and feedback components. **Step 12 to 13**: `SiteHeader`, `MobileNav`, `BottomBar`, `SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages. **Step 14**: contrast audit, e2e tests, dev-only `/styleguide`, README scripts |
+| Next | **Phase 3, sub-steps 3a to 3g** (types and Zod schemas, utilities, client and adapters, seed data, mock adapter, auth, exit check). One step at a time |
+| Quality gate | `npm run ci` (format check, typecheck, lint, unit tests, build); 36 unit tests; `npm run test:e2e` 34 passed, 6 skipped (viewport-specific tests). Pre-commit hook runs lint-staged and typecheck |
 | Waiting on owner | Association-specific logo and brand colours (Q2/Q3; institute logo and provisional palette in use meanwhile); Q4, Q7 to Q10. Q1, Q5 and Q6 answered |
 | Placeholder in use | Institute logo plus text wordmark "BPKIHS Alumni Association" until an Association logo is supplied |
 
@@ -122,12 +124,12 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 **Scripts:** `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test`, `test:watch`, `test:e2e`, `ci`.
 
 **Components built so far (`src/components`):**
-- `layout/`: `container.tsx`, `section.tsx` (tone: default, tint, muted), `site-header.tsx`, `mobile-nav.tsx`, `bottom-bar.tsx`, `site-footer.tsx`, `nav-styles.ts`, `site-header.tsx`, `mobile-nav.tsx`, `bottom-bar.tsx`, `site-footer.tsx`, `nav-styles.ts`, `site-header.tsx`, `mobile-nav.tsx`, `bottom-bar.tsx`, `site-footer.tsx`, `nav-styles.ts`, `site-header.tsx`, `mobile-nav.tsx`, `bottom-bar.tsx`, `site-footer.tsx`, `nav-styles.ts`, `site-header.tsx`, `mobile-nav.tsx`, `bottom-bar.tsx`, `site-footer.tsx`, `nav-styles.ts`
-- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field`, `stat-card`, `empty-state`, `error-state`, `progress-bar` (also exports `getPercent`), `stepper`, `newsletter-form`, `newsletter-form``, `newsletter-form`, `newsletter-form`, `newsletter-form` (render-prop: `{(control) => <Input {...control} />}`)
-- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`, `card`, `badge`, `tabs`, `accordion`, `dialog`, `sheet`, `skeleton`, `progress`, `breadcrumb`, `pagination`, `sonner`
-- Tests: `button`, `utils`, `section-heading`, `donate-button`, `form-field`
-- `src/app/page.tsx` is a **temporary design-check page** (Phase 4 replaces it)
-
+- `layout/`: `container`, `section` (tone: default, tint, muted), `site-header`, `mobile-nav`, `bottom-bar`, `site-footer`, `nav-styles`
+- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field`, `stat-card`, `empty-state`, `error-state`, `progress-bar` (also exports `getPercent`), `stepper`, `newsletter-form`
+- `ui/` (shadcn, Base UI): `accordion`, `badge`, `breadcrumb`, `button`, `card`, `checkbox`, `dialog`, `input`, `label`, `pagination`, `progress`, `radio-group`, `select`, `sheet`, `skeleton`, `sonner`, `switch`, `tabs`, `textarea`
+- Unit tests (Vitest): `nav`, `contrast`, `utils`, `button`, `section-heading`, `donate-button`, `form-field`, `newsletter-form`, `progress-bar`, `stepper`, `states`
+- E2E tests (Playwright, `e2e/`): `home`, `navigation`, `skip-link`, `not-found`, `no-overflow`, `styleguide`
+- `src/app/page.tsx` is a **temporary page** (Phase 4 replaces it); `/styleguide` is dev only and returns 404 in production
 **Base UI notes (shadcn components use Base UI primitives, not Radix):** `Checkbox` uses `CheckboxPrimitive.Root.Props`; `RadioGroup` and `RadioGroupItem` use Base UI radio props; `Select` exports `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`, `SelectGroup`, `SelectLabel`, `SelectSeparator`. Check each component's `Props` type before wiring state (for example `onCheckedChange`, `onValueChange`).
 
 **If the owner pastes an error:** fix that error first, then repeat the step's verification before moving on.
@@ -422,6 +424,8 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | 4 | 12 Oct 2026 | Step 4 committed (fonts, tokens, metadata). **Step 5** image host + README. **Step 6** Husky, lint-staged, import sorting; hook proven by a deliberately broken commit that was blocked. **Step 7** replaced the `cn` package with `clsx` + `tailwind-merge`; Vitest + Testing Library (3 tests); fixed a pasted-into-wrong-file mistake (`button.tsx`) and a leftover `from 'cn'` import. **Step 8** Playwright (4 tests), `npm run ci`, missing `playwright.config.ts` fixed. | D20–D22 added. Phase 1 complete. Phase 2 plan drafted (Steps 9–14) |
 | 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
 | 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Steps 11 to 13 done (see 3.3); D29 to D31 added. Step 14 next |
+| 7 | 12 Oct 2026 | Steps 11 to 13 finished and committed locally (nothing pushed): surfaces and feedback components, `/demo` page, header with institute logo, mobile menu, bottom bar, footer with newsletter strip, skip link, main landmark, 404, error and loading pages. Docs updated for NPR only and the logo. Step 14a (colour contrast audit test) issued | D29 to D31 added. Open finding: input border `neutral-300` is about 1.5:1 on white, WCAG 2.2 wants 3:1; propose a darker input border token (about `#7B8794`) in the styleguide step and ask the owner first |
+| 8 | 12 Oct 2026 | **14a** contrast audit finished (21 tests): added `neutral-500` (`#7b8794`, 3.66:1) for form control borders and mapped `--input` to it; 3:1 checks for focus ring, large text and graphics. **14b** e2e tests for navigation, skip link, 404 and no sideways scroll at 1440 and 360 px (Playwright viewports changed); they caught a duplicate `<main>` and a second `<h1>` on the temporary home page, both fixed. **14c** dev-only `/styleguide` (404 in production, colours read from `tokens.css`) replaces `/demo`; home page trimmed. **14d** README restored and updated, docs cleanup. Owner approved `/styleguide`; **Phase 2 closed**. `typecheck` now runs `next typegen` first. Lessons: PowerShell `$home` is reserved; `export const dynamic` is not allowed with Cache Components; deleting `.next` removes the generated `LayoutProps` type (run `npx next typegen`); Playwright reuses a running dev server, so stop it after big changes | D32: form control borders use `neutral-500` |
 
 *Append a new row after every working session.*
 

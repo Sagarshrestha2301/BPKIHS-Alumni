@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | 0 | Alignment and docs | 1 day | — | [x] |
 | 1 | Project setup and tooling | 2 days | 0 | [x] |
-| 2 | Design system and layout shell | 4 days | 1 | [ ] |
+| 2 | Design system and layout shell | 4 days | 1 | [x] |
 | 3 | Data layer (types, mocks, API client) | 3 days | 1 | [ ] |
 | 4 | Home and About/Governance pages | 5 days | 2, 3 | [ ] |
 | 5 | Directory and Registration | 6 days | 2, 3 | [ ] |
@@ -76,7 +76,7 @@
 **Cleanup items (non-blocking):**
 - [ ] Replace `vite-tsconfig-paths` with Vite's native `resolve.tsconfigPaths` (Vitest prints a notice) — Phase 10
 - [ ] Re-check `npm audit --omit=dev` and update shadcn when a fixed version exists (7 high warnings, all inside shadcn's CLI tooling; never use `--force`) — Phase 10
-- [ ] Add the new scripts (`test`, `test:e2e`, `ci`) to the README script table — Phase 2 Step 9
+- [x] Add the new scripts (`test`, `test:e2e`, `ci`) to the README script table — Phase 2 Step 9
 - [ ] Download the logo and key images into `public/` with BPKIHS's permission instead of hotlinking — before launch
 - [ ] Add `loading="eager"` to above-the-fold remote images (done on the temporary page)
 
@@ -85,7 +85,7 @@
 
 ---
 
-## Phase 2 — Design system and layout shell
+## Phase 2 — Design system and layout shell ✅
 
 **Step plan and status:**
 
@@ -93,10 +93,10 @@
 |---|---|---|
 | 9 | Type scale, spacing, container and shadow tokens; `Container`, `Section`, `Eyebrow`, `SectionHeading`; `DonateButton` and `DonateLink`; heading sizes in `globals.css` | [x] Done, committed (`5d38959`) |
 | 10 | Form primitives via shadcn (input, label, textarea, select, checkbox, radio group, switch); `FormField` wrapper (label, hint, error with icon, aria links); tests; `vitest.setup.ts` cleanup fix | [x] Done, committed (`92e70c1`, fix `540a0b7`); 7 tests pass |
-| 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [x] Done (`041a1aa` shadcn components; custom components and temporary `/demo` page); 12 tests |
+| 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [x] Done (`041a1aa` shadcn components; custom components; the temporary `/demo` page was replaced by `/styleguide` in Step 14); 12 tests |
 | 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [x] Done |
 | 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [x] Done |
-| 14 | Dev-only `/styleguide`; contrast audit test; e2e tests for navigation at 360 and 1440 px | [ ] |
+| 14 | Dev-only `/styleguide` (replaces `/demo`); contrast audit test; e2e tests for navigation, skip link, 404 and no sideways scroll at 360 and 1440 px; README script rows | [x] Done (14a to 14d); exit review pending |
 
 
 - [x] `styles/tokens.css`: colour, type scale, spacing and shadow tokens done (Steps 4 and 9)
@@ -109,10 +109,10 @@
 - [x] **Header** (desktop and mobile menu sheet) and **mobile bottom action bar**
 - [x] **Footer** with newsletter strip
 - [x] Skip link, landmarks, focus-ring styles
-- [ ] A `/styleguide` page (dev only) showing all components and states
-- [ ] Contrast audit of every colour pairing
+- [x] A `/styleguide` page (dev only) showing all components and states
+- [x] Contrast audit of every colour pairing (`neutral-500` added for form control borders)
 
-**Exit criteria:** Styleguide approved; shell renders responsively at 360 / 768 / 1024 / 1440.
+**Exit criteria:** Styleguide approved; shell renders responsively at 360 / 768 / 1024 / 1440. **Met (owner approved `/styleguide`).**
 
 ---
 
@@ -307,6 +307,6 @@ All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ## Next step
 
-**Now:** Phase 2, **Step 14** (dev-only `/styleguide`, contrast audit test, end-to-end tests for navigation, 404 and skip link at 360 and 1440 px, README script rows).
+**Now:** Phase 3 (data layer). Plan sent; waiting for "approved". Work in sub-steps 3a to 3g, one at a time (D15).
 
-**Still open:** README script rows (`test`, `test:e2e`, `ci`) not yet added; Q2/Q3 (Association logo and brand colours; the institute logo and provisional palette are in use).
+**Still open:** Q2/Q3 (Association logo and brand colours; the institute logo and provisional palette are in use).
