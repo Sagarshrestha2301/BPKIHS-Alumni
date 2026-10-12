@@ -166,11 +166,3 @@ describe('mock adapter: feed moderation', () => {
     expect(await api.listFaq()).toHaveLength(10);
   });
 });
-
-describe('mock adapter: writes are not here yet', () => {
-  it('still rejects with not_implemented until step 3e-2', async () => {
-    await expect(api.listFaq()).resolves.toBeDefined();
-    const call = api.login as unknown as () => Promise<unknown>;
-    await expect(call()).rejects.toMatchObject({ code: 'not_implemented' });
-  });
-});
