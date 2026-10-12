@@ -33,10 +33,11 @@ Inspired by medical-institutional blue with a warm accent. **Verify against the 
 | `--color-primary-500` | `#2A6BB0` | Hover, charts |
 | `--color-primary-100` | `#E6EEF7` | Tints, section backgrounds |
 | `--color-accent-600` | `#B4532A` | Donate CTA (warm, stands out from blue) |
-| `--color-accent-500` | `#D9722F` | Donate hover, highlights |
+| `--color-accent-500` | `#D9722F` | Highlights, icons, large graphics. **Not for white text** (3.3:1) |
+| `--color-accent-700` | `#8F3F1D` | Donate hover and pressed state (white text 7.2:1) |
 | `--color-accent-100` | `#FBEBDD` | Donation tint |
 | `--color-success-600` | `#1F7A4D` | Success, "approved" |
-| `--color-warning-600` | `#A66A00` | Warnings, "pending" |
+| `--color-warning-600` | `#9A6200` | Warnings, "pending" (darkened from `#A66A00`, which was 4.49:1 on white) |
 | `--color-danger-600` | `#B3261E` | Errors |
 | `--color-neutral-900` | `#16202B` | Body text |
 | `--color-neutral-600` | `#4A5866` | Secondary text |
@@ -46,6 +47,8 @@ Inspired by medical-institutional blue with a warm accent. **Verify against the 
 
 **Rules**
 - Donate is the only element in the warm accent, so it is always findable.
+- Donate hover **darkens** (accent-700); never lighten it under white text.
+- shadcn's `accent` utility (`bg-accent`) is a subtle hover tint mapped to primary-100. The warm donate colour is `accent-600/500/700`. Do not mix them up.
 - Body text on white must meet 4.5:1; large text 3:1. Check every pairing before finalising.
 - Never use colour alone to convey state (add icon and text).
 - Light mode only (A1).
@@ -187,13 +190,13 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 
 **Sections (in order)**
 1. **Hero:** eyebrow "BPKIHS Alumni Association"; headline (placeholder: "Once BPKIHS, always BPKIHS"); one-line mission; three equal CTAs: *Give*, *Find alumni*, *Join the network*. Background: campus image with gradient.
-2. **Stats band:** alumni registered, countries, funds raised, events held (`getSiteStats`).
+2. **Stats band:** alumni registered, funds raised, active programmes (`getSiteStats`); countries and events held optional.
 3. **Three doors:** cards for Donate / Directory + Register / Events + Community, each with a short line and arrow link.
 4. **Featured giving:** top 2–3 goals with progress bars and a "See all goals" link.
 5. **Upcoming events:** next 3 events, with date block and RSVP link.
 6. **From the community:** 3 latest posts (news, story, achievement).
 7. **Board preview:** president + 3 members, link to full board.
-8. **Message from the Association** (modelled on BPKIHS's Vice-Chancellor block): photo, name, role, short message (placeholder).
+8. **Welcome message from the Association** (modelled on BPKIHS's Vice-Chancellor block): photo, name, role, short message as text or an embedded video (`getWelcomeMessage`; placeholder).
 9. **Newsletter signup** strip.
 10. **Partner strip:** BPKIHS and partner logos (placeholder).
 
@@ -205,7 +208,7 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 ### 8.2 About `/about`, Board `/about/board`, How We Work `/about/how-we-work`
 
 **About:** mission, vision, history timeline (placeholder), what the Association does, link to BPKIHS.
-**Board:** Tabs *Current board* / *Previous boards*. Person cards (photo, name, role, term, batch). Click opens a dialog with bio. Previous boards grouped by term year.
+**Board:** Tabs *Current board* / *Previous boards*. Person cards (photo, name, role, term, batch). Click opens a dialog with bio and personal vision statement. Previous boards grouped by term year.
 **How We Work With BPKIHS:** accordion explaining the relationship, decision-making, how funds are handled, and how alumni can get involved.
 **Data:** `listBoard({ current })`; static copy in `content/`.
 **Checklist:** [ ] about [ ] board tabs [ ] member dialog [ ] how-we-work accordion [ ] breadcrumbs
@@ -216,10 +219,10 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 
 **Goal:** Let alumni find each other, with privacy respected.
 
-**Layout:** search bar at top; filters (programme, batch year, country/city, "further studies"); results as person cards (photo or initials, name, programme, batch, position, location). Sorting: name, batch (newest/oldest).
+**Layout:** search bar at top (name, specialisation, location/country); filters (programme incl. BMIT, batch year, country/city, "further studies"); a persistent Donate button; results as person cards (photo or initials, name, programme, batch, position, location). Sorting: name, batch (newest/oldest).
 **Filters:** sticky sidebar on desktop; bottom sheet on mobile with an "Apply" button and an active-filter chip row.
 **Privacy:** only `approved` and `public`/`alumni_only` records appear. Hidden email and phone are never rendered. A notice: "Profiles show only what each alumnus chose to share."
-**Profile page:** name, photo, programme, batch, position, location, further studies, note, and contact options only if allowed. "Back to directory" link.
+**Profile page:** name, photo, programme, batch, position, location, further studies, note, and contact options only if allowed. A **Donate** button on every profile. "Back to directory" link.
 **States:** skeleton grid, empty ("No alumni match these filters" + reset), error with retry.
 **Pagination:** 12 per page.
 **Checklist:** [ ] search [ ] filters desktop [ ] filters mobile sheet [ ] cards [ ] pagination [ ] empty/error [ ] profile [ ] privacy copy
@@ -282,31 +285,31 @@ Totals raised and spent; **FundsChart** (donut) with a data table beside it; bre
 
 ### 8.9 Tribute `/donate/tribute`
 
-Explains in-honour and in-memory giving; form (type, name, message, optional notification email, amount) that routes into checkout; sample tribute wall (placeholder entries).
+Explains in-honour and in-memory giving; form (type, recipient: batch, mentor or alumnus, name, message, optional notification email, amount) that routes into checkout; sample tribute wall (placeholder entries).
 **Checklist:** [ ] explainer [ ] form [ ] wall
 
 ---
 
 ### 8.10 Community `/community` and Newsletter `/community/newsletter`
 
-**Community:** filter chips (All, News, Stories, Achievements, Notices); card feed with image, title, excerpt, author, date; "Load more." Notices styled like the BPKIHS notice board (date + title + download/read link).
-**Newsletter:** signup form (email, interests checkboxes), archive of past issues (placeholder), privacy note.
-**Checklist:** [ ] filter chips [ ] feed cards [ ] notice list [ ] signup [ ] archive [ ] post detail view (modal or page)
+**Community:** filter chips (All, News, Stories, Achievements, Event, Announcement, In Memoriam, Notices); card feed with image, title, excerpt, author, date; "Load more." A **Share an update** form (no login; submits as pending, with a "reviewed before it appears" notice) and a **Report** action on each post. Notices styled like the BPKIHS notice board (date + title + download/read link).
+**Newsletter:** signup form (email, interests checkboxes), subscribe/unsubscribe preferences, archive of past issues (placeholder), privacy note.
+**Checklist:** [ ] filter chips [ ] feed cards [ ] share-an-update form [ ] report action [ ] notice list [ ] signup [ ] preferences [ ] archive [ ] post detail view (modal or page)
 
 ---
 
 ### 8.11 Events `/events` and detail `/events/[slug]`
 
 **Listing:** Tabs *Upcoming* / *Past*; event cards with date block, title, venue, mode badge, RSVP count; filter by city and mode.
-**Detail:** hero, date/time, venue and map placeholder, description, agenda, speakers (placeholder), capacity meter, **RSVP form** (name, email, guests; no login), add-to-calendar button (UI), share.
-**States:** full event shows "Waitlist" wording; past events show recap with photos (placeholder).
+**Detail:** hero, date/time, venue and map placeholder, description, agenda, speakers (placeholder), capacity meter, a donation-drive card when the event has a linked goal, **RSVP form** (name, email, guests; no login), add-to-calendar button (UI), share.
+**States:** full event shows "Waitlist" wording; past events show a recap with a photo and video gallery (placeholder).
 **Checklist:** [ ] tabs [ ] cards [ ] detail [ ] RSVP form [ ] capacity [ ] past recap [ ] calendar button
 
 ---
 
 ### 8.12 Support `/support`, FAQ `/support/faq`
 
-**Support:** contact cards (email, phone, address, hours – placeholders), helpdesk form (name, email, topic, message), response-time note, link to FAQ.
+**Support:** contact cards (email, phone, address, hours – placeholders), helpdesk form (name, email, topic: account, profile verification, donation receipt or general; message), response-time note, link to FAQ.
 **FAQ:** search plus category tabs; accordion; "Still need help?" CTA.
 **Checklist:** [ ] contact cards [ ] helpdesk form [ ] success state [ ] FAQ search [ ] accordion
 
@@ -321,7 +324,7 @@ Readable long-form template with a table of contents, last-updated date, and pri
 
 ### 8.14 Admin dashboard UI `/admin` (mock gate; Phase 9)
 
-Screens: Overview (stats), Alumni approvals queue (approve/reject with reason), Donations list, Events manager (create/edit form), Posts manager, Support tickets, CSV import screen (upload UI, preview table, validation errors) for the written register.
+Screens: Overview (stats), Alumni approvals queue (approve/reject with reason), Post moderation queue and reported posts, Donations list, Events manager (create/edit form), Posts manager, Support tickets, CSV import screen (upload UI, preview table, validation errors) for the written register.
 Desktop-first with a responsive sidebar. Same design tokens as public site.
 **Checklist:** [ ] overview [ ] approvals [ ] donations [ ] events [ ] posts [ ] tickets [ ] CSV import UI
 
@@ -377,11 +380,12 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
   --color-primary-100: #e6eef7;
   --color-accent-600: #b4532a;
   --color-accent-500: #d9722f;
+  --color-accent-700: #8f3f1d;
   --color-accent-100: #fbebdd;
 
   /* status */
   --color-success-600: #1f7a4d;
-  --color-warning-600: #a66a00;
+  --color-warning-600: #9a6200;
   --color-danger-600: #b3261e;
 
   /* neutrals */
@@ -444,3 +448,4 @@ Phase 2 produces a dev-only `/styleguide` that shows every token, type style and
 |---|---|
 | 12 Oct 2026 | Initial design system and page specs (Sessions 1–2) |
 | 12 Oct 2026 | Added section 11 (implementation notes) ahead of Phase 1 Step 3 |
+| 12 Oct 2026 | Reconciled with the proposal (Session 6): welcome video, stats, BMIT, search scope, tribute recipient, member posting and moderation, event donation drives and galleries, helpdesk topics |

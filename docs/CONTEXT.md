@@ -3,7 +3,7 @@
 > **Purpose:** One file to paste or upload into any new chat so work continues without loss.
 > **Companion files:** `ROADMAP.md` (phases and checklists) and `DESIGN.md` (visual system and per-page specs).
 > **Scope:** Frontend only. Do not design or write backend code yet. Everything must be backend-ready.
-> **Last updated:** 12 Oct 2026 (Session 2: coding started, Phase 1 Steps 1–2)
+> **Last updated:** 12 Oct 2026 (Session 6: proposal reconciled, D25–D28 added)
 
 ---
 
@@ -58,7 +58,7 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 **Proposal timeline:** about 9–10 weeks over 7 phases; frontend covers design (phase 2) and most of phases 3–4.
 
-> ⚠️ **Gap:** The proposal file `BPKIHS_Alumni_Website_Proposal_final.docx` was **not available** when this file was written (the export did not contain it). Section 3's table comes from the earlier summary. **Action:** re-upload the proposal and reconcile (Open Question Q1).
+> ✅ **Proposal reconciled (Session 6, 12 Oct 2026).** `BPKIHS_Alumni_Website_Proposal_final.docx` (Prepared by Kushal Adhikari, Project Lead, Sept 2026; 9–10 weeks plus 1 month support) was reviewed against this file. Differences are resolved in D25–D28 and the type changes in section 7. Proposal §2.1–2.8 map to the eight areas above.
 
 ### 3.1 Locked decisions
 
@@ -81,6 +81,17 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D15 | Delivery mode | Coding one step at a time; advance only on **"done"**; every step ends with a **File order** tree (see Working Protocol rule 8) |
 | D16 | Package manager | npm (`--use-npm`). Do not mix with pnpm or yarn |
 | D17 | Docs location | The three `.md` files live in `docs/` inside the repo and are committed |
+| D18 | UI primitives | shadcn/ui with the **Base UI** library and **Nova** preset (not Radix). Colours, fonts and radius are overridden by our tokens |
+| D19 | Colour mode | Light mode only. No `.dark` theme; the `dark:` variant stays defined but never triggers |
+| D20 | Dependencies | Resolve npm peer conflicts by choosing compatible versions. **Never** use `--force`, `--legacy-peer-deps` or `npm audit fix --force` |
+| D21 | Class helper | `cn` = `clsx` + `tailwind-merge` in `src/lib/utils.ts`. shadcn components import it from `@/lib/utils` |
+| D22 | Quality gate | Pre-commit: lint-staged + typecheck (Husky). Before a milestone: `npm run ci` and `npm run test:e2e`. Unit tests are `*.test.ts(x)` under `src/`; end-to-end tests are `*.spec.ts` under `e2e/` |
+| D23 | Forms | Every field uses `FormField` (label above, hint, inline error with icon, `aria-describedby`/`aria-invalid` linked). Required fields show `*` plus `aria-required`. Errors are never shown by colour alone |
+| D25 | Registration (proposal §2.2) | Public form, **no account** (A3 stands). The proposal's "create account" is a backend concern; the mock `useAuth()` is designed so registrants and donors can share one account later |
+| D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter has signup **and** subscribe/unsubscribe management; the automated digest is backend work |
+| D27 | Admin dashboard | Stays in the plan as Phase 9 (approval and moderation queues depend on it). Q6 answered: build it, mock only, after the public pages |
+| D28 | Proposal additions | `BMIT` programme; board `visionStatement`; stats = alumni, funds raised, active programmes; search by name, specialisation, location/country; Donate button on every profile; tribute recipient (batch, mentor, alumnus); event-linked donation drives; past-event galleries; helpdesk topics (account, profile verification, donation receipt); welcome message as text or video |
+| D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
@@ -95,11 +106,25 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 
 | Item | State |
 |---|---|
-| Phase | **1 — Project setup and tooling** (in progress) |
-| Step 1 | **Done.** Tools checked; project created with `npx create-next-app@latest bpkihs-alumni --ts --eslint --tailwind --src-dir --app --import-alias "@/*" --use-npm`; dev server verified at http://localhost:3000; VS Code extensions installed (ESLint, Prettier, Tailwind CSS IntelliSense, Error Lens optional) |
-| Step 2 | **Issued, awaiting "done".** Prettier (+ Tailwind plugin), `.prettierrc`, `.prettierignore`, `.gitattributes`, `.vscode/settings.json`, package scripts (`typecheck`, `format`, `format:check`), TS strict + `noUncheckedIndexedAccess`, folder structure with `.gitkeep`, `.env.example` / `.env.local`, `!.env.example` in `.gitignore`, docs copied to `docs/`, then `format`, `typecheck`, `lint`, `build`, and first commit |
-| Next (Step 3) | shadcn/ui setup, fonts via `next/font`, design tokens from `DESIGN.md` §2–4 |
-| Waiting on owner | Q1 (re-upload proposal), Q2/Q3 (brand colours, logo, name), Q5, Q6 (see section 12) |
+| Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
+| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean |
+| Next | **Step 11**: surfaces and feedback components (see `ROADMAP.md` Phase 2 table) |
+| Quality gate | `npm run ci` passes (format check, typecheck, lint, 7 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
+| Waiting on owner | Q2/Q3 (logo, brand colours, name) before Step 12; Q5. Q1 and Q6 answered |
+| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
+
+**Versions in use (12 Oct 2026):** Node 22.23, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.21 (Base UI, Nova), Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react.
+
+**Scripts:** `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test`, `test:watch`, `test:e2e`, `ci`.
+
+**Components built so far (`src/components`):**
+- `layout/`: `container.tsx`, `section.tsx` (tone: default, tint, muted)
+- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field` (render-prop: `{(control) => <Input {...control} />}`)
+- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`
+- Tests: `button`, `utils`, `section-heading`, `donate-button`, `form-field`
+- `src/app/page.tsx` is a **temporary design-check page** (Phase 4 replaces it)
+
+**Base UI notes (shadcn components use Base UI primitives, not Radix):** `Checkbox` uses `CheckboxPrimitive.Root.Props`; `RadioGroup` and `RadioGroupItem` use Base UI radio props; `Select` exports `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`, `SelectGroup`, `SelectLabel`, `SelectSeparator`. Check each component's `Props` type before wiring state (for example `onCheckedChange`, `onValueChange`).
 
 **If the owner pastes an error:** fix that error first, then repeat the step's verification before moving on.
 
@@ -242,7 +267,7 @@ Shapes the backend must later match. All IDs are strings; dates are ISO 8601.
 
 ```ts
 type Programme =
-  | 'MBBS' | 'BDS' | 'BSc Nursing' | 'Allied Health'
+  | 'MBBS' | 'BDS' | 'BMIT' | 'BSc Nursing' | 'Allied Health'
   | 'MD/MS' | 'MSc' | 'MDS' | 'DM/MCh' | 'PhD' | 'Fellowship';
 
 type ApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -280,30 +305,44 @@ interface DonationInput {
   amountMinor: number; currency: 'NPR' | 'USD';
   method: 'esewa' | 'khalti' | 'connectips' | 'fonepay' | 'card' | 'paypal';
   anonymous: boolean;
-  tribute?: { type: 'in_honour' | 'in_memory'; name: string; message?: string; notifyEmail?: string };
+  tribute?: {
+    type: 'in_honour' | 'in_memory';
+    recipientKind: 'batch' | 'mentor' | 'alumnus';
+    name: string; message?: string; notifyEmail?: string;
+  };
+  eventId?: string;                // event-linked donation drive
 }
 
 interface FundsBreakdownItem { category: string; sharePercent: number; amountMinor: number }
 
 interface BoardMember {
   id: string; name: string; role: string; term: string;
-  batch?: string; photoUrl?: string; bio?: string; isCurrent: boolean; placeholder?: boolean;
+  batch?: string; photoUrl?: string; bio?: string; visionStatement?: string;
+  isCurrent: boolean; placeholder?: boolean;
 }
 
 interface AlumniEvent {
   id: string; slug: string; title: string; summary: string; description: string;
   startsAt: string; endsAt?: string; venue: string; city: string; mode: 'in_person' | 'online' | 'hybrid';
   capacity?: number; rsvpCount: number; imageUrl?: string; status: 'upcoming' | 'past';
+  goalId?: string;                 // linked donation drive
+  gallery?: { type: 'photo' | 'video'; url: string; alt: string }[];   // past events
 }
 
 interface FeedPost {
-  id: string; type: 'news' | 'story' | 'notice' | 'achievement';
+  id: string; type: 'news' | 'story' | 'notice' | 'achievement' | 'event' | 'announcement' | 'in_memoriam';
+  status: 'pending' | 'approved' | 'rejected';   // member posts are moderated
   title: string; excerpt: string; body: string; author: string;
   publishedAt: string; imageUrl?: string; tags: string[];
 }
 
 interface FaqItem { id: string; category: string; question: string; answer: string }
-interface SiteStats { alumniCount: number; countries: number; raisedMinor: number; eventsHeld: number }
+interface SiteStats {
+  alumniCount: number; raisedMinor: number; activeProgrammes: number;
+  countries?: number; eventsHeld?: number;
+}
+type HelpdeskTopic = 'account' | 'profile_verification' | 'donation_receipt' | 'general';
+interface WelcomeMessage { author: string; role: string; text: string; videoUrl?: string; photoUrl?: string }
 ```
 
 ### 7.2 Mock API functions (`lib/api`)
@@ -321,7 +360,10 @@ interface SiteStats { alumniCount: number; countries: number; raisedMinor: numbe
 | `listEvents(params)` / `getEvent(slug)` | `AlumniEvent` |
 | `submitRsvp(eventId, input)` | `{ ok: true }` |
 | `listFeed(params)` | Paginated `FeedPost` |
-| `subscribeNewsletter(email)` | `{ ok: true }` |
+| `submitPost(input)` | `{ id, status: 'pending' }` (moderated) |
+| `reportPost(id, reason)` | `{ ok: true }` |
+| `getWelcomeMessage()` | `WelcomeMessage` |
+| `subscribeNewsletter(email, interests)` / `updateNewsletterPrefs(email, optIn)` | `{ ok: true }` |
 | `listFaq()` | `FaqItem[]` |
 | `submitSupportTicket(input)` | `{ ticketId }` |
 | `mockLogin(email)` / `mockSignup(input)` | session (donation gate only) |
@@ -372,7 +414,10 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 |---|------|---------------|---------------------|
 | 1 | 12 Oct 2026 | Reviewed proposal summary and three reference sites; asked 10 clarifying questions; confirmed decisions D1–D10; asked 3 more (look, homepage emphasis, file detail) | D11–D13 added. Created `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md`. Proposal `.docx` not available in this session. |
 | 2 | 12 Oct 2026 | Asked 3 more questions (look, homepage emphasis, file detail); fetched bpkihs.edu for structure; wrote the three files in full. Owner asked to start coding on Windows 11 + VS Code, one step at a time. **Step 1** completed (project created, runs). **Step 2** issued (tooling, structure, env, docs, first commit). | D14–D17 added. Working Protocol rules 8–9 added. Folder structure from §5.3 created in Step 2 (empty, `.gitkeep`). Awaiting "done" for Step 2. |
-| 3 | — | — | — |
+| 3 | 12 Oct 2026 | Steps 2–3 finished and committed (Prettier, strict TS, folders, env, docs; shadcn/ui init with Base UI + Nova, `button`). Found Next.js 16.4 and Tailwind v4. **Step 4** issued (fonts, tokens, metadata). | D18–D19 added. Colour fixes: `warning-600` darkened to `#9A6200`; added `accent-700` for donate hover (see `DESIGN.md` §2) |
+| 4 | 12 Oct 2026 | Step 4 committed (fonts, tokens, metadata). **Step 5** image host + README. **Step 6** Husky, lint-staged, import sorting; hook proven by a deliberately broken commit that was blocked. **Step 7** replaced the `cn` package with `clsx` + `tailwind-merge`; Vitest + Testing Library (3 tests); fixed a pasted-into-wrong-file mistake (`button.tsx`) and a leftover `from 'cn'` import. **Step 8** Playwright (4 tests), `npm run ci`, missing `playwright.config.ts` fixed. | D20–D22 added. Phase 1 complete. Phase 2 plan drafted (Steps 9–14) |
+| 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
+| 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 next |
 
 *Append a new row after every working session.*
 
@@ -382,14 +427,14 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 | # | Question | Default if unanswered |
 |---|----------|----------------------|
-| Q1 | Please re-upload the proposal `.docx` so I can reconcile sections 3 and 8 | Proceed on the earlier summary |
+| Q1 | ~~Re-upload the proposal~~ **Answered, see 12.1** | — |
 | Q2 | Exact brand colours and the logo file for the Association (not just BPKIHS)? | Provisional palette in `DESIGN.md` |
 | Q3 | Association name and tagline (e.g. "BPKIHS Alumni Association")? | "BPKIHS Alumni Association" |
 | Q4 | Is there a domain or a Nepali-year (BS) date requirement? | Gregorian dates only |
 | Q5 | Donation currencies: NPR only, or NPR and USD? | NPR and USD |
-| Q6 | Build the admin dashboard UI now, or defer? | Build last (Phase 9), mock only |
+| Q6 | ~~Admin dashboard timing~~ **Answered, see 12.1** | — |
 | Q7 | Should the directory show alumni photos? Consent wording? | Optional photo with consent checkbox |
-| Q8 | Who is the contact for helpdesk copy and FAQ answers? | Placeholder FAQ |
+| Q8 | Who is the contact for helpdesk copy and FAQ answers? (Proposal names Kushal Adhikari as Project Lead; that is the developer's contact, not Association copy) | Placeholder FAQ |
 | Q9 | Social links to include (Facebook, LinkedIn, etc.)? | Facebook (from bpkihs.edu) |
 | Q10 | Any compliance wording needed for donations (receipts, tax exemption, 80G-style)? | Generic "receipt by email" text |
 
@@ -399,12 +444,12 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 | # | Answer | Date |
 |---|--------|------|
-| Q1 | | |
+| Q1 | Proposal re-uploaded and reconciled (D25–D28) | 12 Oct 2026 |
 | Q2 | | |
 | Q3 | | |
 | Q4 | | |
 | Q5 | | |
-| Q6 | | |
+| Q6 | Build admin UI in Phase 9, mock only (D27) | 12 Oct 2026 |
 | Q7 | | |
 | Q8 | | |
 | Q9 | | |
@@ -421,6 +466,20 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 - Open terminals in VS Code with **Ctrl + `**; run commands from the project root `C:\dev\bpkihs-alumni`.
 - Stop the dev server with **Ctrl + C**.
 - Folder names and generated files can differ slightly by `create-next-app` version; check before editing (for example `lint` may be `next lint` or `eslint`).
+
+---
+
+## 12.3 Lessons learned (Phase 1)
+
+- **npm ERESOLVE conflicts** came from version peers (`@types/node` 20 vs Vitest wanting 22+; the newest `@vitejs/plugin-react` wanting Babel 8). Fix by picking compatible versions (`@types/node@^22`) or dropping the unneeded package, not by forcing.
+- **Check which file you are editing.** Test code pasted into `button.tsx` replaced the real component. Restore with `git restore <file>`; every step is committed so this is always safe.
+- **Hidden files:** a directory listing hides dotfiles. Use `Get-ChildItem -Force -Name` to see `.env.local`, `.prettierrc`, `.husky`, etc.
+- **Playwright vs Vitest:** keep the test types apart (`*.spec.ts` in `e2e/` for Playwright, `*.test.ts(x)` in `src/` for Vitest) and set `testDir`/`testMatch` in the Playwright config.
+- **`npm audit`:** the 7 high warnings are all inside shadcn's own CLI dependencies, not shipped code. Recheck in Phase 10.
+- **Run the whole gate before committing.** The hook checks types and lint only, not tests. Run `npm run ci` first; a failing test can otherwise slip into a commit.
+- **Testing Library cleanup:** with Vitest globals off, add `afterEach(cleanup)` in `vitest.setup.ts`, or tests see each other's output.
+- **Pasting through PowerShell here-strings can drop spaces** (for example `gap-1.5text-sm`). After pasting a large block, scan for run-together class names or let Prettier and the tests catch them.
+- **shadcn can re-introduce the old `cn` import** (`from 'cn'`). After every `shadcn add`, search for it and point it at `@/lib/utils`.
 
 ---
 
