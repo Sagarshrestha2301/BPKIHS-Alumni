@@ -2,17 +2,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { directoryPage } from '@/content/directory';
-import { ALUMNI_SORTS } from '@/features/directory/parse-directory-params';
+import { ALUMNI_SORTS, type DirectoryFilters } from '@/features/directory/parse-directory-params';
 import type { AlumniSort } from '@/lib/api/types';
 
-type DirectorySearchFormProps = { q?: string; sort: AlumniSort };
+type DirectorySearchFormProps = {
+  q?: string | undefined;
+  sort: AlumniSort;
+  filters?: DirectoryFilters;
+};
 
 /** A plain GET form: the URL holds the state, so it works without JavaScript. */
-export function DirectorySearchForm({ q, sort }: DirectorySearchFormProps) {
+export function DirectorySearchForm({ q, sort, filters }: DirectorySearchFormProps) {
   const { search, sort: sortCopy } = directoryPage;
 
   return (
     <form action="/directory" method="get" role="search" aria-label={search.formLabel}>
+      {filters?.programme ? (
+        <input type="hidden" name="programme" value={filters.programme} />
+      ) : null}
+      {filters?.batchYear ? <input type="hidden" name="batch" value={filters.batchYear} /> : null}
+      {filters?.country ? <input type="hidden" name="country" value={filters.country} /> : null}
+      {filters?.city ? <input type="hidden" name="city" value={filters.city} /> : null}
+      {filters?.furtherStudies ? <input type="hidden" name="further" value="1" /> : null}
       <div className="grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
         <div>
           <Label htmlFor="directory-q" className="text-primary-900 mb-2 block font-medium">
