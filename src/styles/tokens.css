@@ -19,6 +19,7 @@
 
   --color-neutral-900: #16202b;
   --color-neutral-600: #4a5866;
+  --color-neutral-500: #7b8794; /* form control borders: 3.66:1 on white */
   --color-neutral-300: #cbd3db;
   --color-neutral-100: #f4f6f8;
 
