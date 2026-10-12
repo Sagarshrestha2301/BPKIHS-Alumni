@@ -1,6 +1,7 @@
 import { cacheLife } from 'next/cache';
 
 import { getApiClient } from '@/lib/api/client';
+import type { PostType } from '@/lib/constants/domain';
 
 /** Site-wide numbers for the home page. Same for every visitor, so they are cached. */
 export async function getHomeStats() {
@@ -15,4 +16,27 @@ export async function getFeaturedGoals() {
   cacheLife('days');
   const goals = await getApiClient().listGoals();
   return goals.slice(0, 3);
+}
+
+/** The next three upcoming events, soonest first. */
+export async function getUpcomingEvents() {
+  'use cache';
+  cacheLife('days');
+  const page = await getApiClient().listEvents({
+    status: 'upcoming',
+    sort: 'soonest',
+    pageSize: 3,
+  });
+  return page.items;
+}
+
+/** Post types shown on the home page. Notices, announcements and In memoriam stay in /community. */
+const homePostTypes: readonly PostType[] = ['news', 'story', 'achievement'];
+
+/** The three newest approved posts of the types above. */
+export async function getLatestPosts() {
+  'use cache';
+  cacheLife('days');
+  const page = await getApiClient().listFeed({ pageSize: 12 });
+  return page.items.filter((post) => homePostTypes.includes(post.type)).slice(0, 3);
 }

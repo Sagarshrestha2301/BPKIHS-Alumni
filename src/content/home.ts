@@ -50,3 +50,19 @@ export const featuredGoals = {
   allGoalsLabel: 'See all goals',
   allGoalsHref: '/donate',
 } as const;
+
+export const upcomingEvents = {
+  eyebrow: 'Events',
+  title: 'Upcoming events',
+  description: 'Meet classmates and colleagues, in person or online.',
+  allLabel: 'See all events',
+  allHref: '/events',
+} as const;
+
+export const communityPosts = {
+  eyebrow: 'Community',
+  title: 'From the community',
+  description: 'News, stories and achievements from fellow alumni.',
+  allLabel: 'Read more posts',
+  allHref: '/community',
+} as const;

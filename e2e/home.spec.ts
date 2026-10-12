@@ -57,3 +57,16 @@ test('featured giving shows goals with progress', async ({ page }) => {
     '/donate',
   );
 });
+
+test('upcoming events lists three events with RSVP links', async ({ page }) => {
+  await page.goto('/');
+  const events = page.getByRole('region', { name: 'Upcoming events' });
+  await expect(events.getByRole('heading', { level: 3 })).toHaveCount(3);
+  await expect(events.getByRole('link', { name: /^RSVP and details/ })).toHaveCount(3);
+});
+
+test('community section lists three posts', async ({ page }) => {
+  await page.goto('/');
+  const posts = page.getByRole('region', { name: 'From the community' });
+  await expect(posts.getByRole('heading', { level: 3 })).toHaveCount(3);
+});
