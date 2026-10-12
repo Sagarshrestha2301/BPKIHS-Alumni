@@ -46,3 +46,14 @@ test('three doors section is on the page', async ({ page }) => {
     '/directory',
   );
 });
+
+test('featured giving shows goals with progress', async ({ page }) => {
+  await page.goto('/');
+  const goals = page.getByRole('region', { name: 'Where your gift goes' });
+  await expect(goals.getByRole('heading', { level: 3 })).toHaveCount(3);
+  await expect(goals.getByRole('progressbar')).toHaveCount(3);
+  await expect(goals.getByRole('link', { name: 'See all goals' })).toHaveAttribute(
+    'href',
+    '/donate',
+  );
+});

@@ -42,3 +42,11 @@ export const doors = {
     },
   ],
 } as const;
+
+export const featuredGoals = {
+  eyebrow: 'Featured giving',
+  title: 'Where your gift goes',
+  description: 'Back a goal, or give where it is needed most.',
+  allGoalsLabel: 'See all goals',
+  allGoalsHref: '/donate',
+} as const;

@@ -8,3 +8,11 @@ export async function getHomeStats() {
   cacheLife('days');
   return getApiClient().getSiteStats();
 }
+
+/** The first three giving goals (the general fund comes first in the data). */
+export async function getFeaturedGoals() {
+  'use cache';
+  cacheLife('days');
+  const goals = await getApiClient().listGoals();
+  return goals.slice(0, 3);
+}
