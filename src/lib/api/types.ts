@@ -9,7 +9,6 @@ import type {
   Currency,
   EventMode,
   EventStatus,
-  HelpdeskTopic,
   PostType,
   Programme,
   Visibility,
