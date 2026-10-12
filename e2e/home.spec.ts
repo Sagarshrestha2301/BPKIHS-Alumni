@@ -15,3 +15,10 @@ test('page does not scroll sideways', async ({ page }) => {
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test('stats band is on the page', async ({ page }) => {
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Our community in numbers' }),
+  ).toHaveCount(1);
+});
