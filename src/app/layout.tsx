@@ -3,6 +3,9 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari, Source_Serif_4 } from 'next/font/google';
 
+import { BottomBar } from '@/components/layout/bottom-bar';
+import { SiteHeader } from '@/components/layout/site-header';
+
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
@@ -38,7 +41,13 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="en"
       className={`${inter.variable} ${sourceSerif.variable} ${notoDevanagari.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <SiteHeader />
+        <div id="main-content" className="flex-1 pb-14 lg:pb-0">
+          {children}
+        </div>
+        <BottomBar />
+      </body>
     </html>
   );
 }
