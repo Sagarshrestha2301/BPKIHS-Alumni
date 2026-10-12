@@ -19,7 +19,7 @@ const swatches = [
 
 export default function HomePage() {
   return (
-    <main>
+    <>
       <Section>
         <SectionHeading
           as="h1"
@@ -41,7 +41,9 @@ export default function HomePage() {
           <p className="font-heading text-display lg:text-display-lg leading-[1.1] font-bold">
             Display: Once BPKIHS, always BPKIHS
           </p>
-          <h1>H1: Alumni directory</h1>
+          <p className="font-heading text-h1 lg:text-h1-lg leading-tight font-bold">
+            H1: Alumni directory
+          </p>
           <h2>H2: Featured giving goals</h2>
           <h3>H3: Upcoming events</h3>
           <p className="text-body-l leading-relaxed">
@@ -72,6 +74,6 @@ export default function HomePage() {
           ))}
         </div>
       </Section>
-    </main>
+    </>
   );
 }
