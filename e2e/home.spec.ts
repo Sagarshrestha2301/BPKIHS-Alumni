@@ -101,3 +101,10 @@ test('home page has Open Graph tags and a canonical link', async ({ page }) => {
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
 });
+
+test('newsletter signup is available at the bottom of the home page', async ({ page }) => {
+  await page.goto('/');
+  const signup = page.getByRole('region', { name: 'Stay in touch' });
+  await expect(signup.getByLabel('Email address')).toBeVisible();
+  await expect(signup.getByRole('button', { name: 'Subscribe' })).toBeVisible();
+});
