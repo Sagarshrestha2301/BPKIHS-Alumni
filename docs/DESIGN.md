@@ -41,6 +41,7 @@ Inspired by medical-institutional blue with a warm accent. **Verify against the 
 | `--color-danger-600` | `#B3261E` | Errors |
 | `--color-neutral-900` | `#16202B` | Body text |
 | `--color-neutral-600` | `#4A5866` | Secondary text |
+| `--color-neutral-500` | `#7B8794` | Form control borders (3.66:1 on white, WCAG 2.2 non-text contrast) |
 | `--color-neutral-300` | `#CBD3DB` | Borders |
 | `--color-neutral-100` | `#F4F6F8` | Page alt background |
 | `--color-white` | `#FFFFFF` | Surfaces |
@@ -52,6 +53,7 @@ Inspired by medical-institutional blue with a warm accent. **Verify against the 
 - Body text on white must meet 4.5:1; large text 3:1. Check every pairing before finalising.
 - Never use colour alone to convey state (add icon and text).
 - Light mode only (A1).
+- Form control borders use `neutral-500` (D32); cards and dividers keep `neutral-300`.
 
 ---
 
@@ -342,7 +344,7 @@ Desktop-first with a responsive sidebar. Same design tokens as public site.
 ## 9. Content rules
 
 - Headlines: sentence case. Buttons: verbs ("Give now", "Join the network").
-- Dates: `12 Oct 2026`. Money: `NPR 5,000` (NPR only, D30).
+- Dates: `12 Oct 2026`; with a time, `12 Oct 2026, 5:45 PM`. Always Nepal time (UTC+5:45), with fixed month names (Sep, never Sept). Money: `NPR 5,000`, and the short form `NPR 4.2M` in stat bands (NPR only, D30). Use `formatNpr`, `formatNprCompact`, `formatDate` and `formatDateTime` from `lib/format`.
 - Numbers shown in stats are mock until real; they carry the placeholder flag.
 - No stock-photo people presented as real alumni. If photos are needed, use initials avatars.
 
@@ -391,6 +393,7 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
   /* neutrals */
   --color-neutral-900: #16202b;
   --color-neutral-600: #4a5866;
+  --color-neutral-500: #7b8794; /* form control borders, 3.66:1 on white */
   --color-neutral-300: #cbd3db;
   --color-neutral-100: #f4f6f8;
 
@@ -414,7 +417,8 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
 | `--primary` / `--primary-foreground` | `--color-primary-700` / white |
 | `--secondary` | `--color-primary-100` |
 | `--muted-foreground` | `--color-neutral-600` |
-| `--border`, `--input` | `--color-neutral-300` |
+| `--border` | `--color-neutral-300` |
+| `--input` | `--color-neutral-500` |
 | `--ring` | `--color-primary-700` |
 | `--destructive` | `--color-danger-600` |
 | `--radius` | `--radius-control` |
@@ -435,10 +439,16 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
 | neutral-600 | neutral-100 | 4.5:1 |
 | primary-700 | primary-100 | 4.5:1 (links on tinted sections) |
 | success / warning / danger-600 | white | 4.5:1 (status text) |
+| neutral-500 | white | 3:1 (form control borders) |
+| primary-700 | white | 3:1 (focus ring) |
+| accent-600 | accent-100 | 3:1, large text only; never small body text (4.28:1) |
+| accent-500 | white | 3:1, large graphics only; never under white text |
+
+All of these pairs are checked automatically by `src/lib/contrast.test.ts`, which reads the colours from `tokens.css`. Change a brand colour and run `npm run test`.
 
 ### 11.6 Styleguide page
 
-Phase 2 produces a dev-only `/styleguide` that shows every token, type style and component state. It is the acceptance reference for this file.
+Phase 2 produced a dev-only `/styleguide` (approved; returns 404 in production; swatches and contrast ratios are read live from `tokens.css`) that shows every token, type style and component state. It is the acceptance reference for this file.
 
 ---
 
@@ -449,3 +459,5 @@ Phase 2 produces a dev-only `/styleguide` that shows every token, type style and
 | 12 Oct 2026 | Initial design system and page specs (Sessions 1–2) |
 | 12 Oct 2026 | Added section 11 (implementation notes) ahead of Phase 1 Step 3 |
 | 12 Oct 2026 | Reconciled with the proposal (Session 6): welcome video, stats, BMIT, search scope, tribute recipient, member posting and moderation, event donation drives and galleries, helpdesk topics |
+| 12 Oct 2026 | Step 14 / Session 8: added `neutral-500` for form control borders (section 2, 11.2, 11.3), extra contrast pairs (11.5), styleguide done (11.6) |
+| 12 Oct 2026 | Session 9 (Phase 3): date, time and money formats pinned in section 9 |

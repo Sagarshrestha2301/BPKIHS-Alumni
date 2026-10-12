@@ -15,7 +15,7 @@
 | 0 | Alignment and docs | 1 day | — | [x] |
 | 1 | Project setup and tooling | 2 days | 0 | [x] |
 | 2 | Design system and layout shell | 4 days | 1 | [x] |
-| 3 | Data layer (types, mocks, API client) | 3 days | 1 | [ ] |
+| 3 | Data layer (types, mocks, API client) | 3 days | 1 | [x] |
 | 4 | Home and About/Governance pages | 5 days | 2, 3 | [ ] |
 | 5 | Directory and Registration | 6 days | 2, 3 | [ ] |
 | 6 | Donate flow (with login gate) | 6 days | 2, 3 | [ ] |
@@ -96,7 +96,7 @@
 | 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [x] Done (`041a1aa` shadcn components; custom components; the temporary `/demo` page was replaced by `/styleguide` in Step 14); 12 tests |
 | 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [x] Done |
 | 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [x] Done |
-| 14 | Dev-only `/styleguide` (replaces `/demo`); contrast audit test; e2e tests for navigation, skip link, 404 and no sideways scroll at 360 and 1440 px; README script rows | [x] Done (14a to 14d); exit review pending |
+| 14 | Dev-only `/styleguide` (replaces `/demo`); contrast audit test; e2e tests for navigation, skip link, 404 and no sideways scroll at 360 and 1440 px; README script rows | [x] Done (14a to 14d); owner approved |
 
 
 - [x] `styles/tokens.css`: colour, type scale, spacing and shadow tokens done (Steps 4 and 9)
@@ -116,26 +116,38 @@
 
 ---
 
-## Phase 3 — Data layer (backend-ready)
+## Phase 3 — Data layer (backend-ready) ✅
 
-- [ ] `lib/api/types.ts` from `CONTEXT.md` §7.1
-- [ ] Zod schemas for every input (registration, donation, RSVP, helpdesk with topic, newsletter and preferences, tribute with recipient kind, member post, post report, login/signup)
-- [ ] `lib/api/client.ts` interface + adapter switch
-- [ ] `mockAdapter` with latency and error simulation
-- [ ] Seed data (all `placeholder: true`):
-  - [ ] ~60 alumni across programmes, batches, countries
-  - [ ] 4–5 donation goals + general fund
-  - [ ] Current and previous boards
-  - [ ] 6 upcoming and 6 past events
-  - [ ] 12 feed posts (mix of tags, incl. In Memoriam), 10 FAQ items, 1 welcome message
-  - [ ] Board members with vision statements; programmes include BMIT; one past event with a gallery; one event linked to a goal
-- [ ] Pagination, search, sort, filter helpers
-- [ ] `useAuth()` abstraction with mock session (donation gate)
-- [ ] Money and date formatting utilities (NPR, `12 Oct 2026`)
-- [ ] Unit tests for filters, formatters, and schemas
-- [ ] `httpAdapter` **stub** with the same signatures (throws "not implemented") to prove the swap
+**Sub-steps:**
 
-**Exit criteria:** Any page can fetch via `lib/api`; swapping the adapter requires zero component changes.
+| Step | Scope | Status |
+|---|---|---|
+| 3a | Types, domain constants, `ApiError`, Zod input schemas | [x] |
+| 3b | NPR and date formatters, list helpers, query functions | [x] |
+| 3c | `ApiClient` contract, adapter switch, simulation helpers, http stub | [x] |
+| 3d | Sample data (alumni; goals, boards, events, posts, FAQ, welcome) and record schemas | [x] |
+| 3e | Mock adapter: reads, then writes (privacy, moderation, validation) | [x] |
+| 3f | `useAuth()` with an in-memory mock session | [x] |
+| 3g | Shared contract suite, docs, full gate | [x] |
+
+- [x] `lib/api/types.ts` from `CONTEXT.md` §7.1
+- [x] Zod schemas for every input (registration, donation, RSVP, helpdesk with topic, newsletter and preferences, tribute with recipient kind, member post, post report, login/signup)
+- [x] `lib/api/client.ts` interface + adapter switch
+- [x] `mockAdapter` with latency and error simulation
+- [x] Seed data (all `placeholder: true`):
+  - [x] ~60 alumni across programmes, batches, countries
+  - [x] 4–5 donation goals + general fund
+  - [x] Current and previous boards
+  - [x] 6 upcoming and 6 past events
+  - [x] 12 feed posts (mix of tags, incl. In Memoriam), 10 FAQ items, 1 welcome message
+  - [x] Board members with vision statements; programmes include BMIT; one past event with a gallery; one event linked to a goal
+- [x] Pagination, search, sort, filter helpers
+- [x] `useAuth()` abstraction with mock session (donation gate)
+- [x] Money and date formatting utilities (NPR, `12 Oct 2026`)
+- [x] Unit tests for filters, formatters, and schemas
+- [x] `httpAdapter` **stub** with the same signatures (throws "not implemented") to prove the swap
+
+**Exit criteria:** Any page can fetch via `lib/api`; swapping the adapter requires zero component changes. **Met** (shared contract suite; `httpAdapter` stub has the same shape).
 
 ---
 
@@ -190,6 +202,7 @@
 - [x] ~~NPR/USD display toggle~~ removed (D30, NPR only)
 - [ ] `/donate/checkout` stepper: amount → **login gate** → payment method
 - [ ] Mock sign-in / sign-up dialog (only here, per D3)
+- [ ] Mount `AuthProvider` around checkout only (D35); the demo account is `demo@example.com`
 - [ ] Payment method panels: eSewa, Khalti, ConnectIPS, Fonepay QR, Card, PayPal-style (UI only)
 - [ ] Order summary (sticky desktop, collapsible mobile)
 - [ ] Processing, failure, retry states
@@ -208,6 +221,7 @@
 **Events** (§8.11)
 - [ ] Listing with Upcoming/Past tabs and filters
 - [ ] Detail page with RSVP form (no login), capacity meter, calendar button (UI)
+- [ ] RSVP result says whether the person was confirmed or waitlisted (add `waitlisted` to the result, the contract and the tests)
 - [ ] Event-linked donation drive card (when `goalId` is set)
 - [ ] Past-event recap layout with photo and video gallery
 
@@ -263,6 +277,7 @@
 - [ ] Throttled 4G and low-end device test
 - [ ] Copy review and placeholder audit (no lorem ipsum, all sample data flagged)
 - [ ] Sitemap, robots, structured data
+- [ ] Run the unit tests under `src/lib` in the `node` Vitest environment (jsdom is about 70% of test time)
 
 **Exit criteria:** All pages pass the Definition of Done; owner sign-off.
 
@@ -278,6 +293,7 @@
 - [ ] CSV import column spec for the written register
 - [ ] Payment integration notes per gateway (what the UI expects back)
 - [ ] Checklist for switching `NEXT_PUBLIC_API_MODE` to `http`
+- [ ] Run `src/lib/api/contract-suite.ts` against the real `httpAdapter` before switching modes
 
 **Exit criteria:** A backend developer can implement the contract without reading UI code.
 
@@ -307,6 +323,11 @@ All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ## Next step
 
-**Now:** Phase 3 (data layer). Plan sent; waiting for "approved". Work in sub-steps 3a to 3g, one at a time (D15).
+**Now:** Phase 4 (Home and About/Governance). Plan first, wait for "approved".
+
+**Carried forward from Phase 3:**
+- Pick the data-fetching pattern for Cache Components (`<Suspense>` or `use cache`) with the first page that needs data.
+- `submitRsvp` returns only `{ ok: true }`; Phase 7 needs it to say whether the person was waitlisted.
+- Mount `AuthProvider` around checkout in Phase 6 only.
 
 **Still open:** Q2/Q3 (Association logo and brand colours; the institute logo and provisional palette are in use).
