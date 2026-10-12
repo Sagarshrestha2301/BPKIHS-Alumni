@@ -53,6 +53,7 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | 4 | Community | Feed and newsletter |
 | 5 | Governance | Current and previous boards, "How We Work With BPKIHS" |
 | 6 | Events | Listing and RSVP |
+| 7 | 12 Oct 2026 | Steps 11 to 13 finished and committed locally (nothing pushed): surfaces and feedback components, `/demo` page, header with institute logo, mobile menu, bottom bar, footer with newsletter strip, skip link, main landmark, 404, error and loading pages. Docs updated for NPR only and the logo. Step 14a (colour contrast audit test) issued, result pending | D29 to D31 added. Open finding: input border `neutral-300` is about 1.5:1 on white, WCAG 2.2 wants 3:1; propose a darker input border token (about `#7B8794`) in the styleguide step and ask the owner first |
 | 7 | Support | Contact, helpdesk, FAQ |
 | 8 | Trust and admin | Privacy, Terms, Accessibility, plus an admin dashboard |
 
@@ -111,7 +112,7 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 |---|---|
 | Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
 | Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean. **Step 11** (shadcn card, badge, tabs, accordion, dialog, sheet, skeleton, progress, breadcrumb, pagination, sonner; custom `StatCard`, `EmptyState`, `ErrorState`, `ProgressBar`, `Stepper`; temporary `/demo` page; 12 tests). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit). **Step 12** (`SiteHeader`, `MobileNav` sheet, `BottomBar`, institute logo, `content/site.ts`). **Step 13** (`SiteFooter` with `NewsletterForm`, skip link, `<main>` landmark, 404, error and loading pages; 15 tests; last commit `ce039f6` plus the 404/error/loading commit) |
-| Next | **Step 14**: dev-only `/styleguide`, contrast audit test, end-to-end tests (navigation, 404, skip link) at 360 and 1440 px, README script rows (see `ROADMAP.md` Phase 2 table) |
+| Next | **Step 14** (14a contrast test issued, result pending; then 14b e2e, 14c styleguide, 14d README): dev-only `/styleguide`, contrast audit test, end-to-end tests (navigation, 404, skip link) at 360 and 1440 px, README script rows (see `ROADMAP.md` Phase 2 table) |
 | Quality gate | `npm run ci` passes (format check, typecheck, lint, 13 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
 | Waiting on owner | Association-specific logo and brand colours (Q2/Q3; institute logo and provisional palette in use meanwhile); Q4, Q7 to Q10. Q1, Q5 and Q6 answered |
 | Placeholder in use | Institute logo plus text wordmark "BPKIHS Alumni Association" until an Association logo is supplied |
@@ -487,6 +488,9 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 - **shadcn `sonner` pulls in `next-themes`.** We are light only (D19), so `sonner.tsx` was rewritten with `theme="light"` and `next-themes` removed.
 - **A mangled paste can create a stray file** in the project root. Prettier fails on it. Check `git status --short` for unexpected `??` entries and delete them with `Remove-Item -LiteralPath`.
 - **Do not name a PowerShell helper `R`.** It is a built-in alias for `Invoke-History` and wins over functions. Use `Rep` and `W`.
+- **Terminal copy drops a space where a long line wraps.** A pasted result can show `(seeD30)` when the file is fine. Verify with a regex count on the file before assuming damage.
+- **A re-run of an edit script prints `NOT FOUND` for every edit that already applied.** That is not a failure. Check the file before debugging.
+- **Keep pasted replacement lines short.** Long single-line anchors are hard to verify; prefer short inner-text anchors.
 - **Prettier re-pads markdown tables.** When scripting edits to the docs, match short inner text, not text that touches a table pipe.
 
 ---
