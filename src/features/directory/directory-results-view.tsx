@@ -1,6 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import Link from 'next/link';
 
+import { DonateLink } from '@/components/shared/donate-link';
 import { EmptyState } from '@/components/shared/empty-state';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -83,7 +84,7 @@ function PageNav({ result, params }: DirectoryResultsViewProps) {
 
 /** The result count, the person cards and the page links. Shows an empty state for no results. */
 export function DirectoryResultsView({ result, params }: DirectoryResultsViewProps) {
-  const { empty, resultsLabel, sampleNote } = directoryPage;
+  const { donateLink, empty, resultsLabel, sampleNote } = directoryPage;
 
   if (result.items.length === 0) {
     return (
@@ -106,11 +107,16 @@ export function DirectoryResultsView({ result, params }: DirectoryResultsViewPro
 
   return (
     <div className="mt-8">
-      <p className="text-sm text-neutral-600">
-        Showing {start}
-        {'\u2013'}
-        {end} of {result.total} alumni
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-neutral-600">
+          Showing {start}
+          {'\u2013'}
+          {end} of {result.total} alumni
+        </p>
+        <DonateLink href="/donate" className="hidden h-10 px-5 text-sm sm:inline-flex">
+          {donateLink.label}
+        </DonateLink>
+      </div>
       <ul aria-label={resultsLabel} className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {result.items.map((person) => (
           <li key={person.id}>

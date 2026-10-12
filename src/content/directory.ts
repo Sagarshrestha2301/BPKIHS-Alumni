@@ -47,6 +47,7 @@ export const directoryPage = {
     note: 'About',
     sample: 'Sample',
   },
+  donateLink: { label: 'Support the Association' },
   resultsLabel: 'Alumni results',
   empty: {
     title: 'No alumni found',
