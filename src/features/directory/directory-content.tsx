@@ -2,10 +2,10 @@ import { DirectoryResultsView } from '@/features/directory/directory-results-vie
 import { DirectorySearchForm } from '@/features/directory/directory-search-form';
 import { getAlumniPage } from '@/features/directory/get-directory-data';
 import {
-  DIRECTORY_PAGE_SIZE,
   parseDirectoryParams,
   type RawSearchParams,
 } from '@/features/directory/parse-directory-params';
+import { toAlumniListParams } from '@/features/directory/to-alumni-list-params';
 
 /** Reads the URL query, fetches that page of alumni, and renders the form and results. */
 export async function DirectoryContent({
@@ -14,12 +14,7 @@ export async function DirectoryContent({
   searchParams: Promise<RawSearchParams>;
 }) {
   const params = parseDirectoryParams(await searchParams);
-  const result = await getAlumniPage({
-    ...(params.q ? { q: params.q } : {}),
-    sort: params.sort,
-    page: params.page,
-    pageSize: DIRECTORY_PAGE_SIZE,
-  });
+  const result = await getAlumniPage(toAlumniListParams(params));
 
   return (
     <>
