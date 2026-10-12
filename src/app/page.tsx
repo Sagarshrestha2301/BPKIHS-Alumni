@@ -1,11 +1,15 @@
-import Image from 'next/image';
-
+import { Section } from '@/components/layout/section';
+import { DonateButton } from '@/components/shared/donate-button';
+import { Eyebrow } from '@/components/shared/eyebrow';
+import { SectionHeading } from '@/components/shared/section-heading';
 import { Button } from '@/components/ui/button';
+
 const swatches = [
   { name: 'primary-900', className: 'bg-primary-900' },
   { name: 'primary-700', className: 'bg-primary-700' },
   { name: 'primary-500', className: 'bg-primary-500' },
   { name: 'primary-100', className: 'bg-primary-100' },
+  { name: 'accent-700', className: 'bg-accent-700' },
   { name: 'accent-600', className: 'bg-accent-600' },
   { name: 'accent-500', className: 'bg-accent-500' },
   { name: 'success-600', className: 'bg-success-600' },
@@ -15,51 +19,51 @@ const swatches = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-8 p-6">
-      <header className="space-y-2">
-        <p className="text-primary-700 text-xs font-semibold tracking-widest uppercase">
-          Token check (temporary page)
-        </p>
-        <h1 className="text-primary-900 text-4xl font-bold">BPKIHS Alumni Association</h1>
-        <p className="text-neutral-600">
-          This heading is Source Serif 4. This paragraph is Inter. If both look different, the fonts
-          work.
-        </p>
-        <p lang="ne" className="text-lg">
+    <main>
+      <Section>
+        <SectionHeading
+          as="h1"
+          eyebrow="Design check (temporary page)"
+          title="BPKIHS Alumni Association"
+          description="This page only proves the type scale, spacing and components. Phase 4 replaces it with the real home page."
+        />
+        <p lang="ne" className="text-body-l mt-4">
           बी.पी. कोइराला स्वास्थ्य विज्ञान प्रतिष्ठान
         </p>
-      </header>
+      </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-2xl font-semibold">Image test</h2>
-        <Image
-          src="https://bpkihs.edu/file/show/images/BPKIHS520X320.jpg"
-          alt="B.P. Koirala Institute of Health Sciences"
-          width={520}
-          height={320}
-          className="h-auto w-full max-w-md rounded-xl border"
+      <Section tone="tint">
+        <SectionHeading
+          title="Type scale"
+          description="Resize the window past 1024px: sizes step up."
         />
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-2xl font-semibold">Buttons</h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="mt-8 space-y-5">
+          <p className="font-heading text-display lg:text-display-lg leading-[1.1] font-bold">
+            Display: Once BPKIHS, always BPKIHS
+          </p>
+          <h1>H1: Alumni directory</h1>
+          <h2>H2: Featured giving goals</h2>
+          <h3>H3: Upcoming events</h3>
+          <p className="text-body-l leading-relaxed">
+            Body L: a short, plain-English introduction.
+          </p>
+          <p>Body: the default text size for paragraphs and forms.</p>
+          <p className="text-sm text-neutral-600">Small: captions and helper text.</p>
+          <Eyebrow>Eyebrow label</Eyebrow>
+        </div>
+      </Section>
+
+      <Section>
+        <SectionHeading title="Buttons and colours" />
+        <div className="mt-8 flex flex-wrap gap-3">
           <Button>Primary</Button>
           <Button variant="outline">Outline</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="ghost">Ghost</Button>
           <Button variant="destructive">Destructive</Button>
-          <a
-            href="#"
-            className="bg-accent-600 hover:bg-accent-700 inline-flex h-8 items-center rounded-lg px-4 text-sm font-medium text-white"
-          >
-            Give now
-          </a>
+          <DonateButton>Give now</DonateButton>
         </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-2xl font-semibold">Colours</h2>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+        <div className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-5">
           {swatches.map((s) => (
             <div key={s.name} className="space-y-1">
               <div className={`h-12 rounded-lg ${s.className}`} />
@@ -67,7 +71,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </section>
+      </Section>
     </main>
   );
 }

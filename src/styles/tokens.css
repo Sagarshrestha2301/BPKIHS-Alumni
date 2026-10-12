@@ -1,6 +1,7 @@
-/* Brand tokens (provisional until the Association logo and colours are confirmed).
-   Change the brand here; nothing else needs editing. */
+/* Brand and layout tokens (colours are provisional until the Association logo
+   and brand colours are confirmed). Change the brand here; nothing else needs editing. */
 @theme static {
+  /* colours */
   --color-primary-900: #0b2a4a;
   --color-primary-700: #12467a;
   --color-primary-500: #2a6bb0;
@@ -20,4 +21,26 @@
   --color-neutral-600: #4a5866;
   --color-neutral-300: #cbd3db;
   --color-neutral-100: #f4f6f8;
+
+  /* type scale: "-lg" values apply from 1024px up (DESIGN.md section 3) */
+  --text-display: 2.25rem;
+  --text-display-lg: 3.5rem;
+  --text-h1: 1.875rem;
+  --text-h1-lg: 2.75rem;
+  --text-h2: 1.5rem;
+  --text-h2-lg: 2.125rem;
+  --text-h3: 1.25rem;
+  --text-h3-lg: 1.5rem;
+  --text-body-l: 1.125rem;
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow-lg: 0.8125rem;
+
+  /* layout */
+  --container-page: 75rem;
+  --spacing-section: 3rem;
+  --spacing-section-lg: 6rem;
+
+  /* elevation */
+  --shadow-card: 0 1px 2px rgb(22 32 43 / 0.06);
+  --shadow-card-hover: 0 4px 12px rgb(22 32 43 / 0.1);
 }
