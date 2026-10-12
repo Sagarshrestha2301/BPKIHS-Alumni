@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Devanagari, Source_Serif_4 } from 'next/font/google';
 
 import { BottomBar } from '@/components/layout/bottom-bar';
+import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 
 const inter = Inter({
@@ -42,10 +43,17 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       className={`${inter.variable} ${sourceSerif.variable} ${notoDevanagari.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <a
+          href="#main-content"
+          className="focus:text-primary-900 focus:outline-primary-700 sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:shadow-md focus:outline-2"
+        >
+          Skip to main content
+        </a>
         <SiteHeader />
-        <div id="main-content" className="flex-1 pb-14 lg:pb-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
-        </div>
+        </main>
+        <SiteFooter />
         <BottomBar />
       </body>
     </html>

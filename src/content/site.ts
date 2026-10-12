@@ -4,6 +4,7 @@ export const site = {
   name: 'BPKIHS Alumni Association',
   instituteName: 'B.P. Koirala Institute of Health Sciences',
   instituteUrl: 'https://bpkihs.edu',
+  copyrightYear: 2026,
   logo: { src: '/bp-koirala_logo.png', width: 335, height: 335 },
 } as const;
 
