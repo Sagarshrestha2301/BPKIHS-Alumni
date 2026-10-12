@@ -66,3 +66,20 @@ export const communityPosts = {
   allLabel: 'Read more posts',
   allHref: '/community',
 } as const;
+
+export const boardPreview = {
+  eyebrow: 'Leadership',
+  title: 'Meet the board',
+  description: 'Alumni who give their time to run the Association.',
+  allLabel: 'Meet the full board',
+  allHref: '/about/board',
+} as const;
+
+export const welcomeSection = {
+  eyebrow: 'A word from us',
+  title: 'A message from the Association',
+} as const;
+
+export const partnerStrip = {
+  title: 'Our partners',
+} as const;

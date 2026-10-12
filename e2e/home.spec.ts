@@ -70,3 +70,34 @@ test('community section lists three posts', async ({ page }) => {
   const posts = page.getByRole('region', { name: 'From the community' });
   await expect(posts.getByRole('heading', { level: 3 })).toHaveCount(3);
 });
+
+test('board preview shows members and links to the full board', async ({ page }) => {
+  await page.goto('/');
+  const board = page.getByRole('region', { name: 'Meet the board' });
+  await expect(board.getByRole('heading', { level: 3 }).first()).toBeVisible();
+  await expect(board.getByRole('link', { name: 'Meet the full board' })).toHaveAttribute(
+    'href',
+    '/about/board',
+  );
+});
+
+test('welcome message is on the page', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'A message from the Association' })).toBeVisible();
+});
+
+test('partner strip links to the institute', async ({ page }) => {
+  await page.goto('/');
+  const partners = page.getByRole('region', { name: 'Our partners' });
+  await expect(partners.getByRole('link')).toHaveAttribute('href', 'https://bpkihs.edu');
+});
+
+test('home page has Open Graph tags and a canonical link', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    'content',
+    'BPKIHS Alumni Association',
+  );
+  await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+});

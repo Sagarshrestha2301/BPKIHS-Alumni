@@ -1,5 +1,6 @@
 import { cacheLife } from 'next/cache';
 
+import { pickBoardPreview } from '@/features/governance/pick-board-preview';
 import { getApiClient } from '@/lib/api/client';
 import type { PostType } from '@/lib/constants/domain';
 
@@ -39,4 +40,18 @@ export async function getLatestPosts() {
   cacheLife('days');
   const page = await getApiClient().listFeed({ pageSize: 12 });
   return page.items.filter((post) => homePostTypes.includes(post.type)).slice(0, 3);
+}
+
+/** The president and three more members of the current board. */
+export async function getBoardPreview() {
+  'use cache';
+  cacheLife('days');
+  const members = await getApiClient().listBoard({ current: true });
+  return pickBoardPreview(members);
+}
+
+export async function getWelcome() {
+  'use cache';
+  cacheLife('days');
+  return getApiClient().getWelcomeMessage();
 }
