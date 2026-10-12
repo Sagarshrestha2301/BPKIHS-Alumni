@@ -99,7 +99,7 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 **Header (desktop)**
 - Row 1 (utility, thin): link to bpkihs.edu, Contact, Support.
 - Row 2: logo + name left; nav centre; **Donate button** (accent) and **Register** (outline) right.
-- Nav: About · Directory · Events · Community · Donate · Support.
+- Nav: About · Directory · Events · Community · Support (Donate is the accent button beside it, not a nav link).
 - Sticky on scroll with reduced height.
 
 **Header (mobile)**
@@ -251,12 +251,12 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 **Sections**
 1. **Intro:** why give; a one-line transparency promise with link to `/donate/transparency`.
 2. **Goal cards:** image, title, description, progress bar (raised / target, percent), supporter count, *Give to this goal* button. A "General fund" card sits first.
-3. **Quick amounts:** preset chips (NPR 1,000 / 2,500 / 5,000 / custom; USD equivalents) with currency toggle.
+3. **Quick amounts:** preset chips (NPR 1,000 / 2,500 / 5,000 / custom); NPR only.
 4. **Where it goes:** small funds donut with link to transparency.
 5. **Tribute giving:** teaser card linking to `/donate/tribute`.
 6. **Trust row:** "Receipt by email", "Secure payment" (UI copy only), contact for questions.
 
-**Checklist:** [ ] general fund card [ ] goal cards [ ] progress bars [ ] amount chips [ ] currency toggle [ ] funds teaser [ ] tribute teaser [ ] trust row
+**Checklist:** [ ] general fund card [ ] goal cards [ ] progress bars [ ] amount chips [ ] funds teaser [ ] tribute teaser [ ] trust row
 
 ### 8.6 Checkout `/donate/checkout`
 
@@ -342,7 +342,7 @@ Desktop-first with a responsive sidebar. Same design tokens as public site.
 ## 9. Content rules
 
 - Headlines: sentence case. Buttons: verbs ("Give now", "Join the network").
-- Dates: `12 Oct 2026`. Money: `NPR 5,000` with an optional `≈ USD 37` line.
+- Dates: `12 Oct 2026`. Money: `NPR 5,000` (NPR only, D30).
 - Numbers shown in stats are mock until real; they carry the placeholder flag.
 - No stock-photo people presented as real alumni. If photos are needed, use initials avatars.
 

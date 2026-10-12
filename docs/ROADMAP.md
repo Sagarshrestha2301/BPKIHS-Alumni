@@ -94,21 +94,21 @@
 | 9 | Type scale, spacing, container and shadow tokens; `Container`, `Section`, `Eyebrow`, `SectionHeading`; `DonateButton` and `DonateLink`; heading sizes in `globals.css` | [x] Done, committed (`5d38959`) |
 | 10 | Form primitives via shadcn (input, label, textarea, select, checkbox, radio group, switch); `FormField` wrapper (label, hint, error with icon, aria links); tests; `vitest.setup.ts` cleanup fix | [x] Done, committed (`92e70c1`, fix `540a0b7`); 7 tests pass |
 | 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [x] Done (`041a1aa` shadcn components; custom components and temporary `/demo` page); 12 tests |
-| 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [ ] |
-| 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [ ] |
+| 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [x] Done |
+| 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [x] Done |
 | 14 | Dev-only `/styleguide`; contrast audit test; e2e tests for navigation at 360 and 1440 px | [ ] |
 
 
-- [~] `styles/tokens.css`: colour tokens done in Phase 1 Step 4; type scale, spacing, shadow tokens still to do
+- [x] `styles/tokens.css`: colour, type scale, spacing and shadow tokens done (Steps 4 and 9)
 - [x] Tailwind theme and shadcn variables mapped to tokens (Phase 1 Step 4)
-- [ ] Core primitives: Button (incl. donate variant), Input, Select, Textarea, Checkbox, Radio, Switch, Combobox
-- [ ] Surfaces: Card (basic, goal, event, person, post), Badge/Chip, Tabs, Accordion
-- [ ] Overlays: Dialog, Sheet, Toast
-- [ ] Feedback: Skeleton, EmptyState, ErrorState, ProgressBar, StatCard
-- [ ] Navigation: Breadcrumb, Pagination, Stepper
-- [ ] **Header** (desktop and mobile menu sheet) and **mobile bottom action bar**
-- [ ] **Footer** with newsletter strip
-- [ ] Skip link, landmarks, focus-ring styles
+- [x] Core primitives: Button, Input, Select, Textarea, Checkbox, Radio, Switch (Combobox deferred to Phase 5 directory filters)
+- [x] Surfaces: Card (basic; goal, event, person and post variants are built with their pages), Badge/Chip, Tabs, Accordion
+- [x] Overlays: Dialog, Sheet, Toast
+- [x] Feedback: Skeleton, EmptyState, ErrorState, ProgressBar, StatCard
+- [x] Navigation: Breadcrumb, Pagination, Stepper
+- [x] **Header** (desktop and mobile menu sheet) and **mobile bottom action bar**
+- [x] **Footer** with newsletter strip
+- [x] Skip link, landmarks, focus-ring styles
 - [ ] A `/styleguide` page (dev only) showing all components and states
 - [ ] Contrast audit of every colour pairing
 
@@ -131,7 +131,7 @@
   - [ ] Board members with vision statements; programmes include BMIT; one past event with a gallery; one event linked to a goal
 - [ ] Pagination, search, sort, filter helpers
 - [ ] `useAuth()` abstraction with mock session (donation gate)
-- [ ] Money and date formatting utilities (NPR/USD, `12 Oct 2026`)
+- [ ] Money and date formatting utilities (NPR, `12 Oct 2026`)
 - [ ] Unit tests for filters, formatters, and schemas
 - [ ] `httpAdapter` **stub** with the same signatures (throws "not implemented") to prove the swap
 
@@ -187,7 +187,7 @@
 ## Phase 6 — Donate flow (with login gate)
 
 - [ ] `/donate` goals page with progress bars and amount chips
-- [ ] NPR/USD display toggle
+- [x] ~~NPR/USD display toggle~~ removed (D30, NPR only)
 - [ ] `/donate/checkout` stepper: amount → **login gate** → payment method
 - [ ] Mock sign-in / sign-up dialog (only here, per D3)
 - [ ] Payment method panels: eSewa, Khalti, ConnectIPS, Fonepay QR, Card, PayPal-style (UI only)
@@ -307,6 +307,6 @@ All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ## Next step
 
-**Now:** Phase 2, **Step 12** (header, mobile menu sheet, mobile bottom action bar, logo).
+**Now:** Phase 2, **Step 14** (dev-only `/styleguide`, contrast audit test, end-to-end tests for navigation, 404 and skip link at 360 and 1440 px, README script rows).
 
-**Still open:** README script rows (`test`, `test:e2e`, `ci`) not yet added; Q2/Q3 (logo, colours, name) before Step 12; Q5.
+**Still open:** README script rows (`test`, `test:e2e`, `ci`) not yet added; Q2/Q3 (Association logo and brand colours; the institute logo and provisional palette are in use).
