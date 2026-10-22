@@ -25,10 +25,10 @@ describe('FeaturedGoalsView', () => {
     expect(screen.getAllByRole('progressbar')).toHaveLength(2);
   });
 
-  it('links every goal and the full list to /donate', () => {
+  it('links every goal to checkout and the full list to /donate', () => {
     render(<FeaturedGoalsView goals={[goal('a')]} />);
     const give = screen.getByRole('link', { name: 'Give to this goal: Goal a' });
-    expect(give.getAttribute('href')).toBe('/donate');
+    expect(give.getAttribute('href')).toBe('/donate/checkout?goal=a');
     const all = screen.getByRole('link', { name: featuredGoals.allGoalsLabel });
     expect(all.getAttribute('href')).toBe(featuredGoals.allGoalsHref);
   });

@@ -6,22 +6,36 @@ import { type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { type ApiClient, getApiClient } from '@/lib/api/client';
+import { isApiError } from '@/lib/api/errors';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function NewsletterForm() {
+export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!EMAIL_PATTERN.test(email.trim())) {
+    const address = email.trim();
+    if (!EMAIL_PATTERN.test(address)) {
       setError('Enter a valid email address, for example name@example.com.');
       return;
     }
     setError(null);
-    setDone(true);
+    setSubmitting(true);
+    try {
+      await (client ?? getApiClient()).subscribeNewsletter({ email: address, interests: [] });
+      setDone(true);
+    } catch (caught) {
+      setError(
+        isApiError(caught) ? caught.message : 'We could not subscribe you. Please try again.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (done) {
@@ -48,8 +62,8 @@ export function NewsletterForm() {
           aria-describedby={error ? 'newsletter-error' : undefined}
           className="h-11 bg-white sm:max-w-sm"
         />
-        <Button type="submit" className="h-11 px-5">
-          Subscribe
+        <Button type="submit" disabled={submitting} className="h-11 px-5">
+          {submitting ? 'Subscribing…' : 'Subscribe'}
         </Button>
       </div>
       {error ? (

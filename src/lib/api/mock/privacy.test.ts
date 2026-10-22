@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Alumnus } from '../types';
-import { canSee, isListable, toPublicView } from './privacy';
+import { canSee, DEFAULT_VIEWER, isListable, toPublicView } from './privacy';
 
 const alumnus: Alumnus = {
   id: 'a1',
@@ -30,6 +30,12 @@ describe('canSee', () => {
 });
 
 describe('isListable', () => {
+  it('treats the default viewer as anonymous', () => {
+    expect(DEFAULT_VIEWER.isAlumnus).toBe(false);
+    expect(canSee('alumni_only', DEFAULT_VIEWER)).toBe(false);
+    expect(canSee('public', DEFAULT_VIEWER)).toBe(true);
+  });
+
   it('lists only approved people with a visible profile', () => {
     expect(isListable(alumnus, alumniViewer)).toBe(true);
     expect(isListable({ ...alumnus, status: 'pending' }, alumniViewer)).toBe(false);
@@ -39,13 +45,14 @@ describe('isListable', () => {
     ).toBe(false);
   });
 
-  it('hides alumni_only profiles from outsiders', () => {
+  it('hides alumni_only profiles from outsiders and from the default viewer', () => {
     const restricted = {
       ...alumnus,
       privacy: { ...alumnus.privacy, profile: 'alumni_only' as const },
     };
     expect(isListable(restricted, alumniViewer)).toBe(true);
     expect(isListable(restricted, outsider)).toBe(false);
+    expect(isListable(restricted)).toBe(false);
   });
 });
 

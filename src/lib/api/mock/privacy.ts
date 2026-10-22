@@ -5,12 +5,15 @@
  */
 import type { Alumnus, Visibility } from '../types';
 
-/** The public site has no login (D3), so every visitor is treated as an alumnus viewer. */
+/**
+ * The public site has no login (D3), so the default visitor is anonymous. An alumni-only
+ * setting cannot be verified until accounts exist; until then it is treated as hidden.
+ */
 export interface Viewer {
   isAlumnus: boolean;
 }
 
-export const DEFAULT_VIEWER: Viewer = { isAlumnus: true };
+export const DEFAULT_VIEWER: Viewer = { isAlumnus: false };
 
 export function canSee(visibility: Visibility, viewer: Viewer): boolean {
   if (visibility === 'public') return true;

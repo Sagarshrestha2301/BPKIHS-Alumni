@@ -1,241 +1,190 @@
 # ROADMAP.md — BPKIHS Alumni Website (Frontend)
 
 > Companion to `CONTEXT.md` (decisions, architecture, data) and `DESIGN.md` (visuals, page specs).
-> **Rule:** Every phase starts with a plan, waits for "approved", and ends with a Session Log entry in `CONTEXT.md`.
-> **Legend:** `[ ]` to do · `[x]` done · `[~]` in progress · 🔒 needs a decision first
+> **Rule:** every phase starts with a plan and ends with a Session Log entry in `CONTEXT.md`.
+> **Legend:** `[ ]` to do · `[x]` done · `[~]` partial · 🔒 needs a decision first
 
-**Proposal timeline reference:** about 9–10 weeks total. The frontend phases below are sized for that, but dates are **targets, not commitments**, until Q1 (proposal re-upload) is resolved.
+**Proposal timeline reference:** about 9–10 weeks total. Dates remain targets, not commitments,
+until the open questions in `CONTEXT.md` §12 are answered.
 
 ---
 
 ## Phase overview
 
-| Phase | Name | Est. | Depends on | Status |
-|---|---|---|---|---|
-| 0 | Alignment and docs | 1 day | — | [x] |
-| 1 | Project setup and tooling | 2 days | 0 | [x] |
-| 2 | Design system and layout shell | 4 days | 1 | [ ] |
-| 3 | Data layer (types, mocks, API client) | 3 days | 1 | [ ] |
-| 4 | Home and About/Governance pages | 5 days | 2, 3 | [ ] |
-| 5 | Directory and Registration | 6 days | 2, 3 | [ ] |
-| 6 | Donate flow (with login gate) | 6 days | 2, 3 | [ ] |
-| 7 | Events and Community | 5 days | 2, 3 | [ ] |
-| 8 | Support and Legal | 3 days | 2 | [ ] |
-| 9 | Admin dashboard UI (mock) 🔒 | 5 days | 3–8 | [ ] |
-| 10 | Polish, accessibility, performance, QA | 5 days | all | [ ] |
-| 11 | Backend handoff package | 2 days | all | [ ] |
-
-*Phases 4–8 can run in parallel after 2 and 3 if more than one person works on it.*
+| Phase | Name | Status |
+|---|---|---|
+| 0 | Alignment and docs | [x] except open questions Q2–Q4, Q7–Q10 |
+| 1 | Project setup and tooling | [x] |
+| 2 | Design system and layout shell | [x] |
+| 3 | Data layer (types, mocks, API client) | [x] |
+| 4 | Home and About/Governance pages | [x] |
+| 5 | Directory and Registration | [x] (photo upload UI is a stub) |
+| 6 | Donate flow (with login gate) | [x] UI only; real gateway and receipts are backend work |
+| 7 | Events and Community | [x] UI only; automated digest is backend work |
+| 8 | Support and Legal | [x] draft copy needs Association/legal review |
+| 9 | Admin dashboard UI (mock) | [ ] deferred; not part of the public-pages batch |
+| 10 | Polish, accessibility, performance, QA | [~] foundations done; audit and Lighthouse remain |
+| 11 | Backend handoff package | [ ] |
 
 ---
 
-## Phase 0 — Alignment and docs ✅
+## What was completed on 22 October 2026
 
-- [x] Read proposal summary and three reference sites
-- [x] Ask clarifying questions and record decisions D1–D13
+- Anonymous-viewer privacy fix: `alumni_only` profiles and contact fields are no longer exposed
+  while the public site has no member sign-in. Regression tests added.
+- `/register`: three-step public form, validation, consent and pending-approval result.
+- `/donate`: goals, quick amounts, funds breakdown, tribute teaser, demo notice.
+- `/donate/checkout`: amount → mock sign-in gate → payment method, with summary and retry states.
+- `/donate/thank-you`, `/donate/transparency`, `/donate/tribute`.
+- `/events` and `/events/[slug]`: upcoming/past tabs, search, capacity, RSVP, calendar file,
+  linked giving goal and past gallery.
+- `/community` and `/community/newsletter`: filters, load more, moderated share form, report action,
+  notices, subscribe and unsubscribe forms.
+- `/support` and `/support/faq`: contact cards, helpdesk form, searchable FAQ accordion.
+- `/legal/privacy`, `/legal/terms`, `/legal/accessibility`: draft long-form pages with a table of
+  contents and a clear review notice.
+- README, ROADMAP and CONTEXT brought back in line with the code.
+- Profile e2e updated to a public seed record after the privacy fix; full e2e suite green (102
+  passed, 10 desktop-only skipped).
+
+**Still open after this batch:** real backend, real payments and receipts, automated newsletter,
+photo upload, admin dashboard, CSV import, full accessibility audit, Lighthouse pass and the
+backend handoff package.
+
+---
+
+## Phase 0 — Alignment and docs
+
+- [x] Read the proposal and the three reference sites
+- [x] Record decisions D1–D30
 - [x] Create `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md`
-- [x] Re-upload proposal `.docx` and reconcile (Q1) — done in Session 6, see D25–D28
 - [ ] 🔒 Confirm brand colours and Association logo (Q2, Q3)
-- [ ] 🔒 Answer open questions Q4–Q10 (or accept defaults)
+- [ ] Answer Q4, Q7, Q8, Q9, Q10 (or accept the defaults)
 
-**Exit criteria:** Owner approves the three documents.
+**Exit criteria:** Owner approves the three documents and the remaining open questions.
 
 ---
 
 ## Phase 1 — Project setup and tooling ✅
 
-**Delivery rule (D15):** one step at a time; next step only after the owner says "done"; every step ends with a File order tree.
-
-### Step tracker
-
-| Step | Scope | Status |
-|---|---|---|
-| 1 | Check Node, npm, git, VS Code; create Next.js project; run dev server; extensions | [x] |
-| 2 | Prettier + Tailwind plugin; config files; scripts; strict TS; folder structure; env files; docs in `docs/`; first commit | [x] |
-| 3 | shadcn/ui init (Base UI, Nova) and `button` | [x] |
-| 4 | Fonts (Inter, Source Serif 4, Noto Sans Devanagari); `styles/tokens.css`; shadcn variables mapped to brand tokens; light mode only; site metadata; temporary token check page | [x] |
-| 5 | Remote image host for bpkihs.edu; image test; real `README.md` | [x] |
-| 6 | Husky pre-commit (lint-staged + typecheck); import sorting | [x] Hook proven: it blocked a deliberately broken commit |
-| 7 | `cn` helper moved to `clsx` + `tailwind-merge`; Vitest + React Testing Library; unit tests | [x] 3 tests |
-| 8 | Playwright (desktop + mobile smoke tests); `npm run ci` script | [x] 4 tests |
-
-### Checklist
-
-- [x] Next.js App Router project, TypeScript strict, `noUncheckedIndexedAccess`
+- [x] Next.js App Router, TypeScript strict, `noUncheckedIndexedAccess`
 - [x] Tailwind CSS v4 and shadcn/ui (Base UI, Nova)
-- [x] ESLint + Prettier + import sorting; Husky pre-commit (lint-staged and typecheck)
-- [x] Path alias `@/`, folder structure from `CONTEXT.md` §5.3
-- [x] Env handling: `NEXT_PUBLIC_API_MODE=mock`
-- [x] Fonts via `next/font`; brand tokens; light mode only
-- [x] Remote image host for bpkihs.edu
-- [x] README with run, build and conventions
-- [x] Testing: Vitest + React Testing Library; Playwright for key flows
-- [x] CI script placeholder: `npm run ci`
-- [ ] Cleanup items carried to later phases (see below)
-
-**Cleanup items (non-blocking):**
-- [ ] Replace `vite-tsconfig-paths` with Vite's native `resolve.tsconfigPaths` (Vitest prints a notice) — Phase 10
-- [ ] Re-check `npm audit --omit=dev` and update shadcn when a fixed version exists (7 high warnings, all inside shadcn's CLI tooling; never use `--force`) — Phase 10
-- [ ] Add the new scripts (`test`, `test:e2e`, `ci`) to the README script table — Phase 2 Step 9
-- [ ] Download the logo and key images into `public/` with BPKIHS's permission instead of hotlinking — before launch
-- [ ] Add `loading="eager"` to above-the-fold remote images (done on the temporary page)
-
-**Exit criteria:** Blank app builds, lints, tests and deploys locally; conventions documented. **Met.**
-
+- [x] ESLint, Prettier, import sorting, Husky pre-commit (lint-staged + typecheck)
+- [x] Path alias `@/`, folder structure, env files, README
+- [x] Fonts, brand tokens, light mode only, image host for bpkihs.edu
+- [x] Vitest + Testing Library; Playwright; `npm run ci`
+- [ ] Replace `vite-tsconfig-paths` with Vite's native `resolve.tsconfigPaths` (Phase 10)
+- [ ] Re-check `npm audit --omit=dev` when shadcn ships a fix (Phase 10; never use `--force`)
+- [x] Add `test`, `test:e2e` and `ci` to the README script table (22 Oct 2026)
 
 ---
 
-## Phase 2 — Design system and layout shell
+## Phase 2 — Design system and layout shell ✅
 
-**Step plan and status:**
-
-| Step | Scope | Status |
-|---|---|---|
-| 9 | Type scale, spacing, container and shadow tokens; `Container`, `Section`, `Eyebrow`, `SectionHeading`; `DonateButton` and `DonateLink`; heading sizes in `globals.css` | [x] Done, committed (`5d38959`) |
-| 10 | Form primitives via shadcn (input, label, textarea, select, checkbox, radio group, switch); `FormField` wrapper (label, hint, error with icon, aria links); tests; `vitest.setup.ts` cleanup fix | [x] Done, committed (`92e70c1`, fix `540a0b7`); 7 tests pass |
-| 11 | Surfaces and feedback: card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination; custom `StatCard`, `EmptyState`, `ErrorState`, goal `ProgressBar`, `Stepper`; add a form demo to the temporary page | [ ] **Next** |
-| 12 | Header (desktop) + mobile menu sheet + mobile bottom action bar; logo placeholder (needs Q2/Q3 for the real logo) | [ ] |
-| 13 | Footer with newsletter strip; skip link and landmarks; 404, error and loading pages | [ ] |
-| 14 | Dev-only `/styleguide`; contrast audit test; e2e tests for navigation at 360 and 1440 px | [ ] |
-
-
-- [~] `styles/tokens.css`: colour tokens done in Phase 1 Step 4; type scale, spacing, shadow tokens still to do
-- [x] Tailwind theme and shadcn variables mapped to tokens (Phase 1 Step 4)
-- [ ] Core primitives: Button (incl. donate variant), Input, Select, Textarea, Checkbox, Radio, Switch, Combobox
-- [ ] Surfaces: Card (basic, goal, event, person, post), Badge/Chip, Tabs, Accordion
-- [ ] Overlays: Dialog, Sheet, Toast
-- [ ] Feedback: Skeleton, EmptyState, ErrorState, ProgressBar, StatCard
-- [ ] Navigation: Breadcrumb, Pagination, Stepper
-- [ ] **Header** (desktop and mobile menu sheet) and **mobile bottom action bar**
-- [ ] **Footer** with newsletter strip
-- [ ] Skip link, landmarks, focus-ring styles
-- [ ] A `/styleguide` page (dev only) showing all components and states
-- [ ] Contrast audit of every colour pairing
-
-**Exit criteria:** Styleguide approved; shell renders responsively at 360 / 768 / 1024 / 1440.
+- [x] Type scale, spacing, container and shadow tokens
+- [x] `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`
+- [x] Form primitives and the `FormField` wrapper
+- [x] Card, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination
+- [x] `StatCard`, `EmptyState`, `ErrorState`, `ProgressBar`, `Stepper`
+- [x] Header, mobile menu, bottom bar, footer and newsletter strip
+- [x] Skip link, landmarks, 404, error and loading pages
+- [x] Dev-only `/styleguide`; contrast audit; navigation e2e
 
 ---
 
-## Phase 3 — Data layer (backend-ready)
+## Phase 3 — Data layer ✅
 
-- [ ] `lib/api/types.ts` from `CONTEXT.md` §7.1
-- [ ] Zod schemas for every input (registration, donation, RSVP, helpdesk with topic, newsletter and preferences, tribute with recipient kind, member post, post report, login/signup)
-- [ ] `lib/api/client.ts` interface + adapter switch
-- [ ] `mockAdapter` with latency and error simulation
-- [ ] Seed data (all `placeholder: true`):
-  - [ ] ~60 alumni across programmes, batches, countries
-  - [ ] 4–5 donation goals + general fund
-  - [ ] Current and previous boards
-  - [ ] 6 upcoming and 6 past events
-  - [ ] 12 feed posts (mix of tags, incl. In Memoriam), 10 FAQ items, 1 welcome message
-  - [ ] Board members with vision statements; programmes include BMIT; one past event with a gallery; one event linked to a goal
-- [ ] Pagination, search, sort, filter helpers
-- [ ] `useAuth()` abstraction with mock session (donation gate)
-- [ ] Money and date formatting utilities (NPR/USD, `12 Oct 2026`)
-- [ ] Unit tests for filters, formatters, and schemas
-- [ ] `httpAdapter` **stub** with the same signatures (throws "not implemented") to prove the swap
-
-**Exit criteria:** Any page can fetch via `lib/api`; swapping the adapter requires zero component changes.
+- [x] `lib/api/types.ts`, domain constants and Zod schemas
+- [x] `lib/api/client.ts` interface + adapter switch
+- [x] `mockAdapter` with latency/error simulation, seeds and moderation/privacy rules
+- [x] Seed data: 58 alumni, 6 goals, current/previous boards, 12 events, 14 posts, 10 FAQ items
+- [x] Pagination, search, sort and filter helpers
+- [x] Money and date formatters (NPR only, decision D30)
+- [x] Unit tests for filters, formatters and schemas
+- [x] `httpAdapter` stub with the same signatures
 
 ---
 
-## Phase 4 — Home and About/Governance
+## Phase 4 — Home and About/Governance ✅
 
-**Home `/`** (`DESIGN.md` §8.1)
-- [ ] Hero with three equal CTAs
-- [ ] Welcome message (text or video)
-- [ ] Stats band (alumni, funds raised, active programmes)
-- [ ] Three doors
-- [ ] Featured goals
-- [ ] Upcoming events
-- [ ] Community posts
-- [ ] Board preview
-- [ ] Association message
-- [ ] Newsletter strip, partner strip
-- [ ] SEO metadata and Open Graph
-
-**About / Board / How We Work** (§8.2)
-- [ ] `/about`
-- [ ] `/about/board` with Current/Previous tabs and member dialog
-- [ ] `/about/how-we-work` accordion
-
-**Exit criteria:** Home and governance pages pass the Definition of Done (`CONTEXT.md` §9).
+- [x] Hero with three equal CTAs
+- [x] Welcome message, stats band, three doors
+- [x] Featured goals, upcoming events, community posts, board preview
+- [x] Newsletter strip and partner strip
+- [x] `/about`, `/about/board` (current/previous + dialog), `/about/how-we-work`
+- [x] SEO metadata and Open Graph on the home page
 
 ---
 
 ## Phase 5 — Directory and Registration
 
-**Directory** (§8.3)
-- [ ] Search (name, specialisation, location/country) and filters (programme incl. BMIT, batch, country/city, further studies)
-- [ ] Donate button on the directory and on every profile
-- [ ] Desktop sidebar; mobile bottom-sheet filters with active-filter chips
-- [ ] Person cards, sorting, pagination (12 per page)
-- [ ] Profile page with privacy-aware fields
-- [ ] Loading, empty, error states
+**Directory**
+- [x] Search, programme/batch/country/city filters and “further studies”
+- [x] Donate button on the directory and every profile
+- [x] Desktop sidebar, mobile filter sheet and active-filter chips
+- [x] Person cards, sorting, pagination (12 per page)
+- [x] Profile page with privacy-aware fields
+- [x] Loading, empty, error and success states
 
-**Register** (§8.4)
-- [ ] 3-step form with Zod validation
-- [ ] Consent and privacy switches
-- [ ] Photo upload UI (stub)
-- [ ] Success "pending approval" screen
-- [ ] E2E test: register → success
-
-**Exit criteria:** Directory is searchable and filterable; registration works end to end on mock.
+**Registration**
+- [x] Three-step form with Zod validation and per-step checks
+- [x] Consent and privacy choices
+- [x] Success “pending approval” screen with reference
+- [ ] Photo upload: the control is a disabled stub until storage exists
+- [ ] Approval queue: Phase 9 admin dashboard
 
 ---
 
-## Phase 6 — Donate flow (with login gate)
+## Phase 6 — Donate flow (UI only)
 
-- [ ] `/donate` goals page with progress bars and amount chips
-- [ ] NPR/USD display toggle
-- [ ] `/donate/checkout` stepper: amount → **login gate** → payment method
-- [ ] Mock sign-in / sign-up dialog (only here, per D3)
-- [ ] Payment method panels: eSewa, Khalti, ConnectIPS, Fonepay QR, Card, PayPal-style (UI only)
-- [ ] Order summary (sticky desktop, collapsible mobile)
-- [ ] Processing, failure, retry states
-- [ ] `/donate/thank-you`
-- [ ] `/donate/transparency` with funds donut + table
-- [ ] `/donate/tribute` form and wall
-- [ ] "Demo only" notice on payment stubs
-- [ ] E2E tests: anonymous visitor → gate → donate → thank-you
-
-**Exit criteria:** Full donation journey works on mock; no login required anywhere else on the site.
+- [x] `/donate` goals with progress bars, quick amounts and general fund
+- [x] NPR-only display (decision D30; no USD toggle)
+- [x] `/donate/checkout`: amount → mock sign-in gate → payment method
+- [x] Sign-in / sign-up forms (in-memory demo; `demo@example.com`)
+- [x] eSewa, Khalti, ConnectIPS, Fonepay, card and PayPal-style panels
+- [x] Sticky summary, processing, failure and retry states
+- [x] `/donate/thank-you`
+- [x] `/donate/transparency` with a donut and table
+- [x] `/donate/tribute` form and sample wall
+- [x] “Demo only” notices on payment stubs
+- [ ] Real gateway, webhook confirmation and emailed receipts (backend)
+- [ ] Donor list on the transparency page (needs a public, privacy-aware API)
 
 ---
 
-## Phase 7 — Events and Community
+## Phase 7 — Events and Community (UI only)
 
-**Events** (§8.11)
-- [ ] Listing with Upcoming/Past tabs and filters
-- [ ] Detail page with RSVP form (no login), capacity meter, calendar button (UI)
-- [ ] Event-linked donation drive card (when `goalId` is set)
-- [ ] Past-event recap layout with photo and video gallery
+**Events**
+- [x] Listing with Upcoming/Past tabs and search
+- [x] Detail with date, venue, mode, capacity meter and description
+- [x] Public RSVP form with waitlist wording when full
+- [x] Add-to-calendar `.ics` download
+- [x] Event-linked donation drive card
+- [x] Past-event recap with photo/video gallery
 
-**Community** (§8.10)
-- [ ] Feed with filter chips (News, Stories, Achievements, Event, Announcement, In Memoriam, Notices) and "Load more"
-- [ ] "Share an update" form (no login, submits as pending) and Report button on posts
-- [ ] Notice-board style list
-- [ ] Post detail view
-- [ ] Newsletter signup, subscribe/unsubscribe preferences, and archive
-
-**Exit criteria:** RSVP and newsletter flows work on mock.
+**Community**
+- [x] Feed with type filters and “Load more”
+- [x] “Share an update” form (no login; submits as pending)
+- [x] Report action on posts
+- [x] Notice-board list
+- [x] Newsletter signup, interests, unsubscribe preferences and archive placeholder
+- [ ] Automated digest and post-detail page (backend / later polish)
 
 ---
 
 ## Phase 8 — Support and Legal
 
-- [ ] `/support` contact cards and helpdesk form (topics: account, profile verification, donation receipt, general)
-- [ ] `/support/faq` with search, categories, accordion
-- [ ] `/legal/privacy`, `/legal/terms`, `/legal/accessibility` (placeholder copy, marked for legal review)
-- [ ] 404, error, loading, maintenance pages
+- [x] `/support` contact cards and helpdesk form (topics: account, profile verification,
+      donation receipt, general)
+- [x] `/support/faq` with search, categories and accordion
+- [x] `/legal/privacy`, `/legal/terms`, `/legal/accessibility` (draft copy, TOC, review notice)
+- [x] 404, error and loading pages
 
-**Exit criteria:** All footer links resolve; no dead ends.
+**Exit criteria:** all footer links resolve; no dead ends. **Met.**
 
 ---
 
-## Phase 9 — Admin dashboard UI (mock) 🔒
-
-*Confirm in Q6 whether to build now or defer.*
+## Phase 9 — Admin dashboard UI (mock) 🔒 deferred
 
 - [ ] Mock admin gate
 - [ ] Overview
@@ -247,66 +196,56 @@
 - [ ] Support tickets list
 - [ ] CSV import UI for the written register (upload → preview → validate → confirm)
 
-**Exit criteria:** Admin flows demonstrable on mock data.
+**Exit criteria:** admin flows demonstrable on mock data.
 
 ---
 
 ## Phase 10 — Polish, accessibility, performance, QA
 
+- [x] Keyboard basics, skip link, landmarks and visible focus
+- [x] Contrast audit test
 - [ ] Full keyboard walkthrough of every page
-- [ ] Screen reader pass (NVDA/VoiceOver) on forms, dialogs, charts
-- [ ] Automated a11y checks (axe) in CI
+- [ ] Screen-reader pass (NVDA/VoiceOver) on forms, dialogs and tables
+- [ ] Automated axe checks in CI
 - [ ] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95, SEO ≥ 95
 - [ ] Image optimisation and font subsetting
 - [ ] Bundle analysis; remove unused code
 - [ ] Cross-browser: Chrome, Safari, Firefox, Edge; iOS Safari, Android Chrome
 - [ ] Throttled 4G and low-end device test
-- [ ] Copy review and placeholder audit (no lorem ipsum, all sample data flagged)
-- [ ] Sitemap, robots, structured data
-
-**Exit criteria:** All pages pass the Definition of Done; owner sign-off.
+- [ ] Copy review and placeholder audit
+- [ ] Sitemap, robots and structured data
 
 ---
 
 ## Phase 11 — Backend handoff package
 
-*Produces documents only; no backend code.*
-
-- [ ] `API_CONTRACT.md`: every function in `lib/api`, with request/response JSON examples
+- [ ] `API_CONTRACT.md`: every function in `lib/api`, with request/response examples
 - [ ] Zod schemas exported as the validation spec
-- [ ] List of auth, rate-limit, and file-upload needs the UI assumes
-- [ ] CSV import column spec for the written register
-- [ ] Payment integration notes per gateway (what the UI expects back)
+- [ ] Auth, rate-limit and file-upload needs
+- [ ] CSV import column spec
+- [ ] Payment integration notes per gateway
 - [ ] Checklist for switching `NEXT_PUBLIC_API_MODE` to `http`
-
-**Exit criteria:** A backend developer can implement the contract without reading UI code.
 
 ---
 
-## Cross-cutting checklists
-
-### Per-page Definition of Done
-(See `CONTEXT.md` §9.) Copy it into each page's task.
-
-### Risks and mitigations
+## Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Proposal drift | Missing features | Reconciled in Session 6 (D25–D28); re-check at Phase 10 |
+| Proposal drift | Missing features | Public pages reconciled; re-check before launch |
 | Brand colours unknown | Rework of design | Tokens only; swap in one file |
 | No real content | Pages look empty or fake | Flagged placeholders; CSV import path |
-| Payment UI misread as live | Trust issue | "Demo only" notices until backend |
-| Privacy mistakes in directory | Reputation | Visibility rules enforced in API contract and tests |
+| Payment UI misread as live | Trust issue | “Demo only” notices until backend |
+| Privacy mistakes in directory | Reputation | Anonymous default, privacy tests, API contract |
 | Slow connections in Nepal | Poor UX | Performance budget, lazy images, minimal JS |
 | Scope creep into backend | Delay | Working Protocol rule 5 |
-
-### Decision log pointers
-All decisions live in `CONTEXT.md` §3.1. Add new ones there, not here.
 
 ---
 
 ## Next step
 
-**Now:** Phase 2, **Step 11** (cards, badge, tabs, accordion, dialog, sheet, toast, skeleton, progress, breadcrumb, pagination, plus custom StatCard, EmptyState, ErrorState, ProgressBar, Stepper).
+**Next:** choose Phase 9 (admin mock) or start Phase 10 (accessibility, Lighthouse, cross-browser,
+content review). Admin remains deferred until the public pages have had an owner review.
 
-**Still open:** README script rows (`test`, `test:e2e`, `ci`) not yet added; Q2/Q3 (logo, colours, name) before Step 12; Q5.
+**Still open:** Q2/Q3 (logo and colours), Q4 (dates), Q7 (photos), Q8 (FAQ/helpdesk owner),
+Q9 (social links), Q10 (donation wording).

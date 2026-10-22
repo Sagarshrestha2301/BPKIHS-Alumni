@@ -13,9 +13,10 @@ test.describe('directory profile', () => {
   });
 
   test('a known profile shows its details', async ({ page }) => {
-    await page.goto('/directory/alumnus-001');
-    await expect(page.getByRole('heading', { level: 1, name: 'Asha Rai' })).toBeVisible();
-    await expect(page.getByRole('main').getByText('MBBS, batch 2012').first()).toBeVisible();
+    // alumnus-003 has a public profile: alumnus-001 is alumni-only and hidden while there is no sign-in.
+    await page.goto('/directory/alumnus-003');
+    await expect(page.getByRole('heading', { level: 1, name: 'Chandra Gurung' })).toBeVisible();
+    await expect(page.getByRole('main').getByText('MBBS, batch 2015').first()).toBeVisible();
     await expect(page.getByRole('main').getByRole('link', { name: 'Donate' })).toBeVisible();
   });
 

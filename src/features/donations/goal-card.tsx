@@ -27,7 +27,7 @@ export function GoalCard({ goal }: { goal: DonationGoal }) {
       </CardContent>
       <CardFooter className="mt-auto">
         <DonateLink
-          href="/donate"
+          href={`/donate/checkout?goal=${encodeURIComponent(goal.id)}`}
           aria-label={`Give to this goal: ${goal.title}`}
           className="h-10 w-full"
         >

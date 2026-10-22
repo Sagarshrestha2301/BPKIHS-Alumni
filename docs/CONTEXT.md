@@ -87,11 +87,13 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D21 | Class helper | `cn` = `clsx` + `tailwind-merge` in `src/lib/utils.ts`. shadcn components import it from `@/lib/utils` |
 | D22 | Quality gate | Pre-commit: lint-staged + typecheck (Husky). Before a milestone: `npm run ci` and `npm run test:e2e`. Unit tests are `*.test.ts(x)` under `src/`; end-to-end tests are `*.spec.ts` under `e2e/` |
 | D23 | Forms | Every field uses `FormField` (label above, hint, inline error with icon, `aria-describedby`/`aria-invalid` linked). Required fields show `*` plus `aria-required`. Errors are never shown by colour alone |
+| D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
 | D25 | Registration (proposal §2.2) | Public form, **no account** (A3 stands). The proposal's "create account" is a backend concern; the mock `useAuth()` is designed so registrants and donors can share one account later |
 | D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter has signup **and** subscribe/unsubscribe management; the automated digest is backend work |
 | D27 | Admin dashboard | Stays in the plan as Phase 9 (approval and moderation queues depend on it). Q6 answered: build it, mock only, after the public pages |
 | D28 | Proposal additions | `BMIT` programme; board `visionStatement`; stats = alumni, funds raised, active programmes; search by name, specialisation, location/country; Donate button on every profile; tribute recipient (batch, mentor, alumnus); event-linked donation drives; past-event galleries; helpdesk topics (account, profile verification, donation receipt); welcome message as text or video |
-| D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
+| D29 | Anonymous viewer | The public site has no member sign-in, so every visitor is treated as anonymous. Fields and profiles marked `alumni_only` are hidden in the API layer, not in the UI |
+| D30 | Currency | NPR only in the UI. Money stays an integer in minor units plus a currency code, so a USD toggle can be added later without touching the data |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
@@ -99,30 +101,33 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 - A2: Payment methods shown in UI: eSewa, Khalti, ConnectIPS, Fonepay QR (national); card and PayPal-style option (international). UI only.
 - A3: Alumni registration is a public form with **no account**; it submits to the mock API and is "pending approval".
 - A4: The admin dashboard UI is built last, behind a mock gate, and may be deferred (Q6).
-- A5: Currency displayed in NPR with a USD toggle (display only, fixed mock rate).
+- A5: ~~NPR with a USD toggle~~ Superseded by D30: NPR only for now.
 - A6: Hosting and deployment are out of scope for now.
 
 ### 3.3 Current status (update at the end of every step)
 
 | Item | State |
 |---|---|
-| Phase | **2 — Design system and layout shell** (in progress). Phase 1 complete |
-| Done in Phase 2 | **Step 9** (type scale, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, committed `5d38959`). **Step 10** (shadcn form controls and `FormField`, committed `92e70c1`; test cleanup fix `540a0b7`). Working tree clean |
-| Next | **Step 11**: surfaces and feedback components (see `ROADMAP.md` Phase 2 table) |
-| Quality gate | `npm run ci` passes (format check, typecheck, lint, 7 unit tests, build); `npm run test:e2e` (4 tests) passed at Step 9. Pre-commit hook runs lint-staged and typecheck |
-| Waiting on owner | Q2/Q3 (logo, brand colours, name) before Step 12; Q5. Q1 and Q6 answered |
-| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
+| Phase | **8 complete.** Phases 1–8 are built on mock data; Phase 9 (admin) deferred |
+| Public site | Home, About/Board/How We Work, Directory and profiles, Register, Donate (goals, checkout, thank-you, transparency, tribute), Events (listing, detail, RSVP, gallery), Community (feed, newsletter), Support and FAQ, Legal ×3 |
+| Last change (22 Oct 2026) | Anonymous-viewer privacy fix (`alumni_only` hidden, D29); `/register`; `/donate/*`; `/events*`; `/community*`; `/support*`; `/legal/*`; README, ROADMAP and this file synced |
+| Next | **Phase 9** (mock admin dashboard) or **Phase 10** (accessibility audit, Lighthouse, cross-browser, copy review) |
+| Quality gate | `npm run format:check`, `typecheck`, `lint`, `npm test` (60 files, 393 tests), `npm run test:e2e` (102 passed, 10 desktop-only skipped) and `npm run build` all pass. Every route checked over HTTP: 21 pages return 200 with an `h1`; unknown paths return 404 |
+| Waiting on owner | Q2/Q3 (logo, brand colours, name), Q4, Q7–Q10. Phase 9 review of the public pages |
+| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied; all seed data flagged `placeholder: true` |
 
-**Versions in use (12 Oct 2026):** Node 22.23, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.21 (Base UI, Nova), Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react.
+**Versions in use (22 Oct 2026):** Node 22.x, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.22 (Base UI, Nova), Zod, Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react.
 
 **Scripts:** `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test`, `test:watch`, `test:e2e`, `ci`.
 
-**Components built so far (`src/components`):**
-- `layout/`: `container.tsx`, `section.tsx` (tone: default, tint, muted)
-- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field` (render-prop: `{(control) => <Input {...control} />}`)
-- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`
-- Tests: `button`, `utils`, `section-heading`, `donate-button`, `form-field`
-- `src/app/page.tsx` is a **temporary design-check page** (Phase 4 replaces it)
+**Components (`src/components`):**
+- `layout/`: `container`, `section` (tone: default, tint, muted), `site-header`, `mobile-nav`, `bottom-bar`, `site-footer`, `page-header`
+- `shared/`: `eyebrow`, `section-heading`, `donate-button`, `donate-link`, `form-field` (render-prop: `{(control) => <Input {...control} />}`), `stat-card`, `initials-avatar`, `empty-state`, `error-state`, `progress-bar`, `stepper`, `newsletter-form`
+- `ui/` (shadcn, Base UI): `button`, `input`, `label`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`, `card`, `badge`, `tabs`, `accordion`, `dialog`, `sheet`, `progress`, `skeleton`, `pagination`, `breadcrumb`, `sonner`
+
+**Feature folders (`src/features`):** `home`, `directory`, `register`, `donations`, `events`, `community`, `support`, `legal`, `governance`, `auth`. Each one holds its own components, data helpers and tests; pages in `src/app` stay thin.
+
+**Static copy** lives in `src/content/*.ts` (typed, no JSX). Everything data-shaped still comes through `src/lib/api`.
 
 **Base UI notes (shadcn components use Base UI primitives, not Radix):** `Checkbox` uses `CheckboxPrimitive.Root.Props`; `RadioGroup` and `RadioGroupItem` use Base UI radio props; `Select` exports `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`, `SelectGroup`, `SelectLabel`, `SelectSeparator`. Check each component's `Props` type before wiring state (for example `onCheckedChange`, `onValueChange`).
 
@@ -418,6 +423,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | 4 | 12 Oct 2026 | Step 4 committed (fonts, tokens, metadata). **Step 5** image host + README. **Step 6** Husky, lint-staged, import sorting; hook proven by a deliberately broken commit that was blocked. **Step 7** replaced the `cn` package with `clsx` + `tailwind-merge`; Vitest + Testing Library (3 tests); fixed a pasted-into-wrong-file mistake (`button.tsx`) and a leftover `from 'cn'` import. **Step 8** Playwright (4 tests), `npm run ci`, missing `playwright.config.ts` fixed. | D20–D22 added. Phase 1 complete. Phase 2 plan drafted (Steps 9–14) |
 | 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
 | 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 next |
+| 7 | 22 Oct 2026 | Built the remaining public pages: Phases 2–5 shell, directory and profiles, then `/register`, the Donate flow (goals, checkout with mock sign-in gate and payment panels, thank-you, transparency, tribute), Events (listing, detail, RSVP, gallery), Community (feed, share, report, newsletter), Support/FAQ and the three legal pages. Fixed anonymous-viewer privacy: `alumni_only` records are hidden in the API layer while there is no sign-in, and the profile e2e now uses a public record | D29–D30 added. `README.md`, `ROADMAP.md` and this file synced. `format:check`, `typecheck`, `lint`, 393 unit tests, 102 e2e tests and `build` pass; all 21 public routes return 200 and unknown paths 404. Phase 9 (admin) and Phase 10 (audit) next |
 
 *Append a new row after every working session.*
 
@@ -431,7 +437,7 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | Q2 | Exact brand colours and the logo file for the Association (not just BPKIHS)? | Provisional palette in `DESIGN.md` |
 | Q3 | Association name and tagline (e.g. "BPKIHS Alumni Association")? | "BPKIHS Alumni Association" |
 | Q4 | Is there a domain or a Nepali-year (BS) date requirement? | Gregorian dates only |
-| Q5 | Donation currencies: NPR only, or NPR and USD? | NPR and USD |
+| Q5 | Donation currencies: NPR only, or NPR and USD? | NPR only for now (D30); the data model already carries a currency code |
 | Q6 | ~~Admin dashboard timing~~ **Answered, see 12.1** | — |
 | Q7 | Should the directory show alumni photos? Consent wording? | Optional photo with consent checkbox |
 | Q8 | Who is the contact for helpdesk copy and FAQ answers? (Proposal names Kushal Adhikari as Project Lead; that is the developer's contact, not Association copy) | Placeholder FAQ |

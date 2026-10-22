@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { createMockAdapter } from '@/lib/api/mock';
+
 import { NewsletterForm } from './newsletter-form';
 
 describe('NewsletterForm', () => {
@@ -12,12 +14,12 @@ describe('NewsletterForm', () => {
     expect(screen.getByLabelText('Email address')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('confirms a valid email', () => {
-    render(<NewsletterForm />);
+  it('confirms a valid email after the API call', async () => {
+    render(<NewsletterForm client={createMockAdapter()} />);
     fireEvent.change(screen.getByLabelText('Email address'), {
       target: { value: 'name@example.com' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
-    expect(screen.getByRole('status')).toHaveTextContent('You are on the list');
+    expect(await screen.findByRole('status')).toHaveTextContent('You are on the list');
   });
 });

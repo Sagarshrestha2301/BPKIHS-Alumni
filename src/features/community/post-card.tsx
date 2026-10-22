@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { FeedPost } from '@/lib/api/types';
@@ -15,9 +17,19 @@ export const POST_TYPE_LABELS: Record<PostType, string> = {
 };
 
 /** A feed post teaser. Reused on /community in Phase 7. */
-export function PostCard({ post }: { post: FeedPost }) {
+export function PostCard({
+  post,
+  expandable = false,
+  readMoreLabel = 'Read more',
+  action,
+}: {
+  post: FeedPost;
+  expandable?: boolean;
+  readMoreLabel?: string;
+  action?: ReactNode;
+}) {
   return (
-    <Card className="h-full">
+    <Card id={post.id} className="h-full">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{POST_TYPE_LABELS[post.type]}</Badge>
@@ -30,8 +42,23 @@ export function PostCard({ post }: { post: FeedPost }) {
         </h3>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
-        <p className="line-clamp-4 text-base text-neutral-600">{post.excerpt}</p>
+        <p
+          className={
+            expandable ? 'text-base text-neutral-600' : 'line-clamp-4 text-base text-neutral-600'
+          }
+        >
+          {post.excerpt}
+        </p>
+        {expandable && post.body !== post.excerpt ? (
+          <details className="mt-3 text-sm">
+            <summary className="text-primary-700 cursor-pointer font-medium">
+              {readMoreLabel}
+            </summary>
+            <p className="mt-2 whitespace-pre-line text-neutral-600">{post.body}</p>
+          </details>
+        ) : null}
         <p className="mt-auto pt-4 text-sm font-medium text-neutral-900">{post.author}</p>
+        {action ? <div className="pt-2">{action}</div> : null}
       </CardContent>
     </Card>
   );

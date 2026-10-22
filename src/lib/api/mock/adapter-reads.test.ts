@@ -25,12 +25,12 @@ describe('mock adapter: site', () => {
 });
 
 describe('mock adapter: alumni privacy', () => {
-  it('lists only approved people with visible profiles', async () => {
+  it('lists only approved people with a public profile', async () => {
     const all = await api.listAlumni({ ...everyone, page: 1 });
     const second = await api.listAlumni({ ...everyone, page: 2 });
     const listed = [...all.items, ...second.items];
     const hiddenIds = alumniSeed
-      .filter((p) => p.status !== 'approved' || p.privacy.profile === 'hidden')
+      .filter((p) => p.status !== 'approved' || p.privacy.profile !== 'public')
       .map((p) => p.id);
     expect(hiddenIds.length).toBeGreaterThan(0);
     for (const id of hiddenIds)
@@ -39,7 +39,7 @@ describe('mock adapter: alumni privacy', () => {
         id,
       ).toBe(false);
     expect(all.total).toBe(
-      alumniSeed.filter((p) => p.status === 'approved' && p.privacy.profile !== 'hidden').length,
+      alumniSeed.filter((p) => p.status === 'approved' && p.privacy.profile === 'public').length,
     );
   });
 
@@ -53,7 +53,7 @@ describe('mock adapter: alumni privacy', () => {
     }
   });
 
-  it('shows an alumni_only email to the default viewer, but not to an outsider', async () => {
+  it('hides an alumni_only email from the anonymous default viewer', async () => {
     const target = alumniSeed.find(
       (p) =>
         p.status === 'approved' &&
@@ -61,9 +61,19 @@ describe('mock adapter: alumni privacy', () => {
         p.privacy.email === 'alumni_only',
     );
     if (!target) throw new Error('seed has no alumni_only email');
-    expect((await api.getAlumnus(target.id)).email).toBe(target.email);
+    expect('email' in (await api.getAlumnus(target.id))).toBe(false);
     const outsiderApi = createMockAdapter({ viewer: { isAlumnus: false } });
     expect('email' in (await outsiderApi.getAlumnus(target.id))).toBe(false);
+  });
+
+  it('returns not found for an alumni_only profile to the anonymous default viewer', async () => {
+    const target = alumniSeed.find(
+      (p) => p.status === 'approved' && p.privacy.profile === 'alumni_only',
+    );
+    if (!target) throw new Error('seed has no alumni_only profile');
+    const error = await api.getAlumnus(target.id).catch((caught: unknown) => caught);
+    expect(isApiError(error)).toBe(true);
+    expect(error).toMatchObject({ code: 'not_found', status: 404 });
   });
 
   it('treats hidden and pending profiles exactly like missing ones', async () => {
