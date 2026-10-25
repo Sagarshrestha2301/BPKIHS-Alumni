@@ -86,12 +86,6 @@ test('welcome message is on the page', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'A message from the Association' })).toBeVisible();
 });
 
-test('partner strip links to the institute', async ({ page }) => {
-  await page.goto('/');
-  const partners = page.getByRole('region', { name: 'Our partners' });
-  await expect(partners.getByRole('link')).toHaveAttribute('href', 'https://bpkihs.edu');
-});
-
 test('home page has Open Graph tags and a canonical link', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(

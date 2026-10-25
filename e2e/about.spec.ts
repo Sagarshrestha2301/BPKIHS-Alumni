@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 test.describe('/about', () => {
   test('has the heading, breadcrumbs and the sections', async ({ page }) => {
@@ -35,8 +35,27 @@ test.describe('/about', () => {
 });
 
 test.describe('/about/how-we-work', () => {
-  test('has the heading and breadcrumbs', async ({ page }) => {
+  async function openHowWeWork(page: Page) {
     await page.goto('/about/how-we-work');
+    await page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Expands an accordion item without racing hydration.
+   *
+   * Base UI attaches its behaviour after the page paints, so a click issued first is simply
+   * lost. Retrying the click until the trigger reports `aria-expanded="true"` is stable in
+   * both the serial and the parallel run, and it stays a real click rather than a sleep.
+   */
+  async function expand(trigger: Locator) {
+    await expect(async () => {
+      if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+      await expect(trigger).toHaveAttribute('aria-expanded', 'true', { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+  }
+
+  test('has the heading and breadcrumbs', async ({ page }) => {
+    await openHowWeWork(page);
     await expect(
       page.getByRole('heading', { level: 1, name: 'How we work with BPKIHS' }),
     ).toBeVisible();
@@ -45,22 +64,27 @@ test.describe('/about/how-we-work', () => {
   });
 
   test('opens and closes an answer', async ({ page }) => {
-    await page.goto('/about/how-we-work');
+    await openHowWeWork(page);
     const trigger = page.getByRole('button', { name: 'How are donated funds handled?' });
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    await trigger.click();
-    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    await expand(trigger);
     await expect(page.getByText('Every donation is tied to a named goal')).toBeVisible();
+
     await trigger.click();
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
   test('can be used with the keyboard', async ({ page }) => {
-    await page.goto('/about/how-we-work');
+    await openHowWeWork(page);
     const trigger = page.getByRole('button', { name: 'How are decisions made?' });
     await trigger.focus();
-    await page.keyboard.press('Enter');
-    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(async () => {
+      if ((await trigger.getAttribute('aria-expanded')) !== 'true') {
+        await page.keyboard.press('Enter');
+      }
+      await expect(trigger).toHaveAttribute('aria-expanded', 'true', { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
   });
 });
 

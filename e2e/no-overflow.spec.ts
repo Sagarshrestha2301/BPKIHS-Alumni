@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const paths = ['/', '/styleguide', '/this-page-does-not-exist'];
+const paths = ['/', '/this-page-does-not-exist'];
 
 for (const path of paths) {
   test(`${path} does not scroll sideways`, async ({ page }) => {

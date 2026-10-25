@@ -47,3 +47,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Sessions stored by the e2e setup project
+e2e/.auth/
