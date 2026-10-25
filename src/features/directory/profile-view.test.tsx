@@ -57,11 +57,6 @@ describe('ProfileView', () => {
     expect(screen.queryByText('Further studies')).toBeNull();
   });
 
-  it('marks sample profiles', () => {
-    render(<ProfileView person={{ ...base, placeholder: true }} />);
-    expect(screen.getByText('Sample')).toBeTruthy();
-  });
-
   it('has a Donate link and a link back to the directory', () => {
     render(<ProfileView person={base} />);
     expect(screen.getByRole('link', { name: 'Donate' }).getAttribute('href')).toBe('/donate');

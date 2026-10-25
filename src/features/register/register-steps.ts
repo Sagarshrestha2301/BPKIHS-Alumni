@@ -21,9 +21,18 @@ export const REGISTER_STEPS = [
     fields: ['currentPosition', 'organisation', 'furtherStudies', 'note'],
   },
   {
-    id: 'privacy',
-    label: 'Privacy and consent',
-    fields: ['email', 'phone', 'privacyEmail', 'privacyPhone', 'privacyProfile', 'consent'],
+    id: 'account',
+    label: 'Account and privacy',
+    fields: [
+      'email',
+      'phone',
+      'password',
+      'confirmPassword',
+      'privacyEmail',
+      'privacyPhone',
+      'privacyProfile',
+      'consent',
+    ],
   },
 ] as const satisfies readonly RegisterStep[];
 

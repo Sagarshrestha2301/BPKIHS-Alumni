@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -32,7 +32,9 @@ export default async function ThankYouPage({
   const amount = Number(first(params.amount));
   const goal = first(params.goal);
   const method = first(params.method);
-  const pending = first(params.status) === 'pending';
+  const status = first(params.status);
+  const pending = status === 'pending';
+  const failed = status === 'failed';
 
   return (
     <>
@@ -43,14 +45,24 @@ export default async function ThankYouPage({
       />
       <Section>
         <div className="mx-auto max-w-2xl rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8">
-          <CheckCircle2 aria-hidden="true" className="text-success-600 size-10" />
+          {failed ? (
+            <AlertCircle aria-hidden="true" className="text-danger-600 size-10" />
+          ) : (
+            <CheckCircle2 aria-hidden="true" className="text-success-600 size-10" />
+          )}
           <h2 className="font-heading text-primary-900 mt-4 text-2xl font-semibold">
-            {pending ? 'Your gift is pending' : thankYouPage.title}
+            {failed
+              ? thankYouPage.failedTitle
+              : pending
+                ? thankYouPage.pendingTitle
+                : thankYouPage.title}
           </h2>
           <p className="text-body-l mt-2 text-neutral-600">
-            {pending
-              ? 'The payment provider has not confirmed this gift yet. We will email you when it settles.'
-              : thankYouPage.receiptNote}
+            {failed
+              ? thankYouPage.failedNote
+              : pending
+                ? thankYouPage.receiptPendingNote
+                : thankYouPage.receiptNote}
           </p>
 
           <dl className="mt-6 grid gap-3 border-t border-neutral-300 pt-4 text-sm">

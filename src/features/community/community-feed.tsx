@@ -9,9 +9,10 @@ import { ReportPost } from '@/features/community/report-post';
 import type { ApiClient } from '@/lib/api/client';
 import type { FeedPost } from '@/lib/api/types';
 import type { PostType } from '@/lib/constants/domain';
+import { FEED_PAGE_SIZE } from '@/lib/constants/pagination';
 import { cn } from '@/lib/utils';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = FEED_PAGE_SIZE;
 
 export function CommunityFeed({ posts, client }: { posts: FeedPost[]; client?: ApiClient }) {
   const copy = communityPage;

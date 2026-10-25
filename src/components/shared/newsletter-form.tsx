@@ -41,7 +41,7 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
   if (done) {
     return (
       <p role="status" className="text-primary-900 font-medium">
-        Thank you. You are on the list. (Demo only until the backend is connected.)
+        Thank you. You are on the list.
       </p>
     );
   }

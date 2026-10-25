@@ -7,6 +7,8 @@ import {
 import { validateAll } from '@/features/register/validate-all';
 import { validateStep } from '@/features/register/validate-step';
 
+const LONG_PASSWORD = 'correct horse battery';
+
 function validValues(): RegisterFormValues {
   return {
     ...createInitialRegisterValues(),
@@ -16,6 +18,8 @@ function validValues(): RegisterFormValues {
     country: 'Nepal',
     city: 'Kathmandu',
     email: 'asha@example.com',
+    password: LONG_PASSWORD,
+    confirmPassword: LONG_PASSWORD,
     consent: true,
   };
 }
@@ -86,16 +90,33 @@ describe('validateStep: Career (step 1)', () => {
   });
 });
 
-describe('validateStep: Privacy and consent (step 2)', () => {
-  it('needs an email and the consent box', () => {
+describe('validateStep: Account and privacy (step 2)', () => {
+  it('needs an email, a password and the consent box', () => {
     const result = validateStep(2, createInitialRegisterValues());
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.errors).toEqual({
       email: 'Enter your email address.',
+      password: 'Use at least 12 characters.',
+      confirmPassword: 'Repeat your password.',
       consent: 'Please agree to the terms to register.',
     });
     expect(result.firstInvalidField).toBe('email');
+  });
+
+  it('rejects a short password and a confirmation that does not match', () => {
+    const short = validateStep(2, {
+      ...validValues(),
+      password: 'short',
+      confirmPassword: 'short',
+    });
+    expect(short.ok).toBe(false);
+    if (!short.ok) expect(short.errors.password).toBe('Use at least 12 characters.');
+
+    const mismatch = validateStep(2, { ...validValues(), confirmPassword: 'something else' });
+    expect(mismatch.ok).toBe(false);
+    if (!mismatch.ok)
+      expect(mismatch.errors.confirmPassword).toBe('The two passwords do not match.');
   });
 
   it('rejects a malformed email and phone number', () => {

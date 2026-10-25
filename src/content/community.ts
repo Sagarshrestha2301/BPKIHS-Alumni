@@ -16,9 +16,6 @@ export const communityPage = {
   loadMore: 'Load more posts',
   empty: 'No posts match this filter yet.',
   readMore: 'Read the full post',
-  sample: 'Sample posts. Member posts are reviewed before they appear.',
-  noticeTitle: 'Notices',
-  noticeDescription: 'Short announcements from the Association office.',
   share: {
     title: 'Share an update',
     summary: 'Share an update with the network',
@@ -80,8 +77,5 @@ export const newsletterPage = {
   unsubscribe: 'Unsubscribe',
   unsubscribing: 'Updating…',
   unsubscribed: 'You have been unsubscribed. You can subscribe again at any time.',
-  archiveTitle: 'Past issues',
-  archiveDescription: 'The archive opens after the first issue is sent.',
-  archiveEmpty: 'No issues yet.',
   privacyNote: 'We use your address only for the newsletter. Read the privacy policy for details.',
 } as const;

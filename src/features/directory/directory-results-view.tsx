@@ -84,7 +84,7 @@ function PageNav({ result, params }: DirectoryResultsViewProps) {
 
 /** The result count, the person cards and the page links. Shows an empty state for no results. */
 export function DirectoryResultsView({ result, params }: DirectoryResultsViewProps) {
-  const { donateLink, empty, resultsLabel, sampleNote } = directoryPage;
+  const { donateLink, empty, resultsLabel } = directoryPage;
 
   if (result.items.length === 0) {
     return (
@@ -103,7 +103,6 @@ export function DirectoryResultsView({ result, params }: DirectoryResultsViewPro
 
   const start = (result.page - 1) * result.pageSize + 1;
   const end = start + result.items.length - 1;
-  const sample = result.items.some((person) => person.placeholder);
 
   return (
     <div className="mt-8">
@@ -125,7 +124,6 @@ export function DirectoryResultsView({ result, params }: DirectoryResultsViewPro
         ))}
       </ul>
       <PageNav result={result} params={params} />
-      {sample ? <p className="mt-6 text-sm text-neutral-600">{sampleNote}</p> : null}
     </div>
   );
 }

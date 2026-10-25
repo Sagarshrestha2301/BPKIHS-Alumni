@@ -1,5 +1,6 @@
 import type { AlumniSort } from '@/lib/api/types';
 import { type Programme, PROGRAMMES } from '@/lib/constants/domain';
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants/pagination';
 
 export const ALUMNI_SORTS = [
   'name',
@@ -8,7 +9,7 @@ export const ALUMNI_SORTS = [
   'recently_joined',
 ] as const satisfies readonly AlumniSort[];
 
-export const DIRECTORY_PAGE_SIZE = 12;
+export const DIRECTORY_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 export const MIN_BATCH_YEAR = 1900;
 export const MAX_BATCH_YEAR = 2100;

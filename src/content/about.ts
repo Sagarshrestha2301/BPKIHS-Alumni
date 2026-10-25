@@ -40,7 +40,6 @@ export const aboutPage = {
   timeline: {
     eyebrow: 'Our story',
     title: 'Our story',
-    note: 'Sample timeline. The Association will replace it with its real history.',
     items: [
       {
         key: 'founding',

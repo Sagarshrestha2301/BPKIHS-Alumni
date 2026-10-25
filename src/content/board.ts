@@ -9,5 +9,4 @@ export const boardPage = {
     visionHeading: 'Vision',
     noDetails: 'More about this board member will be added soon.',
   },
-  sampleNote: 'Sample data',
 } as const;

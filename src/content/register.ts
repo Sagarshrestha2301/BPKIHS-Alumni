@@ -5,7 +5,7 @@ export const registerPage = {
   intro:
     'This form is for BPKIHS graduates and former residents. The Association reviews each profile before it is listed, so the directory stays accurate and no one is added without their consent.',
   reviewNote:
-    'Profiles are reviewed by the Association before they appear in the directory. You will receive an email when your profile is approved.',
+    'Profiles are reviewed by the Association before they appear in the directory. Registering also creates your account, which you confirm with a code we email you, and which you use to sign in later.',
   fields: {
     fullName: { label: 'Full name', hint: 'Use the name you were known by at BPKIHS.' },
     programme: { label: 'Programme', placeholder: 'Choose your programme' },
@@ -45,11 +45,16 @@ export const registerPage = {
       placeholder: '+977 98XXXXXXXX',
       hint: 'Optional. Hidden unless you make it public.',
     },
+    password: {
+      label: 'Password',
+      hint: 'At least 12 characters. You will use it, with your email, to sign in and check your profile.',
+    },
+    confirmPassword: { label: 'Repeat password', hint: 'Type the same password again.' },
   },
   privacy: {
     legend: 'What others can see',
     intro:
-      'You control each item separately. Until member sign-in exists, “Alumni only” is treated like Hidden on the public site.',
+      'You control each item separately. “Alumni only” items are kept for the Association and never shown on the public directory.',
     email: {
       label: 'Email visibility',
       options: {
@@ -86,10 +91,34 @@ export const registerPage = {
     submitting: 'Submitting…',
   },
   requiredNote: 'Fields marked * are required.',
+  verify: {
+    title: 'Confirm your email address',
+    body: 'We sent a code to',
+    instruction: 'Enter it below to finish registering and sign in.',
+    codeLabel: 'Verification code',
+    codeHint: 'Digits only. The code expires after a short while, so use it promptly.',
+    codeError: 'Enter the code from the email. Digits only.',
+    submit: 'Confirm and sign in',
+    submitting: 'Confirming…',
+    resend: 'Send a new code',
+    resending: 'Sending…',
+    resendIn: 'Send a new code in',
+    sent: 'A new code is on its way. It can take a minute to arrive.',
+    notReceived:
+      'Nothing arrived? Check your spam folder and make sure the address above is right.',
+    deliveryFailed:
+      'We could not email the code just now. Send a new one below, or contact the office if it keeps failing.',
+    changeEmail: 'Registered the wrong address? Contact the office and we will correct it.',
+  },
+  signIn: {
+    prompt: 'Already registered?',
+    action: 'Sign in to your account',
+  },
   success: {
-    title: 'Thank you. Your profile is pending approval.',
-    body: 'The Association will review your details and email you when your profile is live. This usually takes a few working days.',
+    title: 'Thank you. Your email is confirmed and your profile is pending approval.',
+    body: 'The Association will review your details and email you when your profile is live. This usually takes a few working days. You can sign in at any time to check the review.',
     reference: 'Your reference',
+    account: 'Go to your account',
     directory: 'Browse the directory',
     home: 'Back to home',
   },

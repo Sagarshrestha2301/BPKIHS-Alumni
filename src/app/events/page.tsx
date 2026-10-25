@@ -33,7 +33,6 @@ export default async function EventsPage({
   const status = first(params.status) === 'past' ? 'past' : 'upcoming';
   const q = first(params.q)?.trim();
   const page = await getEventsPage(status, q);
-  const sample = page.items.some((event) => event.placeholder);
 
   return (
     <>
@@ -107,8 +106,6 @@ export default async function EventsPage({
             ))}
           </div>
         )}
-
-        {sample ? <p className="mt-6 text-sm text-neutral-600">{eventsPage.sample}</p> : null}
       </Section>
     </>
   );

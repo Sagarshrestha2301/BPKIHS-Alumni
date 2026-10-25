@@ -67,7 +67,6 @@ export default function AboutPage() {
         <div className="mt-10">
           <Timeline items={timeline.items} />
         </div>
-        <p className="mt-8 text-sm text-neutral-600">{timeline.note}</p>
       </Section>
 
       <Section tone="tint" aria-label={institute.title}>

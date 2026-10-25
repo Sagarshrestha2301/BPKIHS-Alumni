@@ -9,7 +9,6 @@ import { CommunityPostsSkeleton } from '@/features/home/community-posts-skeleton
 import { FeaturedGoals } from '@/features/home/featured-goals';
 import { FeaturedGoalsSkeleton } from '@/features/home/featured-goals-skeleton';
 import { Hero } from '@/features/home/hero';
-import { PartnerStrip } from '@/features/home/partner-strip';
 import { StatsBand } from '@/features/home/stats-band';
 import { StatsBandSkeleton } from '@/features/home/stats-band-skeleton';
 import { ThreeDoors } from '@/features/home/three-doors';
@@ -72,7 +71,6 @@ export default function HomePage() {
       <Suspense fallback={<WelcomeMessageSkeleton />}>
         <WelcomeMessageSection />
       </Suspense>
-      <PartnerStrip />
     </>
   );
 }

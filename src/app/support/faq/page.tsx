@@ -36,10 +36,6 @@ export default async function FaqPage() {
               {faqPage.contactCta}
             </Link>
           </div>
-
-          {items.some((item) => item.placeholder) ? (
-            <p className="mt-6 text-sm text-neutral-600">{faqPage.sample}</p>
-          ) : null}
         </div>
       </Section>
     </>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Fragment } from 'react';
 
 import { Container } from '@/components/layout/container';
+import { JsonLd } from '@/components/shared/json-ld';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,6 +11,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { breadcrumbJsonLd } from '@/lib/seo/json-ld';
 
 export type Crumb = { label: string; href?: string };
 
@@ -26,6 +28,7 @@ export function PageHeader({ crumbs, title, description }: PageHeaderProps) {
 
   return (
     <header className="bg-secondary border-b border-neutral-300 py-8 lg:py-12">
+      <JsonLd value={breadcrumbJsonLd(trail)} />
       <Container>
         <Breadcrumb>
           <BreadcrumbList>

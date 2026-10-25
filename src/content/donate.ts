@@ -6,7 +6,6 @@ export const donatePage = {
     'Every gift is tied to a named goal or to the general fund, so you can see what your support makes possible. The Association publishes how funds are used.',
   transparencyLink: 'See how funds are used',
   goalsHeading: 'Where your gift can go',
-  goalsNote: 'Sample goals and amounts until the Association opens its real campaign.',
   generalFund: 'Give to the general fund',
   quickAmounts: {
     title: 'Give in a minute',
@@ -17,26 +16,26 @@ export const donatePage = {
   funds: {
     title: 'Where the money goes',
     description:
-      'A simple breakdown of funds raised so far. The full transparency page shows the figures and recent gifts.',
+      'A simple breakdown of funds raised so far. The full transparency page shows the figures and categories.',
     link: 'Open the transparency page',
   },
   tribute: {
     title: 'Give in honour or in memory',
     description:
-      'Make a gift in honour of a mentor, a batch or someone you remember. The tribute wall records the thought, not the amount.',
+      'Make a gift in honour of a mentor, a batch or someone you remember. The message is shared with the person you name, not published with the amount.',
     link: 'Make a tribute gift',
   },
+  paymentNote:
+    'Payments are processed by eSewa or Khalti. Your card and wallet details never reach this site.',
   trust: {
     title: 'What you can expect',
     items: [
-      'A receipt by email after a completed gift.',
-      'A clear note on this site that payments are a demonstration until the gateway is live.',
+      'A receipt by email after the provider confirms your payment.',
+      'Payment completed on the provider’s secure page; card details never reach this site.',
       'A contact for any question about a donation.',
     ],
     support: 'Contact the Association',
   },
-  demoNote:
-    'Payments are a demonstration. No money is taken and no card details are stored on this site.',
 } as const;
 
 export const donateCheckoutPage = {
@@ -64,28 +63,25 @@ export const donateCheckoutPage = {
     signInTitle: 'Sign in',
     signUpTitle: 'Create an account',
     emailLabel: 'Email address',
+    passwordLabel: 'Password',
+    passwordHint: 'At least 8 characters.',
     nameLabel: 'Full name',
     phoneLabel: 'Phone number (optional)',
     signInButton: 'Sign in',
     signUpButton: 'Create account and continue',
-    demoNote: 'Demo accounts are in memory only. Reloading the page signs you out.',
+    note: 'Your account is used only for this receipt. The rest of the site stays anonymous.',
   },
   payment: {
     title: 'Payment method',
     description:
-      'Choose how you would like to give. Every method is a demonstration in this build.',
+      'Choose how you would like to give. You will complete the payment on the provider’s secure page and then return here for your receipt.',
     national: 'Nepal',
-    international: 'International',
     methods: {
       esewa: { label: 'eSewa', description: 'Wallet payment' },
       khalti: { label: 'Khalti', description: 'Wallet payment' },
-      connectips: { label: 'ConnectIPS', description: 'Bank transfer' },
-      fonepay: { label: 'Fonepay QR', description: 'Scan and pay' },
-      card: { label: 'Card', description: 'Visa or Mastercard' },
-      paypal: { label: 'PayPal-style', description: 'International wallet' },
     },
-    cardNote: 'Card fields are a visual stub. No card number is collected or stored.',
-    walletNote: 'You would normally be redirected to the provider. This build does not redirect.',
+    redirectNote:
+      'You will be redirected to the provider to pay. Card and wallet details are entered there, never on this site.',
   },
   summary: {
     title: 'Your gift',
@@ -108,15 +104,19 @@ export const donateCheckoutPage = {
     payment: 'Choose a payment method.',
     submit: 'The payment could not be completed. Please try again or choose another method.',
   },
-  demoNotice: 'Demo only — no payment is taken.',
   success: 'Thank you. Your gift is recorded.',
 } as const;
 
 export const thankYouPage = {
   title: 'Thank you for your gift',
   description: 'Your gift has been recorded and a receipt is on its way.',
-  receiptNote:
-    'This is a demonstration. In the live site a receipt would be emailed to the address on your account.',
+  pendingTitle: 'Your gift is pending',
+  receiptPendingNote:
+    'The payment provider has not confirmed this gift yet. We will email a receipt as soon as it settles.',
+  receiptNote: 'A receipt has been emailed to the address on your account.',
+  failedTitle: 'Your gift was not completed',
+  failedNote:
+    'The payment provider did not confirm this gift, so it has not been recorded as a donation. You can try again or choose another payment method.',
   nextSteps: [
     { label: 'See the transparency page', href: '/donate/transparency' },
     { label: 'Find alumni in the directory', href: '/directory' },
@@ -129,7 +129,7 @@ export const transparencyPage = {
   description:
     'How the Association allocates the funds it raises, with a table for anyone who prefers figures to charts.',
   intro:
-    'These figures are sample data until the Association completes its first reporting period. The categories show the intended split, not a final audited account.',
+    'These figures come from the goals and donations recorded on this site. They show the current allocation and are not an audited account.',
   totalRaised: 'Raised so far',
   totalGoals: 'Active goals',
   table: {
@@ -137,14 +137,13 @@ export const transparencyPage = {
     share: 'Share',
     amount: 'Amount',
   },
-  report: 'Download the annual report (placeholder)',
-  note: 'Placeholder figures. Real reporting starts after the first campaign closes.',
+  note: 'Figures update as donations are confirmed. Audited statements are published separately by the Association.',
 } as const;
 
 export const tributePage = {
   title: 'Tribute giving',
   description:
-    'Give in honour of a mentor, a batch or someone you remember. The tribute wall records the thought, not the amount.',
+    'Give in honour of a mentor, a batch or someone you remember. The message is shared with the person you name, not published with the amount.',
   inHonour: 'In honour',
   inMemory: 'In memory',
   formTitle: 'Make a tribute gift',
@@ -158,7 +157,7 @@ export const tributePage = {
   nameLabel: 'Name',
   namePlaceholder: 'For example Batch of 2012, or Dr Asha Rai',
   messageLabel: 'Message (optional)',
-  messagePlaceholder: 'A few words for the tribute wall',
+  messagePlaceholder: 'A few words for the person you are honouring',
   notifyLabel: 'Notify someone by email (optional)',
   notifyHint: 'We will send one message with the tribute details.',
   amountLabel: 'Amount (NPR)',
@@ -166,27 +165,5 @@ export const tributePage = {
     submit: 'Continue to checkout',
     submitting: 'Preparing…',
   },
-  wallTitle: 'Tribute wall',
-  wallNote: 'Sample tributes. New entries appear after review.',
-  wall: [
-    {
-      id: 'tribute-1',
-      type: 'in_honour' as const,
-      name: 'Batch of 2012',
-      message: 'For the teachers who made the first year feel possible.',
-    },
-    {
-      id: 'tribute-2',
-      type: 'in_memory' as const,
-      name: 'Dr Asha Rai',
-      message: 'A mentor to generations of residents at BPKIHS.',
-    },
-    {
-      id: 'tribute-3',
-      type: 'in_honour' as const,
-      name: 'The nursing faculty',
-      message: 'With gratitude for years of patient teaching.',
-    },
-  ],
   error: 'We could not prepare that tribute. Please check the form and try again.',
 } as const;

@@ -1,21 +1,21 @@
 import { cacheLife } from 'next/cache';
 
 import { pickBoardPreview } from '@/features/governance/pick-board-preview';
-import { getApiClient } from '@/lib/api/client';
 import type { PostType } from '@/lib/constants/domain';
+import { getServerApiClient } from '@/server/api/server-client';
 
 /** Site-wide numbers for the home page. Same for every visitor, so they are cached. */
 export async function getHomeStats() {
   'use cache';
   cacheLife('days');
-  return getApiClient().getSiteStats();
+  return getServerApiClient().getSiteStats();
 }
 
 /** The first three giving goals (the general fund comes first in the data). */
 export async function getFeaturedGoals() {
   'use cache';
   cacheLife('days');
-  const goals = await getApiClient().listGoals();
+  const goals = await getServerApiClient().listGoals();
   return goals.slice(0, 3);
 }
 
@@ -23,7 +23,7 @@ export async function getFeaturedGoals() {
 export async function getUpcomingEvents() {
   'use cache';
   cacheLife('days');
-  const page = await getApiClient().listEvents({
+  const page = await getServerApiClient().listEvents({
     status: 'upcoming',
     sort: 'soonest',
     pageSize: 3,
@@ -38,7 +38,7 @@ const homePostTypes: readonly PostType[] = ['news', 'story', 'achievement'];
 export async function getLatestPosts() {
   'use cache';
   cacheLife('days');
-  const page = await getApiClient().listFeed({ pageSize: 12 });
+  const page = await getServerApiClient().listFeed({ pageSize: 12 });
   return page.items.filter((post) => homePostTypes.includes(post.type)).slice(0, 3);
 }
 
@@ -46,12 +46,12 @@ export async function getLatestPosts() {
 export async function getBoardPreview() {
   'use cache';
   cacheLife('days');
-  const members = await getApiClient().listBoard({ current: true });
+  const members = await getServerApiClient().listBoard({ current: true });
   return pickBoardPreview(members);
 }
 
 export async function getWelcome() {
   'use cache';
   cacheLife('days');
-  return getApiClient().getWelcomeMessage();
+  return getServerApiClient().getWelcomeMessage();
 }

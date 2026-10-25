@@ -1,10 +1,10 @@
 import { cacheLife } from 'next/cache';
 
-import { getApiClient } from '@/lib/api/client';
+import { getServerApiClient } from '@/server/api/server-client';
 
 export async function getCommunityPosts() {
   'use cache';
   cacheLife('hours');
-  const page = await getApiClient().listFeed({ pageSize: 50 });
+  const page = await getServerApiClient().listFeed({ pageSize: 50 });
   return page.items;
 }

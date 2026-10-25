@@ -7,8 +7,6 @@ import { formatNprCompact } from '@/lib/format/money';
 
 type StatsBandViewProps = {
   stats: SiteStats;
-  /** Shows a "Sample data" note under the numbers. */
-  sample?: boolean;
 };
 
 type Item = { key: string; icon: LucideIcon; value: string; label: string };
@@ -42,7 +40,7 @@ function buildItems(stats: SiteStats): Item[] {
   return items;
 }
 
-export function StatsBandView({ stats, sample = false }: StatsBandViewProps) {
+export function StatsBandView({ stats }: StatsBandViewProps) {
   const items = buildItems(stats);
   const columns = items.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3';
 
@@ -56,7 +54,6 @@ export function StatsBandView({ stats, sample = false }: StatsBandViewProps) {
           <StatCard key={item.key} icon={item.icon} value={item.value} label={item.label} />
         ))}
       </div>
-      {sample ? <p className="mt-4 text-sm text-neutral-600">Sample data</p> : null}
     </Section>
   );
 }

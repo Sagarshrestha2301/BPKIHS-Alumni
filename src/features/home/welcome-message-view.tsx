@@ -30,7 +30,6 @@ export function WelcomeMessageView({ message }: { message: WelcomeMessage }) {
             <div>
               <p className="text-primary-900 font-semibold">{message.author}</p>
               <p className="text-sm text-neutral-600">{message.role}</p>
-              {message.placeholder ? <p className="text-sm text-neutral-600">Sample data</p> : null}
             </div>
           </figcaption>
         </figure>

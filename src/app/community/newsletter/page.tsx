@@ -44,14 +44,6 @@ export default function NewsletterPage() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-xl border border-neutral-300 bg-neutral-100/60 p-6">
-          <h2 className="font-heading text-primary-900 text-xl font-semibold">
-            {newsletterPage.archiveTitle}
-          </h2>
-          <p className="mt-2 text-sm text-neutral-600">{newsletterPage.archiveDescription}</p>
-          <p className="mt-4 text-sm text-neutral-600">{newsletterPage.archiveEmpty}</p>
-        </div>
-
         <p className="mt-6 text-sm text-neutral-600">
           {newsletterPage.privacyNote}{' '}
           <Link href="/legal/privacy" className="text-primary-700 underline">

@@ -21,8 +21,8 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
       'What the BPKIHS Alumni Association collects, why it collects it, and the choices alumni have about their information.',
     updated: '12 October 2026',
     intro: [
-      'This is a draft privacy policy for the new alumni website. It is written for review by the Association and its legal adviser before launch. It describes the information the site is designed to collect, not a final legal position.',
-      'The site is currently a frontend demonstration. Form submissions go to sample data in the browser and are not sent to a live server.',
+      'This policy explains what the BPKIHS Alumni Association collects through this website, why it collects it, and the choices alumni have about their information.',
+      'Information you submit is stored in the Association’s database. Registrations, messages, event RSVPs and donation records reach the Association.',
     ],
     sections: [
       {
@@ -46,7 +46,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         title: 'Who can see your profile',
         paragraphs: [
           'You choose the visibility of your email, phone and profile separately: public, alumni only or hidden. Hidden details are never returned by the public site.',
-          'Until member sign-in exists, “alumni only” is treated like hidden on the public site. The Association can still see the full record for verification.',
+          '“Alumni only” information is not shown on the public directory or profile pages. Your account page shows your own details, and the Association can see the full record for verification.',
         ],
       },
       {
@@ -61,7 +61,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         id: 'cookies',
         title: 'Cookies and analytics',
         paragraphs: [
-          'The demonstration site does not use advertising cookies or third-party analytics. A production site may use essential cookies for sign-in and a privacy-respecting analytics tool; this policy will be updated before that happens.',
+          'The site uses essential cookies only: a session cookie when you sign in, and the security cookie Better Auth needs to protect that session. It does not use advertising cookies or third-party analytics.',
         ],
       },
       {
@@ -77,11 +77,11 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
     slug: 'terms',
     title: 'Terms of use',
     description:
-      'The rules for using the BPKIHS Alumni Association website, including the directory, community posts and demonstration payments.',
+      'The rules for using the BPKIHS Alumni Association website, including the directory, community posts and donations.',
     updated: '12 October 2026',
     intro: [
-      'This is a draft terms of use for review by the Association and its legal adviser. By using the site, you agree to these terms.',
-      'The site is a frontend demonstration. Payment screens do not take money and no real receipt is issued.',
+      'These terms apply to the BPKIHS Alumni Association website. By using the site, you agree to them.',
+      'The site is operated by the Association for BPKIHS alumni and supporters. It is not an official service of BPKIHS itself.',
     ],
     sections: [
       {
@@ -104,22 +104,22 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         id: 'donations',
         title: 'Donations',
         paragraphs: [
-          'In this demonstration, donation forms do not process payments and no funds are transferred. When real payments are enabled, the payment provider’s terms and the Association’s receipt policy will apply.',
-          'Tribute messages are reviewed before they appear on the public wall.',
+          'Donations are processed by eSewa or Khalti. A gift is recorded only after the provider confirms the payment, and the provider’s terms also apply to that transaction.',
+          'Write to the Association through the support page if you need a receipt corrected, have a question about a gift, or believe a payment was taken in error. Tribute messages are reviewed before they appear on the public wall.',
         ],
       },
       {
         id: 'accounts',
         title: 'Accounts and sign-in',
         paragraphs: [
-          'Sign-in is currently required only for the donation receipt step and uses a demonstration account in memory. Do not reuse a real password, because the demonstration does not store or check passwords.',
+          'An account is needed only to receive a donation receipt and to use the admin dashboard. Passwords are stored as salted hashes, never as plain text. Use a unique password and contact the Association if you believe an account has been compromised.',
         ],
       },
       {
         id: 'liability',
         title: 'Availability and liability',
         paragraphs: [
-          'The site is provided as-is while it is being built. The Association does not promise uninterrupted availability and is not liable for indirect loss arising from use of the demonstration.',
+          'The Association aims to keep the site available and accurate but does not promise uninterrupted service. It is not liable for indirect loss arising from use of the site, to the extent the law allows.',
           'Nothing in these terms limits rights that cannot be limited by law.',
         ],
       },
@@ -127,7 +127,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         id: 'changes',
         title: 'Changes',
         paragraphs: [
-          'These terms may change as the site moves from demonstration to production. The updated date at the top of this page will change when they do.',
+          'These terms may change as the Association’s services develop. The updated date at the top of this page changes when they do.',
         ],
       },
     ],
@@ -140,7 +140,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
     updated: '12 October 2026',
     intro: [
       'The Association wants every alumnus to be able to use this site, including people who use a keyboard, a screen reader, magnification or reduced motion.',
-      'This statement describes the current build. It is a draft and will be updated after the accessibility review at the end of the project.',
+      'This statement describes the current site and the accessibility work still planned.',
     ],
     sections: [
       {
@@ -162,7 +162,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         id: 'known',
         title: 'Known gaps',
         paragraphs: [
-          'The site has not yet had a full screen-reader review or an independent audit. Some placeholder images and sample content may need better descriptions when real content arrives. The photo upload control is disabled in this build.',
+          'The site has not yet had a full screen-reader review or an independent audit. Some images supplied by the Association may need better descriptions, and uploading a profile photo is not available yet.',
         ],
       },
       {

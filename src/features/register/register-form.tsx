@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type FormEvent, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 
 import { FormField } from '@/components/shared/form-field';
 import { Stepper } from '@/components/shared/stepper';
@@ -22,14 +22,21 @@ import { validateStep } from '@/features/register/validate-step';
 import { type ApiClient, getApiClient } from '@/lib/api/client';
 import { isApiError } from '@/lib/api/errors';
 import type { RegistrationResult } from '@/lib/api/types';
-import { PROGRAMMES, VISIBILITIES, type Visibility } from '@/lib/constants/domain';
+import {
+  PROGRAMMES,
+  REGISTRATION_CODE_RESEND_SECONDS,
+  VISIBILITIES,
+  type Visibility,
+} from '@/lib/constants/domain';
 import { cn } from '@/lib/utils';
 
 const inputClass = 'h-11 bg-white';
 const selectClass =
   'border-neutral-500 focus-visible:border-primary-700 h-11 w-full rounded-lg border bg-white px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-primary-700/30';
 
-type Status = 'idle' | 'submitting' | 'success';
+type Status = 'idle' | 'submitting' | 'verify' | 'verifying' | 'success';
+
+const CODE_PATTERN = /^\d{4,8}$/;
 
 function VisibilitySelect({
   label,
@@ -72,7 +79,18 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
   const [status, setStatus] = useState<Status>('idle');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<RegistrationResult | null>(null);
+  const [code, setCode] = useState('');
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // A code cannot be resent while the previous one is still fresh, and the button says how long.
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const timer = window.setTimeout(() => setSecondsLeft((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [secondsLeft]);
 
   function update<K extends keyof RegisterFormValues>(
     field: K,
@@ -133,11 +151,116 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
     try {
       const registration = await (client ?? getApiClient()).submitRegistration(validation.data);
       setResult(registration);
-      setStatus('success');
+      setCode('');
+      setVerifyError(null);
+      setNotice(null);
+      setSecondsLeft(REGISTRATION_CODE_RESEND_SECONDS);
+      setStatus('verify');
     } catch (error) {
       setStatus('idle');
       setSubmitError(isApiError(error) ? error.message : copy.error);
     }
+  }
+
+  async function onVerify(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!result || status === 'verifying') return;
+
+    const otp = code.trim();
+    if (!CODE_PATTERN.test(otp)) {
+      setVerifyError(copy.verify.codeError);
+      return;
+    }
+
+    setStatus('verifying');
+    setVerifyError(null);
+    try {
+      await (client ?? getApiClient()).verifyRegistration({ email: result.email, otp });
+      setStatus('success');
+    } catch (error) {
+      setVerifyError(isApiError(error) ? error.message : copy.error);
+      setStatus('verify');
+    }
+  }
+
+  async function onResend(): Promise<void> {
+    if (!result || secondsLeft > 0) return;
+    setVerifyError(null);
+    setNotice(null);
+    setSecondsLeft(REGISTRATION_CODE_RESEND_SECONDS);
+    try {
+      await (client ?? getApiClient()).resendRegistrationCode({ email: result.email });
+      setNotice(copy.verify.sent);
+    } catch (error) {
+      setVerifyError(isApiError(error) ? error.message : copy.verify.deliveryFailed);
+    }
+  }
+
+  if ((status === 'verify' || status === 'verifying') && result) {
+    return (
+      <div className="mx-auto max-w-xl rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8">
+        <h2 className="font-heading text-primary-900 text-2xl font-semibold">
+          {copy.verify.title}
+        </h2>
+        <p className="text-body-l mt-3 text-neutral-600">
+          {copy.verify.body} <span className="font-medium text-neutral-900">{result.email}</span>.{' '}
+          {copy.verify.instruction}
+        </p>
+
+        <form onSubmit={onVerify} noValidate className="mt-6 grid gap-5">
+          <FormField
+            label={copy.verify.codeLabel}
+            hint={copy.verify.codeHint}
+            error={verifyError ?? undefined}
+            required
+          >
+            {(control) => (
+              <Input
+                {...control}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={8}
+                value={code}
+                onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
+                className={`${inputClass} tracking-[0.4em]`}
+              />
+            )}
+          </FormField>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="submit"
+              disabled={status === 'verifying'}
+              className="h-11 px-6 text-base font-semibold"
+            >
+              {status === 'verifying' ? copy.verify.submitting : copy.verify.submit}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onResend}
+              disabled={secondsLeft > 0}
+              className="h-11 px-5 text-base"
+            >
+              {secondsLeft > 0 ? `${copy.verify.resendIn} ${secondsLeft}s` : copy.verify.resend}
+            </Button>
+          </div>
+
+          {notice ? (
+            <p
+              role="status"
+              className="text-primary-900 border-primary-100 bg-primary-100/50 rounded-lg border p-3 text-sm"
+            >
+              {notice}
+            </p>
+          ) : null}
+
+          <p className="text-sm text-neutral-600">{copy.verify.notReceived}</p>
+          <p className="text-sm text-neutral-600">{copy.verify.changeEmail}</p>
+        </form>
+      </div>
+    );
   }
 
   if (status === 'success' && result) {
@@ -154,7 +277,13 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
           {copy.success.reference}: <span className="font-mono text-neutral-900">{result.id}</span>
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/directory" className={cn(buttonVariants(), 'h-11 px-5 text-base')}>
+          <Link href="/account" className={cn(buttonVariants(), 'h-11 px-5 text-base')}>
+            {copy.success.account}
+          </Link>
+          <Link
+            href="/directory"
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-base')}
+          >
             {copy.success.directory}
           </Link>
           <Link
@@ -405,6 +534,44 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
                       placeholder={copy.fields.phone.placeholder}
                       value={values.phone}
                       onChange={(event) => update('phone', event.target.value)}
+                      className={inputClass}
+                    />
+                  )}
+                </FormField>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <FormField
+                  label={copy.fields.password.label}
+                  hint={copy.fields.password.hint}
+                  error={errors.password}
+                  required
+                >
+                  {(control) => (
+                    <Input
+                      {...control}
+                      type="password"
+                      autoComplete="new-password"
+                      value={values.password}
+                      onChange={(event) => update('password', event.target.value)}
+                      className={inputClass}
+                    />
+                  )}
+                </FormField>
+
+                <FormField
+                  label={copy.fields.confirmPassword.label}
+                  hint={copy.fields.confirmPassword.hint}
+                  error={errors.confirmPassword}
+                  required
+                >
+                  {(control) => (
+                    <Input
+                      {...control}
+                      type="password"
+                      autoComplete="new-password"
+                      value={values.confirmPassword}
+                      onChange={(event) => update('confirmPassword', event.target.value)}
                       className={inputClass}
                     />
                   )}

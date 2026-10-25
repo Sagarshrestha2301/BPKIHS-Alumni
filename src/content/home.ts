@@ -1,4 +1,4 @@
-/** Home page copy. Marked placeholder until the Association approves its own wording. */
+/** Home page copy. Draft until the Association approves its own wording. */
 export const hero = {
   eyebrow: 'BPKIHS Alumni Association',
   title: 'Once BPKIHS, always BPKIHS',
@@ -78,8 +78,4 @@ export const boardPreview = {
 export const welcomeSection = {
   eyebrow: 'A word from us',
   title: 'A message from the Association',
-} as const;
-
-export const partnerStrip = {
-  title: 'Our partners',
 } as const;

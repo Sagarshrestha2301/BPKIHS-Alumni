@@ -118,13 +118,7 @@ export default async function TransparencyPage() {
         </div>
 
         <p className="mt-6 text-sm text-neutral-600">{transparencyPage.note}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <span
-            aria-disabled="true"
-            className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-base opacity-60')}
-          >
-            {transparencyPage.report}
-          </span>
+        <div className="mt-6">
           <Link href="/donate" className={cn(buttonVariants(), 'h-11 px-5 text-base')}>
             Back to giving goals
           </Link>

@@ -46,26 +46,8 @@ export default function TributePage() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
+        <div className="mt-10 max-w-3xl">
           <TributeForm />
-
-          <aside className="rounded-xl border border-neutral-300 bg-neutral-100/60 p-6">
-            <h2 className="font-heading text-primary-900 text-xl font-semibold">
-              {tributePage.wallTitle}
-            </h2>
-            <p className="mt-2 text-sm text-neutral-600">{tributePage.wallNote}</p>
-            <ul className="mt-5 grid gap-4">
-              {tributePage.wall.map((entry) => (
-                <li key={entry.id} className="border-accent-500 border-l-2 pl-3">
-                  <p className="text-accent-700 text-xs font-semibold tracking-wide uppercase">
-                    {entry.type === 'in_memory' ? tributePage.inMemory : tributePage.inHonour}
-                  </p>
-                  <p className="mt-1 font-medium text-neutral-900">{entry.name}</p>
-                  <p className="mt-1 text-sm text-neutral-600">{entry.message}</p>
-                </li>
-              ))}
-            </ul>
-          </aside>
         </div>
 
         <div className="mt-12">

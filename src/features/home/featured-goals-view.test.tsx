@@ -37,11 +37,4 @@ describe('FeaturedGoalsView', () => {
     const { container } = render(<FeaturedGoalsView goals={[]} />);
     expect(container.firstChild).toBeNull();
   });
-
-  it('shows the sample note only for placeholder data', () => {
-    const { rerender } = render(<FeaturedGoalsView goals={[goal('a', { placeholder: true })]} />);
-    expect(screen.getByText('Sample data')).toBeTruthy();
-    rerender(<FeaturedGoalsView goals={[goal('a')]} />);
-    expect(screen.queryByText('Sample data')).toBeNull();
-  });
 });

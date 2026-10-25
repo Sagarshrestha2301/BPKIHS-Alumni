@@ -15,6 +15,7 @@ export const footerGroups: readonly FooterGroup[] = [
     title: 'Get involved',
     links: [
       { label: 'Register as alumni', href: '/register' },
+      { label: 'Sign in', href: '/sign-in' },
       { label: 'Alumni directory', href: '/directory' },
       { label: 'Donate', href: '/donate' },
       { label: 'Events', href: '/events' },

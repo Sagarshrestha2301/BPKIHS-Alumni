@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { createMockAdapter } from '@/lib/api/mock';
+import { createFakeClient } from '@/test/fake-client';
 
 import { NewsletterForm } from './newsletter-form';
 
@@ -15,7 +15,10 @@ describe('NewsletterForm', () => {
   });
 
   it('confirms a valid email after the API call', async () => {
-    render(<NewsletterForm client={createMockAdapter()} />);
+    const client = createFakeClient({
+      subscribeNewsletter: async () => ({ ok: true }),
+    });
+    render(<NewsletterForm client={client} />);
     fireEvent.change(screen.getByLabelText('Email address'), {
       target: { value: 'name@example.com' },
     });

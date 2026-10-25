@@ -1,9 +1,9 @@
 import { cacheLife } from 'next/cache';
 
-import { getApiClient } from '@/lib/api/client';
+import { getServerApiClient } from '@/server/api/server-client';
 
 export async function getFaqItems() {
   'use cache';
   cacheLife('hours');
-  return getApiClient().listFaq();
+  return getServerApiClient().listFaq();
 }

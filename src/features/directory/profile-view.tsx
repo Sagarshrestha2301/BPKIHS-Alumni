@@ -34,9 +34,6 @@ export function ProfileView({ person }: { person: Alumnus }) {
           <p className="text-lg font-semibold text-neutral-900">
             {person.programme}, batch {person.batchYear}
           </p>
-          {person.placeholder ? (
-            <p className="mt-1 text-xs font-medium text-neutral-600">{copy.sample}</p>
-          ) : null}
         </div>
       </div>
 

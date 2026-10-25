@@ -1,24 +1,24 @@
 import { cacheLife } from 'next/cache';
 
-import { getApiClient } from '@/lib/api/client';
 import type { EventStatus } from '@/lib/constants/domain';
+import { getServerApiClient } from '@/server/api/server-client';
 
 export async function getEventsPage(status: EventStatus, q?: string) {
   'use cache';
   cacheLife('hours');
-  return getApiClient().listEvents({ status, q, pageSize: 50 });
+  return getServerApiClient().listEvents({ status, q, pageSize: 50 });
 }
 
 export async function getEventBySlug(slug: string) {
   'use cache';
   cacheLife('hours');
-  return getApiClient().getEvent(slug);
+  return getServerApiClient().getEvent(slug);
 }
 
 export async function getEventGoal(goalId: string | undefined) {
   'use cache';
   cacheLife('hours');
   if (!goalId) return undefined;
-  const goals = await getApiClient().listGoals();
+  const goals = await getServerApiClient().listGoals();
   return goals.find((goal) => goal.id === goalId);
 }

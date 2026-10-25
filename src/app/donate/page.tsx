@@ -22,7 +22,6 @@ const linkClass = cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-bas
 
 export default async function DonatePage() {
   const [goals, funds] = await Promise.all([getDonationGoals(), getFundsBreakdown()]);
-  const sample = goals.some((goal) => goal.placeholder);
 
   return (
     <>
@@ -51,9 +50,6 @@ export default async function DonatePage() {
                   <GoalCard key={goal.id} goal={goal} />
                 ))}
               </div>
-              {sample ? (
-                <p className="mt-4 text-sm text-neutral-600">{donatePage.goalsNote}</p>
-              ) : null}
             </div>
           </div>
 
@@ -76,7 +72,7 @@ export default async function DonatePage() {
                 ))}
               </ul>
               <p className="border-accent-600/30 bg-accent-100 text-accent-700 mt-4 rounded-lg border p-3 text-sm">
-                {donatePage.demoNote}
+                {donatePage.paymentNote}
               </p>
             </div>
 

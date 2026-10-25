@@ -23,13 +23,6 @@ describe('StatsBandView', () => {
     expect(screen.getByText('Alumni')).toBeTruthy();
   });
 
-  it('shows the sample note only when asked', () => {
-    const { rerender } = render(<StatsBandView stats={stats} sample />);
-    expect(screen.getByText('Sample data')).toBeTruthy();
-    rerender(<StatsBandView stats={stats} />);
-    expect(screen.queryByText('Sample data')).toBeNull();
-  });
-
   it('has a heading for screen readers', () => {
     render(<StatsBandView stats={stats} />);
     expect(

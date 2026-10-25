@@ -33,6 +33,9 @@ export type RegisterFormValues = {
   note: string;
   email: string;
   phone: string;
+  /** The password for the account that will own this profile. */
+  password: string;
+  confirmPassword: string;
   privacyEmail: Visibility;
   privacyPhone: Visibility;
   privacyProfile: Visibility;
@@ -54,6 +57,8 @@ export function createInitialRegisterValues(): RegisterFormValues {
     note: '',
     email: '',
     phone: '',
+    password: '',
+    confirmPassword: '',
     privacyEmail: 'hidden',
     privacyPhone: 'hidden',
     privacyProfile: 'alumni_only',
@@ -92,5 +97,7 @@ export function toRegistrationCandidate(values: RegisterFormValues): Record<stri
       profile: values.privacyProfile,
     },
     consent: values.consent,
+    password: values.password,
+    confirmPassword: values.confirmPassword,
   };
 }

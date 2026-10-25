@@ -1,12 +1,22 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { createMockAdapter } from '@/lib/api/mock';
+import { ApiError } from '@/lib/api/errors';
+import { createFakeClient } from '@/test/fake-client';
 
 import { RegisterForm } from './register-form';
 
+const LONG_PASSWORD = 'correct horse battery';
+
 function renderForm() {
-  return render(<RegisterForm client={createMockAdapter()} />);
+  const client = createFakeClient({
+    submitRegistration: async () => ({
+      id: 'alumnus-new-001',
+      status: 'pending',
+      email: 'asha@example.com',
+    }),
+  });
+  return render(<RegisterForm client={client} />);
 }
 
 function fillAboutStep() {
@@ -40,11 +50,48 @@ describe('RegisterForm', () => {
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'asha@example.com' },
     });
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: LONG_PASSWORD } });
+    fireEvent.change(screen.getByLabelText(/repeat password/i), {
+      target: { value: LONG_PASSWORD },
+    });
     fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit registration/i }));
 
-    expect(await screen.findByText(/your profile is pending approval/i)).toBeInTheDocument();
-    expect(screen.getByText(/alumnus-new-001/i)).toBeInTheDocument();
+    expect(await screen.findByText(/confirm your email address/i)).toBeInTheDocument();
+    expect(screen.getByText(/asha@example\.com/i)).toBeInTheDocument();
+  });
+
+  it('asks for the emailed code and reports a rejected one', async () => {
+    const client = createFakeClient({
+      submitRegistration: async () => ({
+        id: 'alumnus-new-001',
+        status: 'pending',
+        email: 'asha@example.com',
+      }),
+      verifyRegistration: async () => {
+        throw new ApiError('validation', 'Invalid OTP');
+      },
+    });
+    render(<RegisterForm client={client} />);
+
+    fillAboutStep();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'asha@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: LONG_PASSWORD } });
+    fireEvent.change(screen.getByLabelText(/repeat password/i), {
+      target: { value: LONG_PASSWORD },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit registration/i }));
+
+    const code = await screen.findByLabelText(/verification code/i);
+    fireEvent.change(code, { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: /confirm and sign in/i }));
+
+    expect(await screen.findByText(/invalid otp/i)).toBeInTheDocument();
   });
 
   it('goes back to the first step when a later step is invalid', async () => {

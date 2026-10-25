@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
@@ -24,6 +25,13 @@ export default function RegisterPage() {
           <p className="text-body-l text-neutral-600">{registerPage.intro}</p>
           <p className="border-primary-100 bg-primary-100/50 text-primary-900 mt-3 rounded-lg border p-4 text-sm">
             {registerPage.reviewNote}
+          </p>
+          <p className="mt-4 text-sm text-neutral-600">
+            {registerPage.signIn.prompt}{' '}
+            <Link href="/sign-in" className="text-primary-700 underline underline-offset-4">
+              {registerPage.signIn.action}
+            </Link>
+            .
           </p>
         </div>
         <div className="mt-10">

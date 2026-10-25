@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 /** Hides itself when there are no goals, so the page never shows an empty block. */
 export function FeaturedGoalsView({ goals }: { goals: DonationGoal[] }) {
   if (goals.length === 0) return null;
-  const sample = goals.some((goal) => goal.placeholder);
 
   return (
     <Section tone="muted" aria-label={featuredGoals.title}>
@@ -35,7 +34,6 @@ export function FeaturedGoalsView({ goals }: { goals: DonationGoal[] }) {
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
-      {sample ? <p className="mt-4 text-sm text-neutral-600">Sample data</p> : null}
     </Section>
   );
 }

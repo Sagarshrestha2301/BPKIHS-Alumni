@@ -3,14 +3,15 @@
 /**
  * Sign-in for the donation gate only (decision D3). The rest of the public site never
  * asks anyone to log in. The session lives in memory: a reload signs you out, on purpose.
- * Sign-in and sign-up go through ApiClient, so a real backend replaces the mock with no
- * change here.
+ * Sign-in and sign-up go through ApiClient, so the UI does not know or care how the
+ * backend implements them.
  */
 import {
   createContext,
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -32,7 +33,7 @@ export interface AuthState {
   /** Resolves with the session, or null if it failed (see `error`). */
   signIn: (input: LoginInput) => Promise<Session | null>;
   signUp: (input: SignupInput) => Promise<Session | null>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -51,9 +52,27 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children, client }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
-  const [status, setStatus] = useState<AuthStatus>('signed_out');
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const [error, setError] = useState<ApiError | null>(null);
   const busy = useRef(false);
+
+  // A Better Auth session survives a reload, so ask the server before showing the gate.
+  useEffect(() => {
+    let cancelled = false;
+    (client ?? getApiClient())
+      .getSession()
+      .then((restored) => {
+        if (cancelled) return;
+        setSession(restored);
+        setStatus(restored ? 'signed_in' : 'signed_out');
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('signed_out');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   const attempt = useCallback(
     async (call: (api: ApiClient) => Promise<Session>): Promise<Session | null> => {
@@ -83,11 +102,15 @@ export function AuthProvider({ children, client }: AuthProviderProps) {
     [attempt],
   );
 
-  const signOut = useCallback(() => {
-    setSession(null);
-    setStatus('signed_out');
-    setError(null);
-  }, []);
+  const signOut = useCallback(async () => {
+    try {
+      await (client ?? getApiClient()).logout();
+    } finally {
+      setSession(null);
+      setStatus('signed_out');
+      setError(null);
+    }
+  }, [client]);
 
   const clearError = useCallback(() => setError(null), []);
 

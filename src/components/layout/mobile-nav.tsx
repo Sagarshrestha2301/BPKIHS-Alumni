@@ -13,6 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { signInPage } from '@/content/account';
 import { mainNav } from '@/content/site';
 import { isActivePath } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -73,6 +74,13 @@ export function MobileNav() {
               className={cn(buttonVariants({ variant: 'outline' }), 'h-12 px-5 text-base')}
             >
               Register
+            </Link>
+            <Link
+              href="/sign-in"
+              onClick={close}
+              className={cn(buttonVariants({ variant: 'ghost' }), 'h-12 px-5 text-base')}
+            >
+              {signInPage.title}
             </Link>
           </div>
         </SheetContent>

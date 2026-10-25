@@ -45,7 +45,6 @@ export const directoryPage = {
     email: 'Email',
     phone: 'Phone',
     note: 'About',
-    sample: 'Sample',
   },
   donateLink: { label: 'Support the Association' },
   resultsLabel: 'Alumni results',
@@ -55,5 +54,4 @@ export const directoryPage = {
       'Check the spelling or try fewer words. Only approved profiles that allow it are listed.',
     clear: 'Clear search',
   },
-  sampleNote: 'Sample data',
 } as const;

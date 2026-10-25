@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useState, useSyncExternalStore } from 'react';
 
 import { FormField } from '@/components/shared/form-field';
 import { Stepper } from '@/components/shared/stepper';
@@ -15,13 +15,30 @@ import { type ApiClient, getApiClient } from '@/lib/api/client';
 import { isApiError } from '@/lib/api/errors';
 import { loginSchema, signupSchema, type TributeInput } from '@/lib/api/schemas';
 import type { DonationGoal } from '@/lib/api/types';
-import { MAX_DONATION_MINOR, MIN_DONATION_MINOR, type PaymentMethod } from '@/lib/constants/domain';
+import { MAX_DONATION_MINOR, MIN_DONATION_MINOR } from '@/lib/constants/domain';
 import { formatNpr } from '@/lib/format/money';
 import { cn } from '@/lib/utils';
 
 const inputClass = 'h-11 bg-white';
-const NATIONAL: readonly PaymentMethod[] = ['esewa', 'khalti', 'connectips', 'fonepay'];
-const INTERNATIONAL: readonly PaymentMethod[] = ['card', 'paypal'];
+
+/** Only gateways with a working adapter are offered. */
+const AVAILABLE_METHODS = ['esewa', 'khalti'] as const;
+type AvailableMethod = (typeof AVAILABLE_METHODS)[number];
+
+const subscribe = () => () => {};
+
+/**
+ * The checkout is client-side only. Before hydration a submit would trigger a native form
+ * submission and throw away the donor's progress, so the buttons stay disabled until React
+ * has taken over.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
+}
 
 type Props = {
   goal: DonationGoal;
@@ -30,7 +47,7 @@ type Props = {
   client?: ApiClient;
 };
 
-function paymentMethodLabel(method: PaymentMethod): string {
+function paymentMethodLabel(method: AvailableMethod): string {
   return donateCheckoutPage.payment.methods[method].label;
 }
 
@@ -78,11 +95,12 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
   const router = useRouter();
   const api = client ?? getApiClient();
   const auth = useAuth();
+  const hydrated = useHydrated();
   const [step, setStep] = useState(0);
   const [amountInput, setAmountInput] = useState(String(initialAmountMinor / 100));
   const [amountError, setAmountError] = useState<string | null>(null);
   const [anonymous, setAnonymous] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod | ''>('');
+  const [method, setMethod] = useState<AvailableMethod | ''>('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -107,7 +125,10 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
   async function signIn(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const parsed = loginSchema.safeParse({ email: String(form.get('email') ?? '') });
+    const parsed = loginSchema.safeParse({
+      email: String(form.get('email') ?? ''),
+      password: String(form.get('password') ?? ''),
+    });
     if (!parsed.success) {
       setSubmitError(parsed.error.issues[0]?.message ?? copy.errors.account);
       return;
@@ -124,6 +145,7 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
       fullName: String(form.get('fullName') ?? ''),
       email: String(form.get('email') ?? ''),
       phone: String(form.get('phone') ?? ''),
+      password: String(form.get('password') ?? ''),
     });
     if (!parsed.success) {
       setSubmitError(parsed.error.issues[0]?.message ?? copy.errors.account);
@@ -157,6 +179,25 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
         setSubmitting(false);
         return;
       }
+      if (result.redirect) {
+        if (result.redirect.method === 'GET') {
+          window.location.assign(result.redirect.url);
+          return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = result.redirect.url;
+        for (const [name, value] of Object.entries(result.redirect.fields ?? {})) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
       const params = new URLSearchParams({
         id: result.donationId,
         status: result.status,
@@ -174,9 +215,6 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
   return (
     <div className="mx-auto max-w-5xl">
       <Stepper steps={copy.steps} currentIndex={step} className="mb-8" />
-      <p className="border-accent-600/30 bg-accent-100 text-accent-700 mb-6 rounded-lg border p-3 text-sm font-medium">
-        {copy.demoNotice}
-      </p>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
         <div className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8">
@@ -261,7 +299,13 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
               </div>
 
               <div className="mt-8 flex justify-end">
-                <Button type="submit" className="h-11 px-6 text-base font-semibold">
+                <Button
+                  type="submit"
+                  // Wait for the restored session too, not just hydration: deciding while it is
+                  // still loading would show a signed-in donor the sign-in form.
+                  disabled={!hydrated || auth.status === 'loading'}
+                  className="h-11 px-6 text-base font-semibold"
+                >
                   {copy.buttons.continue}
                 </Button>
               </div>
@@ -325,12 +369,20 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                           />
                         )}
                       </FormField>
-                      <p className="text-sm text-neutral-600">
-                        Demo account: <span className="font-mono">demo@example.com</span>
-                      </p>
+                      <FormField label={copy.account.passwordLabel} required>
+                        {(control) => (
+                          <Input
+                            {...control}
+                            name="password"
+                            type="password"
+                            autoComplete="current-password"
+                            className={inputClass}
+                          />
+                        )}
+                      </FormField>
                       <Button
                         type="submit"
-                        disabled={auth.status === 'loading'}
+                        disabled={!hydrated || auth.status === 'loading'}
                         className="h-11 px-6 text-base font-semibold"
                       >
                         {copy.account.signInButton}
@@ -370,16 +422,31 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                           />
                         )}
                       </FormField>
+                      <FormField
+                        label={copy.account.passwordLabel}
+                        required
+                        hint={copy.account.passwordHint}
+                      >
+                        {(control) => (
+                          <Input
+                            {...control}
+                            name="password"
+                            type="password"
+                            autoComplete="new-password"
+                            className={inputClass}
+                          />
+                        )}
+                      </FormField>
                       <Button
                         type="submit"
-                        disabled={auth.status === 'loading'}
+                        disabled={!hydrated || auth.status === 'loading'}
                         className="h-11 px-6 text-base font-semibold"
                       >
                         {copy.account.signUpButton}
                       </Button>
                     </form>
                   )}
-                  <p className="mt-4 text-xs text-neutral-600">{copy.account.demoNote}</p>
+                  <p className="mt-4 text-xs text-neutral-600">{copy.account.note}</p>
                 </>
               )}
 
@@ -408,83 +475,47 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
               </h2>
               <p className="mt-2 text-sm text-neutral-600">{copy.payment.description}</p>
 
-              {(
-                [
-                  [copy.payment.national, NATIONAL],
-                  [copy.payment.international, INTERNATIONAL],
-                ] as const
-              ).map(([legend, methods]) => (
-                <fieldset key={legend} className="mt-6">
-                  <legend className="text-primary-900 mb-3 text-base font-semibold">
-                    {legend}
-                  </legend>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {methods.map((value) => {
-                      const item = copy.payment.methods[value];
-                      return (
-                        <label
-                          key={value}
-                          className={cn(
-                            'flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-3',
-                            method === value
-                              ? 'border-primary-700 bg-primary-100/50'
-                              : 'border-neutral-300 bg-white',
-                          )}
-                        >
-                          <input
-                            type="radio"
-                            name="method"
-                            value={value}
-                            checked={method === value}
-                            onChange={() => {
-                              setMethod(value);
-                              setPaymentError(null);
-                            }}
-                            className="accent-primary-700 mt-1 size-4"
-                          />
-                          <span>
-                            <span className="block font-medium text-neutral-900">{item.label}</span>
-                            <span className="block text-sm text-neutral-600">
-                              {item.description}
-                            </span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              ))}
-
-              {method === 'card' ? (
-                <div className="mt-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4">
-                  <p className="text-sm text-neutral-600">{copy.payment.cardNote}</p>
-                  <div className="mt-3 grid gap-3">
-                    <Input
-                      disabled
-                      placeholder="Name on card"
-                      aria-label="Name on card (disabled)"
-                    />
-                    <Input disabled placeholder="Card number" aria-label="Card number (disabled)" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input disabled placeholder="MM / YY" aria-label="Expiry (disabled)" />
-                      <Input disabled placeholder="CVC" aria-label="CVC (disabled)" />
-                    </div>
-                  </div>
+              <fieldset className="mt-6">
+                <legend className="text-primary-900 mb-3 text-base font-semibold">
+                  {copy.payment.national}
+                </legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {AVAILABLE_METHODS.map((value) => {
+                    const item = copy.payment.methods[value];
+                    return (
+                      <label
+                        key={value}
+                        className={cn(
+                          'flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-3',
+                          method === value
+                            ? 'border-primary-700 bg-primary-100/50'
+                            : 'border-neutral-300 bg-white',
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="method"
+                          value={value}
+                          checked={method === value}
+                          onChange={() => {
+                            setMethod(value);
+                            setPaymentError(null);
+                          }}
+                          className="accent-primary-700 mt-1 size-4"
+                        />
+                        <span>
+                          <span className="block font-medium text-neutral-900">{item.label}</span>
+                          <span className="block text-sm text-neutral-600">{item.description}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-              ) : null}
+              </fieldset>
 
-              {method === 'fonepay' ? (
-                <div className="mt-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4 text-center">
-                  <div className="mx-auto grid size-32 place-items-center border-4 border-dashed border-neutral-300 text-sm text-neutral-600">
-                    QR code
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-600">{copy.payment.walletNote}</p>
-                </div>
-              ) : null}
-
-              {method && method !== 'card' && method !== 'fonepay' ? (
+              {method ? (
                 <p className="mt-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4 text-sm text-neutral-600">
-                  {copy.payment.walletNote}
+                  {copy.payment.redirectNote}
                 </p>
               ) : null}
 
@@ -512,7 +543,7 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                 <Button
                   type="button"
                   onClick={completeGift}
-                  disabled={submitting}
+                  disabled={!hydrated || submitting}
                   className="h-11 px-6 text-base font-semibold"
                 >
                   {submitting ? copy.buttons.paying : copy.buttons.pay}

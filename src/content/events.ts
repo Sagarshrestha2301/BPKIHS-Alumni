@@ -12,7 +12,6 @@ export const eventsPage = {
   clear: 'Clear search',
   empty: 'No events match this search.',
   pastNote: 'Past events include recaps and photo galleries where the organisers shared them.',
-  sample: 'Sample events. Dates and venues are placeholders.',
 } as const;
 
 export const eventDetailPage = {
@@ -49,5 +48,5 @@ export const eventDetailPage = {
   date: 'Date and time',
   mode: 'Format',
   back: 'All events',
-  shareNote: 'Sample event details. Confirm the date with the organiser before travelling.',
+  shareNote: 'Confirm the date and venue with the organiser before travelling.',
 } as const;

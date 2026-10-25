@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 /** Hides itself when there is no current board. */
 export function BoardPreviewView({ members }: { members: BoardMember[] }) {
   if (members.length === 0) return null;
-  const sample = members.some((member) => member.placeholder);
 
   return (
     <Section aria-label={boardPreview.title}>
@@ -47,7 +46,6 @@ export function BoardPreviewView({ members }: { members: BoardMember[] }) {
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
-      {sample ? <p className="mt-4 text-sm text-neutral-600">Sample data</p> : null}
     </Section>
   );
 }

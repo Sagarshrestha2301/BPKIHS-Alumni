@@ -25,9 +25,6 @@ export function PersonCard({ person }: { person: Alumnus }) {
         </p>
         {work ? <p className="text-sm text-neutral-600">{work}</p> : null}
         {place ? <p className="text-sm text-neutral-600">{place}</p> : null}
-        {person.placeholder ? (
-          <p className="mt-2 text-xs font-medium text-neutral-600">Sample</p>
-        ) : null}
       </div>
     </div>
   );

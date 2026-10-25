@@ -3,31 +3,13 @@ export const supportPage = {
   description:
     'Questions about your profile, a donation receipt or the Association? Contact the office or send a message through the helpdesk.',
   contactTitle: 'Contact the Association',
-  contactNote: 'These contact details are placeholders until the Association supplies its own.',
-  contacts: [
-    {
-      key: 'email',
-      label: 'Email',
-      value: 'support@bpkihs-alumni.example',
-      href: 'mailto:support@bpkihs-alumni.example',
-    },
-    {
-      key: 'phone',
-      label: 'Phone',
-      value: '+977 98XXXXXXXX',
-      href: 'tel:+9779800000000',
-    },
-    {
-      key: 'address',
-      label: 'Office',
-      value: 'BPKIHS Alumni Association, Dharan, Koshi Province, Nepal',
-    },
-    {
-      key: 'hours',
-      label: 'Office hours',
-      value: 'Sunday to Friday, 10:00 to 17:00 (Nepal time)',
-    },
-  ] as const,
+  contactNote: 'Reach the Association office using these details.',
+  contactLabels: {
+    email: 'Email',
+    phone: 'Phone',
+    address: 'Office',
+    hours: 'Office hours',
+  },
   responseNote:
     'We aim to reply within two working days. Include your donation reference if your question is about a gift.',
   helpdeskTitle: 'Send a message',
@@ -68,5 +50,4 @@ export const faqPage = {
   empty: 'No questions match this search.',
   stillNeedHelp: 'Still need help?',
   contactCta: 'Contact the Association',
-  sample: 'Sample answers. The Association will replace them with its own wording.',
 } as const;

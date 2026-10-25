@@ -6,6 +6,9 @@ export const site = {
   instituteUrl: 'https://bpkihs.edu',
   copyrightYear: 2026,
   logo: { src: '/bp-koirala_logo.png', width: 335, height: 335 },
+  /** The Association is based in Nepal, so events default to it in structured data. */
+  country: 'Nepal',
+  countryCode: 'NP',
 } as const;
 
 export const mainNav: readonly NavItem[] = [
@@ -19,4 +22,5 @@ export const mainNav: readonly NavItem[] = [
 export const utilityNav: readonly NavItem[] = [
   { label: 'Contact', href: '/support' },
   { label: 'FAQ', href: '/support/faq' },
+  { label: 'Sign in', href: '/sign-in' },
 ];

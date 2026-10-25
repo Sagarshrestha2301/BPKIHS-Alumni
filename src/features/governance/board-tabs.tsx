@@ -36,7 +36,6 @@ function MemberList({
 export function BoardTabs({ current, previous }: BoardTabsProps) {
   const [selected, setSelected] = useState<BoardMember | null>(null);
   const groups = groupByTerm(previous);
-  const sample = [...current, ...previous].some((member) => member.placeholder);
 
   return (
     <>
@@ -73,8 +72,6 @@ export function BoardTabs({ current, previous }: BoardTabsProps) {
           )}
         </TabsContent>
       </Tabs>
-
-      {sample ? <p className="mt-6 text-sm text-neutral-600">{boardPage.sampleNote}</p> : null}
 
       <BoardMemberDialog member={selected} onClose={() => setSelected(null)} />
     </>

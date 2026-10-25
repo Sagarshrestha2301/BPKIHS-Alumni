@@ -8,6 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { supportPage } from '@/content/support';
 import { HelpdeskForm } from '@/features/support/helpdesk-form';
 import { cn } from '@/lib/utils';
+import { contactDetails } from '@/server/contact';
 
 export const metadata: Metadata = {
   title: supportPage.title,
@@ -23,6 +24,8 @@ const icons = {
 } as const;
 
 export default function SupportPage() {
+  const contacts = contactDetails();
+
   return (
     <>
       <PageHeader
@@ -39,13 +42,13 @@ export default function SupportPage() {
             </h2>
             <p className="mt-2 text-sm text-neutral-600">{supportPage.contactNote}</p>
             <ul className="mt-5 grid gap-3">
-              {supportPage.contacts.map((contact) => {
+              {contacts.map((contact) => {
                 const Icon = icons[contact.key];
                 const content = (
                   <>
                     <span className="text-primary-900 flex items-center gap-2 text-sm font-semibold">
                       <Icon aria-hidden="true" className="size-4" />
-                      {contact.label}
+                      {supportPage.contactLabels[contact.key]}
                     </span>
                     <span className="mt-1 block text-sm text-neutral-600">{contact.value}</span>
                   </>
@@ -55,7 +58,7 @@ export default function SupportPage() {
                     key={contact.key}
                     className="rounded-xl border border-neutral-300 bg-white p-4 shadow-sm"
                   >
-                    {'href' in contact ? (
+                    {contact.href ? (
                       <a href={contact.href} className="block">
                         {content}
                       </a>

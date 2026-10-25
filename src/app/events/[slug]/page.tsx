@@ -6,15 +6,19 @@ import { notFound } from 'next/navigation';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
+import { JsonLd } from '@/components/shared/json-ld';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { eventDetailPage } from '@/content/events';
+import { site } from '@/content/site';
 import { GoalCard } from '@/features/donations/goal-card';
 import { EVENT_MODE_LABELS } from '@/features/events/event-card';
 import { getEventBySlug, getEventGoal } from '@/features/events/get-events-data';
 import { RsvpForm } from '@/features/events/rsvp-form';
 import type { AlumniEvent } from '@/lib/api/types';
+import { SITE_URL } from '@/lib/constants/site';
 import { formatDateRange } from '@/lib/format/dates';
+import { eventJsonLd } from '@/lib/seo/json-ld';
 import { cn } from '@/lib/utils';
 
 type Params = Promise<{ slug: string }>;
@@ -68,6 +72,20 @@ export default async function EventDetailPage({ params }: { params: Params }) {
 
   return (
     <>
+      <JsonLd
+        value={eventJsonLd({
+          name: event.title,
+          description: event.description,
+          url: `${SITE_URL}/events/${event.slug}`,
+          startsAt: event.startsAt,
+          ...(event.endsAt ? { endsAt: event.endsAt } : {}),
+          venue: event.venue,
+          city: event.city,
+          country: site.countryCode,
+          mode: event.mode,
+          organiser: site.name,
+        })}
+      />
       <PageHeader
         crumbs={[{ label: 'Events', href: '/events' }, { label: event.title }]}
         title={event.title}
