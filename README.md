@@ -1,13 +1,21 @@
-# BPKIHS Alumni Association Website (Frontend)
+# BPKIHS Alumni Association Website
 
 Lifelong alumni platform for the B.P. Koirala Institute of Health Sciences (BPKIHS), Dharan, Nepal.
-**Frontend only.** No backend yet: all data comes from mock data behind a typed API layer, so a real
-backend can be connected later without rewriting the UI.
+Next.js frontend plus a Postgres backend: directory, registrations, giving, events, community,
+support and a moderation dashboard. The application has one data path — the real API — and no
+mock or payment simulator.
 
 Project documents live in [`docs/`](./docs):
 
-- [`CONTEXT.md`](./docs/CONTEXT.md): decisions, architecture, routes, data types, session log
+- [`HANDOVER.md`](./HANDOVER.md): logins, service accounts, every environment variable and the go-live order
+- [`HOWTO.md`](./docs/HOWTO.md): setup, admin tasks, content, newsletter, deployment and troubleshooting
+- [`DB-AND-PAYMENTS.md`](./docs/DB-AND-PAYMENTS.md): using the database and taking payments
+- [`SECURITY.md`](./docs/SECURITY.md): threat model, ASVS Level 2 controls and server hardening
+- [`DEPLOYMENT.md`](./docs/DEPLOYMENT.md): production runbook, checklist and rollback
+- [`BACKEND.md`](./docs/BACKEND.md): API, data model, auth, payments
+- [`CONTEXT.md`](./docs/CONTEXT.md): decisions, architecture and session log
 - [`ROADMAP.md`](./docs/ROADMAP.md): phases and checklists
+- [`TRACKER.md`](./docs/TRACKER.md): everything still open, with owners and a suggested order
 - [`DESIGN.md`](./docs/DESIGN.md): design system and per-page specs
 
 ## Requirements
@@ -15,49 +23,79 @@ Project documents live in [`docs/`](./docs):
 - Node.js 20.9 or newer (22 LTS recommended)
 - npm
 - git
+- Postgres 16 (local Docker, or a managed database)
 
-## Getting started (Windows PowerShell)
+## Local development (Windows PowerShell)
 
 ```powershell
-cd C:\dev\bpkihs-alumni
 npm install
-Copy-Item .env.example .env.local
+Copy-Item .env.example .env.local       # set BETTER_AUTH_SECRET, PAYMENT_MODE and gateway keys
+npm run db:up                           # Postgres 16 in Docker (port 5433)
+npm run db:migrate
+$env:ADMIN_EMAIL="you@example.org"; $env:ADMIN_PASSWORD="a-long-unique-password"; npm run db:admin
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000 and sign in at `/admin` with the admin you just created.
+
+The database starts empty on purpose. Production starts empty and the Association enters real
+content through `/admin/content`; there is no seed dataset or demo import in the application.
+
+The browser suite brings its own fixtures instead: `npm run test:e2e` first seeds an admin, a
+donor and one giving goal and stores a session for each, then runs every spec against it. See
+[`docs/HOWTO.md`](./docs/HOWTO.md) section 14.
 
 ## Scripts
 
-| Command                | What it does                   |
-| ---------------------- | ------------------------------ |
-| `npm run dev`          | Start the dev server           |
-| `npm run build`        | Production build               |
-| `npm run start`        | Run the production build       |
-| `npm run lint`         | ESLint                         |
-| `npm run typecheck`    | TypeScript check (no output)   |
-| `npm run format`       | Format all files with Prettier |
-| `npm run format:check` | Check formatting only          |
-| `npm run test`         | Unit tests (Vitest)            |
-| `npm run test:e2e`     | Browser tests (Playwright)     |
-| `npm run ci`           | All checks before a milestone  |
+| Command                   | What it does                                         |
+| ------------------------- | ---------------------------------------------------- |
+| `npm run dev`             | Start the dev server                                 |
+| `npm run build`           | Production build                                     |
+| `npm run start`           | Run the production build                             |
+| `npm run lint`            | ESLint                                               |
+| `npm run typecheck`       | TypeScript check (no output)                         |
+| `npm run format`          | Format all files with Prettier                       |
+| `npm run format:check`    | Check formatting only                                |
+| `npm run test`            | Unit tests (Vitest)                                  |
+| `npm run test:e2e`        | Browser tests (Playwright)                           |
+| `npm run db:up`           | Start Postgres in Docker                             |
+| `npm run db:migrate`      | Apply migrations with drizzle-kit (development)      |
+| `npm run db:migrate:prod` | Apply migrations with the runtime driver             |
+| `npm run db:admin`        | Create or promote the first administrator            |
+| `npm run db:fixtures`     | Create the browser-test accounts and goal (dev only) |
+| `npm run db:studio`       | Browse the database                                  |
+| `npm run check:env`       | Validate a production environment before deploying   |
+| `npm run ci`              | Format, typecheck, lint, unit tests and build        |
 
 Before every commit, all four must pass: `format`, `typecheck`, `lint`, `build`. Run
 `npm run test` as well when the change touches data, validation or a form.
 
+## Environment variables
+
+Copy [`.env.example`](./.env.example) for the full list. The ones that matter:
+
+| Variable               | Purpose                                         | Required             |
+| ---------------------- | ----------------------------------------------- | -------------------- |
+| `DATABASE_URL`         | Postgres connection string                      | yes                  |
+| `BETTER_AUTH_SECRET`   | Session signing secret, 32+ characters          | yes                  |
+| `APP_URL`              | Public origin used for auth and payment returns | yes                  |
+| `NEXT_PUBLIC_SITE_URL` | Canonical links and metadata (build time)       | yes                  |
+| `PAYMENT_MODE`         | `sandbox` or `live` — no simulator              | yes                  |
+| `ESEWA_*`, `KHALTI_*`  | Gateway merchant credentials                    | at least one gateway |
+| `EMAIL_TRANSPORT`      | `resend` in production, `console` locally       | yes                  |
+| `RESEND_API_KEY`       | Resend API key                                  | in production        |
+| `EMAIL_FROM`           | Verified sender address                         | yes                  |
+| `CONTACT_EMAIL`        | Public office address shown on `/support`       | in production        |
+| `TRUST_PROXY`          | Trust `X-Real-IP` / `X-Forwarded-For` (VPS)     | yes behind a proxy   |
+
+Production startup refuses to run when a required value is missing or still points at
+localhost. `npm run check:env` reports the same problems before a deploy.
+
 ## Tech stack
 
 Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS v4, shadcn/ui (Base UI, Nova
-preset), Zod, Vitest, Playwright, Prettier. Fonts: Inter, Source Serif 4, Noto Sans Devanagari.
-
-## Environment variables
-
-| Variable               | Purpose                                  | Default                 |
-| ---------------------- | ---------------------------------------- | ----------------------- |
-| `NEXT_PUBLIC_API_MODE` | `mock` now; `http` once a backend exists | `mock`                  |
-| `NEXT_PUBLIC_SITE_URL` | Base URL for metadata and Open Graph     | `http://localhost:3000` |
-
-`.env.local` is private and not committed. `.env.example` is committed.
+preset), Zod, Drizzle ORM, Better Auth, Postgres 16, Vitest, Playwright, Prettier. Fonts: Inter,
+Source Serif 4, Noto Sans Devanagari.
 
 ## Folder structure
 
@@ -67,49 +105,59 @@ src/
   components/
     ui/           shadcn/ui primitives
     layout/       header, footer, mobile nav
-    shared/       reusable blocks (stat card, section heading, ...)
+    shared/       reusable blocks
   features/       one folder per area: directory, donations, events,
-                  community, governance, register, support, auth, legal, home
+                  community, governance, register, support, auth, legal, home, admin
   lib/
-    api/          typed API client; mock/ now, http/ later
+    api/          typed client and contract, HTTP adapter, privacy rules
     constants/ format/ utils.ts
-  content/        static typed copy (about text, FAQ, legal)
-  styles/         tokens.css (brand colours live here)
+  server/         server-only code: db, auth, services, payments, email, http
+    api/          adapter used by Server Components
+  content/        static typed copy
+  styles/         tokens.css (brand colours)
   types/
 docs/             project documents
+drizzle/          SQL migrations
+e2e/              Playwright tests
 ```
 
 ## Current status
 
-The public site is built on mock data:
+Public pages: home, about/board/how we work, directory and profiles, registration, donations
+(goals, checkout, thank-you, transparency, tribute), events, community, newsletter, support/FAQ
+and the legal pages.
 
-- Home; About, Board and How We Work
-- Directory, filters and public profiles
-- Registration (three steps, pending-approval result)
-- Donations: goals, checkout, thank-you, transparency, tribute
-- Events: listing, detail, RSVP, past gallery
-- Community: feed, posting, reporting, newsletter
-- Support, FAQ and the three legal pages
+Backend: Postgres schema and migrations, the full `/api/v1` API with Zod validation and one error
+envelope, Better Auth accounts for donation receipts and admin roles, eSewa and Khalti adapters
+with signature/transaction verification and idempotent completion, and the admin dashboard at
+`/admin` for registrations, posts, reports, tickets, donations and the audit log. The content
+editor at `/admin/content` manages events, giving goals, board members, FAQ entries and the
+welcome message; `/admin/newsletter` manages subscribers and sends campaigns in batches.
 
-Not built yet: the mock admin dashboard (Phase 9), the real backend, real payments, email
-receipts and automated newsletters. Payment screens are clearly marked "Demo only". See
-`docs/ROADMAP.md` for the current phase and `docs/CONTEXT.md` for the decisions behind it.
+Security: double-submit CSRF tokens, origin checks on every mutation, bounded rate limiting,
+input size limits, admin idle timeout, audit logging, CSP and security headers, production
+environment validation and a dependency audit. See [`docs/SECURITY.md`](./docs/SECURITY.md).
 
-All data currently comes from `src/lib/api/mock`; setting `NEXT_PUBLIC_API_MODE=http` selects the
-stub adapter until a backend implements the contract.
+Not built yet: CSV import of the written alumni register, photo upload (content uses URLs),
+ConnectIPS/Fonepay adapters, and multi-instance shared rate limiting. See
+[`docs/BACKEND.md`](./docs/BACKEND.md) for details.
+
+## Deployment
+
+Read [`docs/HOWTO.md`](./docs/HOWTO.md) for daily use and [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
+for the release runbook. The short version: create a Postgres database,
+set the environment variables, run `npm run check:env`, `npm run build`, `npm run db:migrate:prod`,
+create the first admin with `npm run db:admin`, then start with `npm start`.
 
 ## Conventions
 
 1. TypeScript strict mode; no `any`.
-2. Components never import mock data directly. All data goes through `src/lib/api`.
+2. Components never import server code or the database. Reads go through Server Components and
+   `src/lib/api`; writes go through the API.
 3. Every form has a Zod schema.
 4. Server Components by default; add `'use client'` only when needed.
 5. Every async view has loading, empty, error and success states.
-6. No hardcoded content in components; no lorem ipsum. Sample data is flagged `placeholder: true`.
+6. No hardcoded content in components; user-facing strings live in `src/content`, operational
+   values in `src/server/config.ts` or environment variables. No lorem ipsum and no demo data.
 7. Colours come from design tokens (`src/styles/tokens.css`), never raw hex values in components.
 8. Accessibility target is WCAG 2.2 AA. Light mode only.
-9. Money is stored as integers in minor units with a currency code. The UI displays NPR only
-   (decision D30).
-10. The public site has no login (D3). The default viewer is anonymous; until member sign-in
-    exists, an `alumni_only` field is treated as hidden (D29).
-11. Commit messages follow the pattern `type: short description` (`feat`, `fix`, `chore`, `docs`).

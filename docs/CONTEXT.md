@@ -3,7 +3,7 @@
 > **Purpose:** One file to paste or upload into any new chat so work continues without loss.
 > **Companion files:** `ROADMAP.md` (phases and checklists) and `DESIGN.md` (visual system and per-page specs).
 > **Scope:** Frontend only. Do not design or write backend code yet. Everything must be backend-ready.
-> **Last updated:** 12 Oct 2026 (Session 6: proposal reconciled, D25–D28 added)
+> **Last updated:** 25 Oct 2026 (Session 11: registration creates a member account, D25 rewritten)
 
 ---
 
@@ -65,13 +65,13 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | # | Topic | Decision |
 |---|-------|----------|
 | D1 | Stack | Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
-| D2 | Backend | None yet. Mock data behind a typed API layer; swapping to a real backend must not require UI rewrites |
-| D3 | Login | No login across the public site. **Login/signup is requested only when a person chooses to donate** (mock auth gate for now) |
+| D2 | Backend | **Implemented.** Next.js Route Handlers, Postgres and Drizzle behind the typed API layer. The mock adapter has been removed; there is one real data path |
+| D3 | Login | No login across the public site. **Login/signup is requested only when a person chooses to donate**, through Better Auth |
 | D4 | Branding | Use logos and images from bpkihs.edu |
 | D5 | Language | English only. Do not build i18n yet (but keep strings out of deep logic so it can be added) |
-| D6 | Payments | **UI only**, national and international options; no real gateway |
+| D6 | Payments | **Real gateways only.** eSewa ePay v2 and Khalti ePayment v2, verified callbacks, no simulator. ConnectIPS and Fonepay are not offered |
 | D7 | Process | Build pages straight away; no separate wireframe approval step |
-| D8 | Content | No digital content exists (the alumni register is on paper). Use clearly labelled placeholders |
+| D8 | Content | No digital content exists (the alumni register is on paper). Production starts empty and the Association enters real content through `/admin/content`; there is no demo dataset |
 | D9 | Responsiveness | Mobile and desktop, fully responsive |
 | D10 | Files | Separate files: `CONTEXT.md`, `ROADMAP.md`, `DESIGN.md` |
 | D11 | Look | **Hybrid:** institutional trust (formal, credible) with a modern layout (clean, airy, card-based) |
@@ -88,9 +88,9 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D22 | Quality gate | Pre-commit: lint-staged + typecheck (Husky). Before a milestone: `npm run ci` and `npm run test:e2e`. Unit tests are `*.test.ts(x)` under `src/`; end-to-end tests are `*.spec.ts` under `e2e/` |
 | D23 | Forms | Every field uses `FormField` (label above, hint, inline error with icon, `aria-describedby`/`aria-invalid` linked). Required fields show `*` plus `aria-required`. Errors are never shown by colour alone |
 | D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
-| D25 | Registration (proposal §2.2) | Public form, **no account** (A3 stands). The proposal's "create account" is a backend concern; the mock `useAuth()` is designed so registrants and donors can share one account later |
+| D25 | Registration (proposal §2.2) | Public form that also creates the member's account: email + password, confirmed by an emailed one-time code. The profile is stored as `pending` and published after approval in `/admin/alumni`; approval needs a confirmed address |
 | D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter has signup **and** subscribe/unsubscribe management; the automated digest is backend work |
-| D27 | Admin dashboard | Stays in the plan as Phase 9 (approval and moderation queues depend on it). Q6 answered: build it, mock only, after the public pages |
+| D27 | Admin dashboard | Built in Phase 9 against the real admin API: overview, registrations, posts, reports, tickets and the donation ledger |
 | D28 | Proposal additions | `BMIT` programme; board `visionStatement`; stats = alumni, funds raised, active programmes; search by name, specialisation, location/country; Donate button on every profile; tribute recipient (batch, mentor, alumnus); event-linked donation drives; past-event galleries; helpdesk topics (account, profile verification, donation receipt); welcome message as text or video |
 | D29 | Anonymous viewer | The public site has no member sign-in, so every visitor is treated as anonymous. Fields and profiles marked `alumni_only` are hidden in the API layer, not in the UI |
 | D30 | Currency | NPR only in the UI. Money stays an integer in minor units plus a currency code, so a USD toggle can be added later without touching the data |
@@ -98,23 +98,24 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 ### 3.2 Reasonable assumptions (change any of these)
 
 - A1: Light mode only; accessibility target WCAG 2.2 AA.
-- A2: Payment methods shown in UI: eSewa, Khalti, ConnectIPS, Fonepay QR (national); card and PayPal-style option (international). UI only.
-- A3: Alumni registration is a public form with **no account**; it submits to the mock API and is "pending approval".
-- A4: The admin dashboard UI is built last, behind a mock gate, and may be deferred (Q6).
+- A2: Payment methods offered: eSewa and Khalti. ConnectIPS and Fonepay need adapters before they can be shown.
+- A3 (superseded by D25, 25 Oct 2026): Alumni registration used to be a public form with no account. It now creates an account so the member can confirm their email address and check the review; the profile still lands as `pending` and is approved in the admin dashboard.
+- A4: ~~The admin dashboard UI is built last, behind a mock gate~~ Superseded: the dashboard is built against the real API.
 - A5: ~~NPR with a USD toggle~~ Superseded by D30: NPR only for now.
-- A6: Hosting and deployment are out of scope for now.
+- A6: Hosting and deployment are covered by `docs/DEPLOYMENT.md`.
 
 ### 3.3 Current status (update at the end of every step)
 
 | Item | State |
 |---|---|
-| Phase | **8 complete.** Phases 1–8 are built on mock data; Phase 9 (admin) deferred |
+| Phase | **11 complete.** Public site, backend and admin dashboard built; production hardening done. Phase 10 (accessibility/QA) remains |
 | Public site | Home, About/Board/How We Work, Directory and profiles, Register, Donate (goals, checkout, thank-you, transparency, tribute), Events (listing, detail, RSVP, gallery), Community (feed, newsletter), Support and FAQ, Legal ×3 |
-| Last change (22 Oct 2026) | Anonymous-viewer privacy fix (`alumni_only` hidden, D29); `/register`; `/donate/*`; `/events*`; `/community*`; `/support*`; `/legal/*`; README, ROADMAP and this file synced |
-| Next | **Phase 9** (mock admin dashboard) or **Phase 10** (accessibility audit, Lighthouse, cross-browser, copy review) |
-| Quality gate | `npm run format:check`, `typecheck`, `lint`, `npm test` (60 files, 393 tests), `npm run test:e2e` (102 passed, 10 desktop-only skipped) and `npm run build` all pass. Every route checked over HTTP: 21 pages return 200 with an `h1`; unknown paths return 404 |
-| Waiting on owner | Q2/Q3 (logo, brand colours, name), Q4, Q7–Q10. Phase 9 review of the public pages |
-| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied; all seed data flagged `placeholder: true` |
+| Backend | Postgres schema and migrations, `/api/v1`, Better Auth, eSewa/Khalti with verified callbacks, admin API, health check and production env validation |
+| Last change (23 Oct 2026) | Removed the mock adapter, simulator, demo checkout methods, demonstration copy and placeholder contacts. Production starts empty with real content. Added startup env checks, `/api/health`, a runtime migration runner, admin bootstrap and `DEPLOYMENT.md` |
+| Next | **Production launch** (live merchant accounts, verified Resend domain, real content, legal review) and Phase 10 (accessibility audit, Lighthouse, cross-browser) |
+| Quality gate | `typecheck`, `lint`, `npm test` (54 files, 299 tests), `npm run test:e2e` (106 passed, 10 skipped) and `npm run build` pass. Production smoke: `/api/health` 200, admin API 401 without a session, no admin content in the redirect HTML |
+| Waiting on owner | Q2/Q3 (logo, brand colours, name), Q4, Q7–Q10, live merchant credentials, sending domain and real content |
+| Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
 
 **Versions in use (22 Oct 2026):** Node 22.x, Next.js 16.4.0 (Turbopack, Cache Components, Partial Prefetching), React 19.3.0, Tailwind CSS v4, TypeScript 5, shadcn/ui 4.22 (Base UI, Nova), Zod, Vitest 5.0.3, Playwright (Chromium), Husky 9, lint-staged 17, lucide-react.
 
@@ -168,7 +169,6 @@ Stat counters, partner logo strip, project and story cards, mixed Nepali and Eng
 | Funds-use chart and transparency | DYF | `/donate/transparency` |
 | Board and team pages | DYF | `/about/board` |
 | Stat counters | Aarogya | Homepage stats band |
-| Notice board pattern | BPKIHS | Alumni notices on home and `/community` |
 | Programme taxonomy | BPKIHS | Directory filters, registration form |
 | Footer legal trio | BPKIHS | Footer |
 
@@ -179,16 +179,14 @@ Stat counters, partner logo strip, project and story cards, mixed Nepali and Eng
 ### 5.1 Layering
 
 ```
-UI components  →  feature hooks / server actions  →  API client interface  →  adapter
-                                                       (typed contract)       ├─ mockAdapter  (now)
-                                                                              └─ httpAdapter  (later)
+UI components  →  typed API client  →  /api/v1 Route Handlers  →  services  →  Postgres
+                        (browser)              (or direct service calls from Server Components)
 ```
 
-- Components **never** import mock JSON directly.
-- All data access goes through `lib/api/` functions that return typed promises.
-- A single env flag selects the adapter: `NEXT_PUBLIC_API_MODE=mock | http`.
+- Components never import the database or demo data.
+- All browser data access goes through `lib/api/client.ts` and the typed contract.
+- Server Components call the same services through `src/server/api` without a network hop.
 - Every list endpoint supports `page`, `pageSize`, `q`, `sort` and returns `{ items, total, page, pageSize }`.
-- Mock adapter simulates latency (300–800 ms) and occasional errors so loading and error states get built properly.
 
 ### 5.2 Rules
 
@@ -198,7 +196,7 @@ UI components  →  feature hooks / server actions  →  API client interface  �
 4. Feature-based folders; shared UI in `components/ui`.
 5. No hardcoded content in components. Copy lives in `content/` (typed objects) or comes from the API layer.
 6. Every async view has **loading, empty, error and success** states.
-7. Auth is abstracted behind `useAuth()`; the mock implementation stores a fake session in memory/cookie. Real auth swaps in later.
+7. Auth is abstracted behind `useAuth()` on the client and Better Auth cookie sessions on the server; the session survives a reload.
 8. Money values are stored as integers in minor units (paisa/cents) with a currency code.
 9. All images use `next/image` with alt text; remote hosts declared in config.
 10. Do not use browser storage for anything critical; keep it to non-sensitive UI preferences.
@@ -218,7 +216,7 @@ src/
       events/{page.tsx, [slug]/page.tsx}
       support/{page.tsx, faq/, helpdesk/}
       legal/{privacy/, terms/, accessibility/}
-    (admin)/admin/...               # Phase 9, mock gate
+    admin/...                       # dashboard, guarded by session + role
     layout.tsx, not-found.tsx, error.tsx, loading.tsx
   components/
     ui/                             # shadcn primitives
@@ -228,7 +226,7 @@ src/
     directory/ donations/ events/ community/ governance/ support/ auth/
       components/ hooks/ schemas.ts
   lib/
-    api/{client.ts, mock/, http/, types.ts}
+    api/{client.ts, contract.ts, http/, privacy.ts, types.ts}
     utils/ constants/ format/
   content/                          # static typed copy (about text, FAQ, legal)
   styles/tokens.css
@@ -253,20 +251,20 @@ src/
 | `/donate/thank-you` | Confirmation and receipt | after donation |
 | `/donate/transparency` | Funds dashboard | none |
 | `/donate/tribute` | Tribute / in-memory giving | login gate to submit |
-| `/community` | Feed, notices | none |
-| `/community/newsletter` | Newsletter signup and archive | none |
+| `/community` | Feed, share form and report action | none |
+| `/community/newsletter` | Newsletter signup and preferences | none |
 | `/events` | Events listing | none |
 | `/events/[slug]` | Event detail and RSVP | none (RSVP form is public) |
 | `/support` | Contact and helpdesk | none |
 | `/support/faq` | FAQ | none |
 | `/legal/privacy`, `/legal/terms`, `/legal/accessibility` | Trust pages | none |
-| `/admin/*` | Admin dashboard UI (mock gate) | mock admin |
+| `/admin/*` | Admin dashboard | `admin` role |
 
 ---
 
-## 7. Data model and mock API contract
+## 7. Data model and API contract
 
-Shapes the backend must later match. All IDs are strings; dates are ISO 8601.
+Shapes returned by the real API. All IDs are strings; dates are ISO 8601.
 
 ### 7.1 Core types
 
@@ -350,7 +348,7 @@ type HelpdeskTopic = 'account' | 'profile_verification' | 'donation_receipt' | '
 interface WelcomeMessage { author: string; role: string; text: string; videoUrl?: string; photoUrl?: string }
 ```
 
-### 7.2 Mock API functions (`lib/api`)
+### 7.2 API functions (`lib/api/contract.ts`)
 
 | Function | Returns |
 |---|---|
@@ -359,7 +357,7 @@ interface WelcomeMessage { author: string; role: string; text: string; videoUrl?
 | `getAlumnus(id)` | `Alumnus` or 404 |
 | `submitRegistration(input)` | `{ id, status: 'pending' }` |
 | `listGoals()` / `getGoal(id)` | `DonationGoal` |
-| `createDonation(input)` | `{ donationId, status, receiptUrl? }` (mock) |
+| `createDonation(input)` | `{ donationId, status, redirect? }` (real gateway) |
 | `getFundsBreakdown()` | `FundsBreakdownItem[]` |
 | `listBoard({ current })` | `BoardMember[]` |
 | `listEvents(params)` / `getEvent(slug)` | `AlumniEvent` |
@@ -371,15 +369,14 @@ interface WelcomeMessage { author: string; role: string; text: string; videoUrl?
 | `subscribeNewsletter(email, interests)` / `updateNewsletterPrefs(email, optIn)` | `{ ok: true }` |
 | `listFaq()` | `FaqItem[]` |
 | `submitSupportTicket(input)` | `{ ticketId }` |
-| `mockLogin(email)` / `mockSignup(input)` | session (donation gate only) |
+| `login(input)` / `signup(input)` / `logout()` | Better Auth session (donation gate and admin only) |
 
-### 7.3 Placeholder rule
+### 7.3 Data model
 
-- All seeded data carries `placeholder: true`.
-- In development, placeholder content shows a small "Sample" tag; a `SHOW_PLACEHOLDER_BADGES` constant controls it.
-- Names and organisations are **fictional**. No real person's data is ever used as a placeholder.
-- Real BPKIHS logo and images are used only where taken from bpkihs.edu (D4).
+- The application starts with an empty database in production. The Association enters real content
+  through the admin UI, SQL or Drizzle Studio.
 - The written alumni register will later arrive via **CSV import** (`source: 'csv_import'`); the type already supports it.
+- Real BPKIHS logo and images are used only where taken from bpkihs.edu (D4).
 
 ---
 
@@ -424,6 +421,11 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 | 5 | 12 Oct 2026 | Phase 1 closed (docs updated). **Step 9**: type scale and tokens, `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`, two tests; committed. **Step 10**: shadcn form controls, `FormField` with test; fixed a failing test (Testing Library `cleanup` added to `vitest.setup.ts`) and a pasted typo (`gap-1.5text-sm`). `npm run ci` passes (7 tests). Chat limit reached at this point. | D23–D24 added. Step 10 commit to be verified. Step 11 next |
 | 6 | 12 Oct 2026 | Verified Step 10 commit (`92e70c1`); committed the Testing Library cleanup fix (`540a0b7`, `npm run ci` green, 7 tests). Read the proposal `.docx` and reconciled it with these docs. Owner chose "accept all" for the four conflicts and the smaller additions | D25–D28 added. Q1 and Q6 answered. Types in §7 extended. `ROADMAP.md` and `DESIGN.md` updated. Step 11 next |
 | 7 | 22 Oct 2026 | Built the remaining public pages: Phases 2–5 shell, directory and profiles, then `/register`, the Donate flow (goals, checkout with mock sign-in gate and payment panels, thank-you, transparency, tribute), Events (listing, detail, RSVP, gallery), Community (feed, share, report, newsletter), Support/FAQ and the three legal pages. Fixed anonymous-viewer privacy: `alumni_only` records are hidden in the API layer while there is no sign-in, and the profile e2e now uses a public record | D29–D30 added. `README.md`, `ROADMAP.md` and this file synced. `format:check`, `typecheck`, `lint`, 393 unit tests, 102 e2e tests and `build` pass; all 21 public routes return 200 and unknown paths 404. Phase 9 (admin) and Phase 10 (audit) next |
+| 8 | 22 Oct 2026 | Trimmed mock-only and non-proposal extras: removed the home partner strip, community notice board, newsletter archive placeholder, tribute sample wall, the disabled annual-report control and the dev-only `/styleguide`; simplified the affected page copy | The typed mock data layer stays because there is no backend (D2). Tests and e2e updated; 59 files / 391 unit tests, 92 e2e tests, 24-page build pass; `/styleguide` now 404 |
+| 9 | 23 Oct 2026 | Built the admin dashboard against the real API (overview, registrations, posts, reports, tickets, donations). Then removed every demo path: mock adapter and `NEXT_PUBLIC_API_MODE`, payment simulator, card/PayPal/ConnectIPS/Fonepay checkout stubs, demonstration copy, sample badges and placeholder contacts; added `db:admin`, `db:migrate:prod`, startup env validation, `/api/health`, `check:env` and `docs/DEPLOYMENT.md` | One real data path (D2/D6 updated). Production smoke: health 200, public 200, admin API 401, admin page redirects without exposing content; migration and admin bootstrap tested on a throwaway database |
+| 10 | 24 Oct 2026 | Completed the backend: content editor and APIs for events, goals, board, FAQ and welcome; newsletter subscribers and batched campaigns with `newsletter_campaigns`; admin audit screen. Hardened security to an ASVS Level 2 target: CSRF double-submit tokens, origin checks, bounded rate limiting with `Retry-After`, input size limits, session policy and admin idle timeout, audit logging, CSP/security headers, error redaction and request ids, dependency audit. Centralised operational values in `src/server/config.ts`; removed the demo data directory and unused Supabase dependency; added `docs/HOWTO.md` and `docs/SECURITY.md`. Fixed the missing `base_rsvp_count` and ticket `subject` columns with a catch-up migration | One guard for every admin mutation; content and campaigns verified in a production build against Postgres (create/edit event, audit rows). 53 test files / 295 unit tests, typecheck, lint and build pass; `npm audit --omit=dev` clean after upgrading Next to 16.4.3. Residual: no admin MFA, no breached-password lookup, CSP allows inline scripts because pages are prerendered, limiter is per process |
+
+| 11 | 25 Oct 2026 | Registration now creates the member's account as well as the profile: password (12 characters minimum), a six-digit code emailed to the address, `/sign-in` and `/account`, and a resend button with a countdown. Better Auth's email-OTP plugin stores codes hashed, expires them in 15 minutes, allows five guesses and rate-limits sends per address. Approval refuses a self-registration whose address is unconfirmed, and an imported register row is claimed rather than duplicated | D25 rewritten, A3 superseded. `BACKEND.md`, `SECURITY.md`, `HOWTO.md`, `DESIGN.md` and the privacy copy updated. Verified against Postgres: register → code printed by the console transport → verify → `/account`; typecheck, lint, unit tests and build pass |
 
 *Append a new row after every working session.*
 
@@ -491,6 +493,6 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 ## 13. Glossary
 
-- **Backend-ready:** UI talks only to a typed API layer, so replacing the mock adapter with a real one does not change components.
-- **Placeholder:** Fictional sample data, flagged and labelled.
+- **Backend-ready:** the UI talks only to a typed API layer, so the transport can change without touching components.
+- **Audit log:** `admin_audit_log`, the append-only record of administrator actions shown at `/admin/audit`.
 - **Gate:** A point where login is requested (donation only).

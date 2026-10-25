@@ -16,7 +16,7 @@
 4. **Transparent by default.** Every donation surface shows where money goes.
 5. **Mobile-first, desktop-rich.** Design at 360 px, then enhance.
 6. **Accessible always.** WCAG 2.2 AA is a requirement, not a polish step.
-7. **Honest placeholders.** Sample content is marked; never lorem ipsum.
+7. **Honest content.** No lorem ipsum and no sample records in production; empty states are designed.
 
 **Tone of voice:** respectful, warm, plain English. "Welcome back", not "Greetings esteemed alumni." Short sentences. No jargon.
 
@@ -108,7 +108,7 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 
 **Footer**
 - Columns: About the Association · Get involved · Support · Legal.
-- Newsletter signup row, social icons, BPKIHS link, contact details (placeholder).
+- Newsletter signup row, social icons, BPKIHS link, contact details from `CONTACT_*` variables.
 - Bottom line: © 2026 BPKIHS Alumni Association · Privacy · Terms · Accessibility.
 
 ### 5.2 Component list
@@ -198,10 +198,9 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 7. **Board preview:** president + 3 members, link to full board.
 8. **Welcome message from the Association** (modelled on BPKIHS's Vice-Chancellor block): photo, name, role, short message as text or an embedded video (`getWelcomeMessage`; placeholder).
 9. **Newsletter signup** strip.
-10. **Partner strip:** BPKIHS and partner logos (placeholder).
 
 **States:** skeletons for stats, goals, events, posts; each block hides gracefully if empty.
-**Checklist:** [ ] hero [ ] stats [ ] three doors [ ] goals [ ] events [ ] posts [ ] board [ ] message [ ] newsletter [ ] partners
+**Checklist:** [ ] hero [ ] stats [ ] three doors [ ] goals [ ] events [ ] posts [ ] board [ ] message [ ] newsletter
 
 ---
 
@@ -231,15 +230,17 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 
 ### 8.4 Register `/register`
 
-**Goal:** Public, no account (A3). Submit and see "pending approval."
+**Goal:** Submit a profile and create the account that owns it (D25). The profile lands as `pending`.
 
 **Stepper (3 steps)**
 1. **About you:** full name, programme, batch year, country, city.
 2. **Career:** current position, organisation, further studies, short note, optional photo.
-3. **Privacy and consent:** visibility switches for email, phone, profile; email (required, for verification), phone (optional); consent checkbox; terms link.
+3. **Account and privacy:** email (required, for verification), phone (optional), password and confirmation (12 characters minimum), visibility switches for email, phone and profile, consent checkbox, terms link.
 
 **Validation:** Zod schema; inline errors; progress saved per step in memory only.
-**Success:** confirmation screen "Thank you. Your profile is pending approval" with an estimated review time (placeholder) and link to Directory.
+**Verify step:** after submitting, the form is replaced by a code screen naming the address, with a matching-code input, a resend button that counts down, and links back to sign in.
+**Success:** "Thank you. Your email is confirmed and your profile is pending approval" with the reference, a link to `/account` and a link to the Directory.
+**Sign-in:** `/sign-in` (email + password, no indexing) and `/account` (review state, confirm a late address, sign out).
 **Checklist:** [ ] 3 steps [ ] validation [ ] photo upload UI (no real upload) [ ] consent [ ] success [ ] error [ ] keyboard flow
 
 ---
@@ -262,39 +263,38 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 
 **Flow (stepper, 3 steps)**
 1. **Amount:** goal, amount, currency, anonymous toggle, optional tribute details.
-2. **Login gate (D3):** dialog or step: *Sign in* or *Create account* (email + name; mock). Explains "We ask you to sign in only to give, so we can send your receipt." Returning mock user skips this.
+2. **Login gate (D3):** dialog or step: *Sign in* or *Create account* through Better Auth. Explains "We ask you to sign in only to give, so we can send your receipt." A restored session skips this.
 3. **Payment method:** two groups.
-   - **Nepal:** eSewa, Khalti, ConnectIPS, Fonepay QR
-   - **International:** Card, PayPal-style
-   Selecting a method shows the matching UI panel (QR block, card form fields, wallet redirect notice). **No real gateway**; the submit button calls `createDonation` on the mock adapter.
+   - **Nepal:** eSewa, Khalti
+   Selecting a method shows a redirect notice. The submit button creates a pending donation and sends the browser to the gateway; card and wallet details are entered on the provider's page, never here.
 
 **Summary panel:** sticky on desktop, collapsible on mobile; shows goal, amount, fees note (placeholder), total.
 **States:** processing, success → `/donate/thank-you`, failure with retry and "try another method."
-**Rules:** hide the mobile bottom bar here; never store card numbers; card form is a visual stub with a visible "Demo only" notice in development.
+**Rules:** hide the mobile bottom bar here; never collect card numbers on this site. The gateway handles them.
 **Checklist:** [ ] amount step [ ] login gate [ ] method groups [ ] each method panel [ ] summary [ ] processing/failure [ ] focus and errors
 
 ### 8.7 Thank-you `/donate/thank-you`
 
-Confirmation, summary, receipt placeholder ("Receipt sent to your email"), share buttons (no tracking), next steps (join an event, register, newsletter).
+Confirmation with pending and failed states, summary, "receipt sent to your email", share buttons (no tracking), next steps (join an event, register, newsletter).
 **Checklist:** [ ] summary [ ] receipt note [ ] next steps
 
 ### 8.8 Transparency `/donate/transparency`
 
-Totals raised and spent; **FundsChart** (donut) with a data table beside it; breakdown by category (placeholder categories: scholarships, equipment, events, operations); a list of recent donations with anonymous option respected; "Download annual report" placeholder link.
-**Checklist:** [ ] totals [ ] chart + table [ ] recent donations [ ] report link
+Totals raised and spent; **FundsChart** (donut) with a data table beside it; breakdown by category (placeholder categories: scholarships, equipment, events, operations).
+**Checklist:** [ ] totals [ ] chart + table
 
 ### 8.9 Tribute `/donate/tribute`
 
-Explains in-honour and in-memory giving; form (type, recipient: batch, mentor or alumnus, name, message, optional notification email, amount) that routes into checkout; sample tribute wall (placeholder entries).
-**Checklist:** [ ] explainer [ ] form [ ] wall
+Explains in-honour and in-memory giving; form (type, recipient: batch, mentor or alumnus, name, message, optional notification email, amount) that routes into checkout.
+**Checklist:** [ ] explainer [ ] form
 
 ---
 
 ### 8.10 Community `/community` and Newsletter `/community/newsletter`
 
-**Community:** filter chips (All, News, Stories, Achievements, Event, Announcement, In Memoriam, Notices); card feed with image, title, excerpt, author, date; "Load more." A **Share an update** form (no login; submits as pending, with a "reviewed before it appears" notice) and a **Report** action on each post. Notices styled like the BPKIHS notice board (date + title + download/read link).
-**Newsletter:** signup form (email, interests checkboxes), subscribe/unsubscribe preferences, archive of past issues (placeholder), privacy note.
-**Checklist:** [ ] filter chips [ ] feed cards [ ] share-an-update form [ ] report action [ ] notice list [ ] signup [ ] preferences [ ] archive [ ] post detail view (modal or page)
+**Community:** filter chips (All, News, Stories, Achievements, Event, Announcement, In Memoriam, Notices); card feed with image, title, excerpt, author, date; "Load more." A **Share an update** form (no login; submits as pending, with a "reviewed before it appears" notice) and a **Report** action on each post.
+**Newsletter:** signup form (email, interests checkboxes) and subscribe/unsubscribe preferences, privacy note.
+**Checklist:** [ ] filter chips [ ] feed cards [ ] share-an-update form [ ] report action [ ] signup [ ] preferences [ ] post detail view (modal or page)
 
 ---
 
@@ -322,11 +322,11 @@ Readable long-form template with a table of contents, last-updated date, and pri
 
 ---
 
-### 8.14 Admin dashboard UI `/admin` (mock gate; Phase 9)
+### 8.14 Admin dashboard UI `/admin` (built)
 
-Screens: Overview (stats), Alumni approvals queue (approve/reject with reason), Post moderation queue and reported posts, Donations list, Events manager (create/edit form), Posts manager, Support tickets, CSV import screen (upload UI, preview table, validation errors) for the written register.
+Screens: Overview (stats), Alumni approvals queue (approve/reject with reason), Post moderation queue and reported posts, Donations list, Posts manager, Support tickets. Events manager and CSV import remain to build.
 Desktop-first with a responsive sidebar. Same design tokens as public site.
-**Checklist:** [ ] overview [ ] approvals [ ] donations [ ] events [ ] posts [ ] tickets [ ] CSV import UI
+**Checklist:** [x] overview [x] approvals [x] donations [ ] events [x] posts [x] tickets [ ] CSV import UI
 
 ---
 
@@ -343,7 +343,7 @@ Desktop-first with a responsive sidebar. Same design tokens as public site.
 
 - Headlines: sentence case. Buttons: verbs ("Give now", "Join the network").
 - Dates: `12 Oct 2026`. Money: `NPR 5,000` with an optional `≈ USD 37` line.
-- Numbers shown in stats are mock until real; they carry the placeholder flag.
+- Numbers in stats and progress bars are derived from real rows (alumni, goals, donations).
 - No stock-photo people presented as real alumni. If photos are needed, use initials avatars.
 
 ## 10. Design handoff checklist (before building each page)
@@ -435,10 +435,6 @@ Applies from Phase 1 Step 3. The goal is that **changing the brand means editing
 | neutral-600 | neutral-100 | 4.5:1 |
 | primary-700 | primary-100 | 4.5:1 (links on tinted sections) |
 | success / warning / danger-600 | white | 4.5:1 (status text) |
-
-### 11.6 Styleguide page
-
-Phase 2 produces a dev-only `/styleguide` that shows every token, type style and component state. It is the acceptance reference for this file.
 
 ---
 
