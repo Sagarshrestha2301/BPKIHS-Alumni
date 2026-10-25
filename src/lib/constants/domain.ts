@@ -86,6 +86,20 @@ export const MAX_DONATION_MINOR = 1_000_000_000;
 /** Loose lower bound for batch years; the upper bound is checked against today's year. */
 export const MIN_BATCH_YEAR = 1990;
 
+/** Most people one RSVP may bring, including the person registering. */
+export const MAX_EVENT_PARTY_SIZE = 6;
+
+/** Minimum accepted account password. There is no MFA, so the floor is above the old 8. */
+export const PASSWORD_MIN_LENGTH = 12;
+
+/** Default digits in the emailed registration code and the browser's resend cooldown. */
+export const REGISTRATION_CODE_LENGTH = 6;
+export const REGISTRATION_CODE_RESEND_SECONDS = 60;
+
+/** Newsletter campaign limits, shared by the composer and the API schema. */
+export const NEWSLETTER_SUBJECT_MAX_LENGTH = 120;
+export const NEWSLETTER_BODY_MAX_LENGTH = 20_000;
+
 /** Same pattern the newsletter form already uses. */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** Digits, spaces and hyphens, with an optional leading +. Deliberately permissive (international). */

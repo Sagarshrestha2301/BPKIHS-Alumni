@@ -10,10 +10,12 @@ import {
   EMAIL_PATTERN,
   HELPDESK_TOPICS,
   MAX_DONATION_MINOR,
+  MAX_EVENT_PARTY_SIZE,
   MEMBER_POST_TYPES,
   MIN_BATCH_YEAR,
   MIN_DONATION_MINOR,
   NEWSLETTER_INTERESTS,
+  PASSWORD_MIN_LENGTH,
   PAYMENT_METHODS,
   PHONE_PATTERN,
   PROGRAMMES,
@@ -56,6 +58,11 @@ const optionalPhone = z
 
 const consentField = (message: string) => z.boolean().refine((value) => value === true, message);
 
+const passwordField = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters.`)
+  .max(128, 'That password is too long.');
+
 /* ---------- alumni registration ---------- */
 
 export const privacySchema = z.object({
@@ -64,26 +71,50 @@ export const privacySchema = z.object({
   profile: z.enum(VISIBILITIES),
 });
 
-export const registrationSchema = z.object({
-  fullName: requiredText('Enter your full name.', 100),
-  email: emailField,
-  phone: optionalPhone,
-  programme: z.enum(PROGRAMMES),
-  batchYear: z
-    .number('Enter your batch year, for example 2012.')
-    .int('Enter your batch year, for example 2012.')
-    .min(MIN_BATCH_YEAR, `Enter a year from ${MIN_BATCH_YEAR} onwards.`)
-    .refine((year) => year <= new Date().getFullYear() + 1, 'That year is too far in the future.'),
-  furtherStudies: optionalText(150),
-  currentPosition: optionalText(120),
-  organisation: optionalText(120),
-  city: optionalText(80),
-  country: requiredText('Enter your country.', 80),
-  note: optionalText(500),
-  privacy: privacySchema,
-  consent: consentField('Please agree to the terms to register.'),
-});
+export const registrationSchema = z
+  .object({
+    fullName: requiredText('Enter your full name.', 100),
+    email: emailField,
+    phone: optionalPhone,
+    programme: z.enum(PROGRAMMES),
+    batchYear: z
+      .number('Enter your batch year, for example 2012.')
+      .int('Enter your batch year, for example 2012.')
+      .min(MIN_BATCH_YEAR, `Enter a year from ${MIN_BATCH_YEAR} onwards.`)
+      .refine(
+        (year) => year <= new Date().getFullYear() + 1,
+        'That year is too far in the future.',
+      ),
+    furtherStudies: optionalText(150),
+    currentPosition: optionalText(120),
+    organisation: optionalText(120),
+    city: optionalText(80),
+    country: requiredText('Enter your country.', 80),
+    note: optionalText(500),
+    privacy: privacySchema,
+    consent: consentField('Please agree to the terms to register.'),
+    /** The account that will own this profile. Signing in later uses this password. */
+    password: passwordField,
+    confirmPassword: z.string().min(1, 'Repeat your password.'),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: 'The two passwords do not match.',
+    path: ['confirmPassword'],
+  });
 export type RegistrationInput = z.infer<typeof registrationSchema>;
+
+/** The code emailed after registering. */
+export const verifyRegistrationSchema = z.object({
+  email: emailField,
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{4,8}$/, 'Enter the code from the email. Digits only.'),
+});
+export type VerifyRegistrationInput = z.infer<typeof verifyRegistrationSchema>;
+
+export const resendRegistrationCodeSchema = z.object({ email: emailField });
+export type ResendRegistrationCodeInput = z.infer<typeof resendRegistrationCodeSchema>;
 
 /* ---------- donations ---------- */
 
@@ -124,7 +155,7 @@ export const rsvpSchema = z.object({
     .number('Enter how many people are coming.')
     .int('Enter a whole number.')
     .min(1, 'At least one person must attend.')
-    .max(6, 'You can register up to 6 people at once.'),
+    .max(MAX_EVENT_PARTY_SIZE, `You can register up to ${MAX_EVENT_PARTY_SIZE} people at once.`),
 });
 export type RsvpInput = z.infer<typeof rsvpSchema>;
 
@@ -184,14 +215,18 @@ export const postReportSchema = z
   });
 export type PostReportInput = z.infer<typeof postReportSchema>;
 
-/* ---------- sign in (donation gate only; mock has no passwords) ---------- */
+/* ---------- sign in ---------- */
 
-export const loginSchema = z.object({ email: emailField });
+export const loginSchema = z.object({
+  email: emailField,
+  password: z.string().min(1, 'Enter your password.').max(128),
+});
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const signupSchema = z.object({
   fullName: requiredText('Enter your full name.', 100),
   email: emailField,
   phone: optionalPhone,
+  password: passwordField,
 });
 export type SignupInput = z.infer<typeof signupSchema>;

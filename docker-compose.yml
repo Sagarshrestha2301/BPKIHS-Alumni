@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bpkihs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bpkihs
+      POSTGRES_PASSWORD: bpkihs_dev
+      POSTGRES_DB: bpkihs
+    ports:
+      - '5433:5432'
+    volumes:
+      - bpkihs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U bpkihs -d bpkihs']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bpkihs_pgdata:
+    name: bpkihs_pgdata

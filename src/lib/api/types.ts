@@ -224,12 +224,20 @@ export interface FeedListParams extends ListParams {
 export interface RegistrationResult {
   id: string;
   status: 'pending';
+  /** Where the verification code was sent, so the form can name the address. */
+  email: string;
 }
 
 export interface DonationResult {
   donationId: string;
   status: 'succeeded' | 'pending' | 'failed';
   receiptUrl?: string;
+  /** Present when a real gateway needs the browser to continue the payment. */
+  redirect?: {
+    url: string;
+    method: 'GET' | 'POST';
+    fields?: Record<string, string>;
+  };
 }
 
 export interface PostSubmissionResult {
@@ -243,10 +251,7 @@ export interface TicketResult {
 
 export interface OkResult {
   ok: true;
-}
-
-/* ---------- Auth (donation gate only) ---------- */
-
+} /* ---------- Auth ---------- */
 export interface Session {
   userId: string;
   name: string;

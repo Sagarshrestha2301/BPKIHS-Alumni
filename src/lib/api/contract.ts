@@ -1,6 +1,6 @@
 /**
- * The API contract: every call the UI can make. Both adapters (mock now, http later)
- * implement this interface, so components never know which one is running.
+ * The API contract: every call the UI can make. The HTTP adapter and the server-side
+ * adapter both implement it, so components never know how the data is fetched.
  * Input types come from the Zod schemas; result types from ./types.
  */
 import type {
@@ -12,8 +12,10 @@ import type {
   NewsletterSubscribeInput,
   PostReportInput,
   RegistrationInput,
+  ResendRegistrationCodeInput,
   RsvpInput,
   SignupInput,
+  VerifyRegistrationInput,
 } from './schemas';
 import type {
   AlumniEvent,
@@ -41,7 +43,8 @@ import type {
 export interface ApiClient {
   /* site */
   getSiteStats(): Promise<SiteStats>;
-  getWelcomeMessage(): Promise<WelcomeMessage>;
+  /** Null when the Association has not published a welcome message yet. */
+  getWelcomeMessage(): Promise<WelcomeMessage | null>;
 
   /* alumni */
   listAlumni(params?: AlumniListParams): Promise<Paginated<Alumnus>>;
@@ -49,6 +52,10 @@ export interface ApiClient {
   /** Countries and batch years that exist among listed alumni, for the filter menus. */
   getAlumniFilterOptions(): Promise<AlumniFilterOptions>;
   submitRegistration(input: RegistrationInput): Promise<RegistrationResult>;
+  /** Confirms the emailed code and signs the new member in. */
+  verifyRegistration(input: VerifyRegistrationInput): Promise<Session>;
+  /** Sends a fresh code. Always resolves, so it cannot be used to probe addresses. */
+  resendRegistrationCode(input: ResendRegistrationCodeInput): Promise<OkResult>;
 
   /* donations */
   listGoals(): Promise<DonationGoal[]>;
@@ -75,9 +82,11 @@ export interface ApiClient {
   listFaq(): Promise<FaqItem[]>;
   submitSupportTicket(input: HelpdeskInput): Promise<TicketResult>;
 
-  /* auth (donation gate only, decision D3) */
+  /* auth */
+  getSession(): Promise<Session | null>;
   login(input: LoginInput): Promise<Session>;
   signup(input: SignupInput): Promise<Session>;
+  logout(): Promise<OkResult>;
 }
 
 /**
@@ -91,6 +100,8 @@ const METHODS: { [K in keyof ApiClient]: true } = {
   getAlumnus: true,
   getAlumniFilterOptions: true,
   submitRegistration: true,
+  verifyRegistration: true,
+  resendRegistrationCode: true,
   listGoals: true,
   getGoal: true,
   createDonation: true,
@@ -106,8 +117,10 @@ const METHODS: { [K in keyof ApiClient]: true } = {
   updateNewsletterPrefs: true,
   listFaq: true,
   submitSupportTicket: true,
+  getSession: true,
   login: true,
   signup: true,
+  logout: true,
 };
 
 export const API_METHOD_NAMES = Object.keys(METHODS) as (keyof ApiClient)[];

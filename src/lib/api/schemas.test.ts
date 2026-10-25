@@ -11,13 +11,17 @@ import {
   newsletterSubscribeSchema,
   postReportSchema,
   registrationSchema,
+  resendRegistrationCodeSchema,
   rsvpSchema,
   signupSchema,
+  verifyRegistrationSchema,
 } from './schemas';
 
 function messages(result: { success: boolean; error?: { issues: { message: string }[] } }) {
   return result.success ? [] : (result.error?.issues.map((issue) => issue.message) ?? []);
 }
+
+const REGISTRATION_PASSWORD = 'correct horse battery';
 
 const validRegistration = {
   fullName: 'Asha Rai',
@@ -27,6 +31,8 @@ const validRegistration = {
   country: 'Nepal',
   privacy: { email: 'alumni_only', phone: 'hidden', profile: 'public' },
   consent: true,
+  password: REGISTRATION_PASSWORD,
+  confirmPassword: REGISTRATION_PASSWORD,
 };
 
 const validDonation = {
@@ -69,6 +75,21 @@ describe('registrationSchema', () => {
   it('requires consent', () => {
     const result = registrationSchema.safeParse({ ...validRegistration, consent: false });
     expect(messages(result)).toContain('Please agree to the terms to register.');
+  });
+
+  it('requires a long enough password and a matching confirmation', () => {
+    const short = registrationSchema.safeParse({
+      ...validRegistration,
+      password: 'short',
+      confirmPassword: 'short',
+    });
+    expect(messages(short)).toContain('Use at least 12 characters.');
+
+    const mismatch = registrationSchema.safeParse({
+      ...validRegistration,
+      confirmPassword: 'something else entirely',
+    });
+    expect(messages(mismatch)).toContain('The two passwords do not match.');
   });
 
   it('checks the batch year range and type', () => {
@@ -247,15 +268,59 @@ describe('postReportSchema', () => {
 });
 
 describe('sign-in schemas', () => {
-  it('validates login by email only', () => {
-    expect(loginSchema.safeParse({ email: 'asha@example.com' }).success).toBe(true);
-    expect(loginSchema.safeParse({ email: '' }).success).toBe(false);
+  it('requires an email and a password to sign in', () => {
+    expect(
+      loginSchema.safeParse({ email: 'asha@example.com', password: 'Passw0rd!' }).success,
+    ).toBe(true);
+    expect(loginSchema.safeParse({ email: '', password: 'Passw0rd!' }).success).toBe(false);
+    expect(loginSchema.safeParse({ email: 'asha@example.com', password: '' }).success).toBe(false);
   });
 
-  it('validates signup', () => {
+  it('validates signup with a twelve-character password and rejects shorter ones', () => {
     expect(
-      signupSchema.safeParse({ fullName: 'Asha Rai', email: 'asha@example.com' }).success,
+      signupSchema.safeParse({
+        fullName: 'Asha Rai',
+        email: 'asha@example.com',
+        password: 'Passw0rd!234',
+      }).success,
     ).toBe(true);
-    expect(signupSchema.safeParse({ fullName: '', email: 'asha@example.com' }).success).toBe(false);
+    expect(
+      signupSchema.safeParse({ fullName: '', email: 'asha@example.com', password: 'Passw0rd!234' })
+        .success,
+    ).toBe(false);
+    expect(
+      signupSchema.safeParse({
+        fullName: 'Asha Rai',
+        email: 'asha@example.com',
+        password: 'Passw0rd!',
+      }).success,
+    ).toBe(false);
+    expect(
+      signupSchema.safeParse({ fullName: 'Asha Rai', email: 'asha@example.com', password: 'short' })
+        .success,
+    ).toBe(false);
+  });
+});
+
+describe('registration code schemas', () => {
+  it('accepts a four to eight digit code and rejects anything else', () => {
+    expect(
+      verifyRegistrationSchema.safeParse({ email: 'asha@example.com', otp: '123456' }).success,
+    ).toBe(true);
+    expect(
+      verifyRegistrationSchema.safeParse({ email: 'asha@example.com', otp: '1234' }).success,
+    ).toBe(true);
+    for (const otp of ['', '123', 'abcdef', '12 34', '123456789']) {
+      expect(verifyRegistrationSchema.safeParse({ email: 'asha@example.com', otp }).success).toBe(
+        false,
+      );
+    }
+  });
+
+  it('asks for a valid address when resending', () => {
+    expect(resendRegistrationCodeSchema.safeParse({ email: 'asha@example.com' }).success).toBe(
+      true,
+    );
+    expect(resendRegistrationCodeSchema.safeParse({ email: 'asha@' }).success).toBe(false);
   });
 });

@@ -1,7 +1,8 @@
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@/lib/constants/pagination';
+
 import type { ListParams, Paginated } from './types';
 
-export const DEFAULT_PAGE_SIZE = 12;
-export const MAX_PAGE_SIZE = 50;
+export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE };
 
 /** Lower-case, accent-free and single-spaced, so "Zoë  Karki" matches "zoe karki". */
 export function normaliseText(value: string): string {

@@ -3,7 +3,9 @@
  * Month names are fixed, so every browser prints "Sep" and never "Sept".
  */
 
-export const NEPAL_TIME_ZONE = 'Asia/Kathmandu';
+import { SITE_TIME_ZONE } from '@/lib/constants/site';
+
+export const NEPAL_TIME_ZONE = SITE_TIME_ZONE;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 

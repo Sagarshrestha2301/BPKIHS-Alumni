@@ -1,63 +1,52 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createApiClient, getApiClient, resetApiClient, resolveApiMode } from './client';
+import { getApiClient, resetApiClient } from './client';
 import { API_METHOD_NAMES } from './contract';
 import { httpAdapter } from './http';
-import { mockAdapter } from './mock';
 
 afterEach(() => {
-  vi.unstubAllEnvs();
   resetApiClient();
 });
 
-describe('resolveApiMode', () => {
-  it('defaults to mock when missing or blank', () => {
-    expect(resolveApiMode(undefined)).toBe('mock');
-    expect(resolveApiMode('')).toBe('mock');
-    expect(resolveApiMode('   ')).toBe('mock');
-  });
-
-  it('accepts mock and http in any case', () => {
-    expect(resolveApiMode('mock')).toBe('mock');
-    expect(resolveApiMode(' HTTP ')).toBe('http');
-  });
-
-  it('throws on a typo instead of silently using sample data', () => {
-    expect(() => resolveApiMode('htpp')).toThrow('Invalid NEXT_PUBLIC_API_MODE "htpp"');
-  });
-});
-
-describe('createApiClient and getApiClient', () => {
-  it('picks the adapter for the mode', () => {
-    expect(createApiClient('mock')).toBe(mockAdapter);
-    expect(createApiClient('http')).toBe(httpAdapter);
-  });
-
-  it('reads NEXT_PUBLIC_API_MODE and caches the result', () => {
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'http');
+describe('getApiClient', () => {
+  it('always returns the real HTTP adapter', () => {
     expect(getApiClient()).toBe(httpAdapter);
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    expect(getApiClient()).toBe(httpAdapter);
+  });
+
+  it('caches the adapter and can be reset', () => {
+    const first = getApiClient();
     resetApiClient();
-    expect(getApiClient()).toBe(mockAdapter);
+    expect(getApiClient()).toBe(first);
   });
 });
 
 describe('adapter shape', () => {
-  it('lists 23 methods', () => {
-    expect(API_METHOD_NAMES).toHaveLength(23);
-    expect(new Set(API_METHOD_NAMES).size).toBe(23);
+  it('lists 27 methods', () => {
+    expect(API_METHOD_NAMES).toHaveLength(27);
+    expect(new Set(API_METHOD_NAMES).size).toBe(27);
   });
 
-  it.each([
-    ['http', httpAdapter],
-    ['mock', mockAdapter],
-  ] as const)('%s adapter has exactly the contract methods', (_name, adapter) => {
-    expect(Object.keys(adapter).sort()).toEqual([...API_METHOD_NAMES].sort());
+  it('has exactly the contract methods', () => {
+    expect(Object.keys(httpAdapter).sort()).toEqual([...API_METHOD_NAMES].sort());
   });
 
-  it.each(API_METHOD_NAMES)('http.%s rejects with not_implemented', async (name) => {
-    const call = httpAdapter[name] as () => Promise<unknown>;
-    await expect(call()).rejects.toMatchObject({ code: 'not_implemented', status: 501 });
+  it('reports a network error when the API cannot be reached', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    await expect(httpAdapter.getSiteStats()).rejects.toMatchObject({ code: 'network' });
+    fetch.mockRestore();
+  });
+
+  it('turns a rejected one-time code into a message a member can act on', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ code: 'OTP_EXPIRED', message: 'OTP expired' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await expect(
+      httpAdapter.verifyRegistration({ email: 'asha@example.com', otp: '123456' }),
+    ).rejects.toMatchObject({ code: 'validation', message: expect.stringContaining('expired') });
+    fetch.mockRestore();
   });
 });
