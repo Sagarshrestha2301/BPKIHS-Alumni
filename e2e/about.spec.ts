@@ -10,14 +10,17 @@ test.describe('/about', () => {
     const crumbs = page.getByRole('navigation', { name: 'breadcrumb' });
     await expect(crumbs.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
     await expect(crumbs.locator('[aria-current="page"]')).toHaveText('About');
-    await expect(page.getByRole('heading', { level: 2, name: 'Our mission' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Our vision' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Why we are here' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'What we hope to build' }),
+    ).toBeVisible();
   });
 
-  test('shows the timeline as a list of four events', async ({ page }) => {
+  test('lists the four things the Association does', async ({ page }) => {
     await page.goto('/about');
-    const story = page.getByRole('region', { name: 'Our story' });
-    await expect(story.getByRole('listitem')).toHaveCount(4);
+    const work = page.getByRole('region', { name: 'What the Association does' });
+    await expect(work.getByRole('heading', { level: 3 })).toHaveCount(4);
+    await expect(work.getByRole('heading', { level: 3, name: 'Connect alumni' })).toBeVisible();
   });
 
   test('links on to the institute, the board and how we work', async ({ page }) => {

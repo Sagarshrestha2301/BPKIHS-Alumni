@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-const paths = ['/', '/this-page-does-not-exist'];
+/**
+ * The layouts most at risk of a sideways scroll: the home page, a directory profile (whose
+ * contact tiles and sidebar stack at 360 px) and the 404 page.
+ */
+const paths = ['/', '/directory/alumnus-fixture-member', '/this-page-does-not-exist'];
 
 for (const path of paths) {
   test(`${path} does not scroll sideways`, async ({ page }) => {

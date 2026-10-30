@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { expect, request as playwrightRequest, test } from '@playwright/test';
 
 import { seedFixtures } from '../helpers/fixtures';
-import { ADMIN, ADMIN_STATE, DONOR, DONOR_STATE } from '../helpers/storage';
+import { ADMIN, ADMIN_STATE, DONOR, DONOR_STATE, MEMBER, MEMBER_STATE } from '../helpers/storage';
 
 /** True when the stored jar still holds a live session for this account. */
 async function storedSessionWorks(baseURL: string, path: string, email: string): Promise<boolean> {
@@ -29,7 +29,7 @@ async function storedSessionWorks(baseURL: string, path: string, email: string):
  * 2. one signed-in session per identity, stored as a Playwright storage state.
  *
  * A stored session is reused while it is still valid, so back-to-back runs do not sign in
- * again — that matters because Better Auth allows five sign-ins per minute per IP and the
+ * again : that matters because Better Auth allows five sign-ins per minute per IP and the
  * suite used to trip it. When a session has to be made, it is one request per account.
  */
 test('creates the fixture accounts and stores their sessions', async ({ baseURL }) => {
@@ -39,6 +39,7 @@ test('creates the fixture accounts and stores their sessions', async ({ baseURL 
   for (const [account, path] of [
     [ADMIN, ADMIN_STATE],
     [DONOR, DONOR_STATE],
+    [MEMBER, MEMBER_STATE],
   ] as const) {
     if (await storedSessionWorks(baseURL as string, path, account.email)) continue;
 

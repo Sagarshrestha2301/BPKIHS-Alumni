@@ -1,5 +1,6 @@
 /**
- * Creates the e2e fixture accounts and the scholarship goal in the development database.
+ * Creates the fixture rows the browser suite needs in the development database: two accounts,
+ * three giving goals, three upcoming events, three published posts and board members.
  *
  *   npm run db:fixtures
  *
@@ -10,9 +11,7 @@ import { seedFixtures } from './fixtures';
 
 seedFixtures()
   .then(() => {
-    console.log(
-      'Fixture accounts (admin@bpkihs.local, donor@example.com) and goal-scholarship are in place.',
-    );
+    console.log('Fixture accounts and content are in place.');
   })
   .catch((error: unknown) => {
     console.error(error);

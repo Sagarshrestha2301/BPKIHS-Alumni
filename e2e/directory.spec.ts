@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { MEMBER_STATE } from './helpers/storage';
+
+/** The signed-in view: members may also see profiles marked `alumni_only`. */
 test.describe('directory', () => {
+  test.use({ storageState: MEMBER_STATE });
+
   test('shows the title, a result count and person cards', async ({ page }) => {
     await page.goto('/directory');
     await expect(page.getByRole('heading', { level: 1, name: 'Alumni directory' })).toBeVisible();
@@ -29,7 +34,8 @@ test.describe('directory', () => {
 
   test('page links change the page', async ({ page }) => {
     await page.goto('/directory');
-    await page.getByRole('link', { name: 'Page 2' }).click();
+    // Exact: with a growing directory there are also pages 20, 21 … whose labels contain this one.
+    await page.getByRole('link', { name: 'Page 2', exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByText(/Showing 13\S\d+ of \d+ alumni/)).toBeVisible();
   });

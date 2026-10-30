@@ -4,7 +4,10 @@ test('home page loads with the site title and hero heading', async ({ page }) =>
   await page.goto('/');
   await expect(page).toHaveTitle(/BPKIHS Alumni Association/);
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Once BPKIHS, always BPKIHS' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Connected by BPKIHS. Wherever life takes us.',
+    }),
   ).toBeVisible();
 });
 
@@ -18,7 +21,9 @@ test('page does not scroll sideways', async ({ page }) => {
 
 test('hero has three calls to action', async ({ page }) => {
   await page.goto('/');
-  const hero = page.getByRole('region', { name: 'Once BPKIHS, always BPKIHS' });
+  const hero = page.getByRole('region', {
+    name: 'Connected by BPKIHS. Wherever life takes us.',
+  });
   await expect(hero.getByRole('link', { name: 'Give now' })).toHaveAttribute('href', '/donate');
   await expect(hero.getByRole('link', { name: 'Find alumni' })).toHaveAttribute(
     'href',
@@ -39,7 +44,7 @@ test('stats band is on the page', async ({ page }) => {
 
 test('three doors section is on the page', async ({ page }) => {
   await page.goto('/');
-  const doors = page.getByRole('region', { name: 'Three ways to take part' });
+  const doors = page.getByRole('region', { name: 'A network that travels with you' });
   await expect(doors.getByRole('heading', { level: 3 })).toHaveCount(3);
   await expect(doors.getByRole('link', { name: 'Browse the directory' })).toHaveAttribute(
     'href',
@@ -67,7 +72,7 @@ test('upcoming events lists three events with RSVP links', async ({ page }) => {
 
 test('community section lists three posts', async ({ page }) => {
   await page.goto('/');
-  const posts = page.getByRole('region', { name: 'From the community' });
+  const posts = page.getByRole('region', { name: 'What classmates are up to' });
   await expect(posts.getByRole('heading', { level: 3 })).toHaveCount(3);
 });
 
@@ -81,9 +86,12 @@ test('board preview shows members and links to the full board', async ({ page })
   );
 });
 
-test('welcome message is on the page', async ({ page }) => {
+test('welcome message from the leadership closes the page', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('region', { name: 'A message from the Association' })).toBeVisible();
+  const welcome = page.getByRole('region', { name: 'A message from the Association' });
+  await expect(welcome).toBeVisible();
+  await expect(welcome.getByText('Dr. Rukmini Basnyat')).toBeVisible();
+  await expect(welcome.getByText('President, BPKIHS Alumni Association')).toBeVisible();
 });
 
 test('home page has Open Graph tags and a canonical link', async ({ page }) => {

@@ -1,10 +1,42 @@
 import { expect, test } from '@playwright/test';
 
+import { MEMBER_STATE } from './helpers/storage';
+
 test('page has one banner, one main and one footer landmark', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
   await expect(page.getByRole('contentinfo')).toHaveCount(1);
+});
+
+test.describe('signed-in header', () => {
+  test.use({ storageState: MEMBER_STATE });
+
+  test('shows the member name instead of Sign in and drops Register', async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto('/');
+
+    if (isMobile) {
+      await page.getByRole('button', { name: 'Open menu' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Menu' });
+      const account = dialog.getByRole('link', { name: 'E2E Member' });
+      await expect(account).toBeVisible();
+      await expect(account).toHaveAttribute('href', '/account');
+      await expect(dialog.getByRole('link', { name: 'Register' })).toHaveCount(0);
+      await expect(dialog.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
+      return;
+    }
+
+    const header = page.getByRole('banner');
+    const account = header.getByRole('link', { name: 'E2E Member' });
+    await expect(account).toBeVisible();
+    await expect(account).toHaveAttribute('href', '/account');
+    await expect(header.getByRole('link', { name: 'Sign in', exact: true })).toHaveCount(0);
+    await expect(header.getByRole('link', { name: 'Register', exact: true })).toHaveCount(0);
+    await expect(header.getByRole('link', { name: 'Donate', exact: true }).last()).toBeVisible();
+  });
 });
 
 test.describe('desktop header (1440px)', () => {
@@ -17,7 +49,10 @@ test.describe('desktop header (1440px)', () => {
     const header = page.getByRole('banner');
     const mainNav = page.getByRole('navigation', { name: 'Main', exact: true });
     await expect(mainNav).toBeVisible();
-    await expect(mainNav.getByRole('link').first()).toBeVisible();
+    await expect(mainNav.getByRole('link', { name: 'Directory', exact: true })).toHaveAttribute(
+      'href',
+      '/directory',
+    );
     await expect(header.getByRole('link', { name: 'Donate', exact: true }).last()).toBeVisible();
     await expect(header.getByRole('link', { name: 'Register', exact: true }).last()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeHidden();

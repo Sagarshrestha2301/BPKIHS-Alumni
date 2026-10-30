@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { MEMBER_STATE } from './helpers/storage';
+
+// The signed-in view; public profiles and the signed-out rules live in `roles.spec.ts`.
 test.describe('directory profile', () => {
+  test.use({ storageState: MEMBER_STATE });
+
   test('a person card opens the profile and the back link returns', async ({ page }) => {
     await page.goto('/directory');
     const firstCard = page.getByRole('list', { name: 'Alumni results' }).getByRole('link').first();
@@ -13,7 +18,7 @@ test.describe('directory profile', () => {
   });
 
   test('a known profile shows its details', async ({ page }) => {
-    // alumnus-003 has a public profile: alumnus-001 is alumni-only and hidden while there is no sign-in.
+    // alumnus-003 has a public profile: alumni-only records stay hidden from a normal account.
     await page.goto('/directory/alumnus-003');
     await expect(page.getByRole('heading', { level: 1, name: 'Chandra Gurung' })).toBeVisible();
     await expect(page.getByRole('main').getByText('MBBS, batch 2015').first()).toBeVisible();

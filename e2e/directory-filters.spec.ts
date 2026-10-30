@@ -1,8 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { MEMBER_STATE } from './helpers/storage';
+
 const DESKTOP_MIN_WIDTH = 1024;
 
+// The directory is members-only, so these run as an approved alumnus.
 test.describe('directory filters', () => {
+  test.use({ storageState: MEMBER_STATE });
+
   test('desktop: apply a filter from the sidebar, see its chip, remove it', async ({ page }) => {
     test.skip((page.viewportSize()?.width ?? 0) < DESKTOP_MIN_WIDTH, 'sidebar is desktop only');
     await page.goto('/directory');
