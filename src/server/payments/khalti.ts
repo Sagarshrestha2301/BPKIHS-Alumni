@@ -2,7 +2,7 @@ import { ApiError } from '@/lib/api/errors';
 import { appUrl } from '@/server/http/app-url';
 
 import { config } from '../config';
-import { paymentMode } from './mode';
+import { isLiveMode, paymentMode } from './mode';
 import type { PaymentGateway, PaymentRedirect, PaymentRequest, PaymentVerification } from './types';
 
 /**
@@ -32,9 +32,12 @@ async function call<T>(path: string, body: Record<string, unknown>): Promise<T> 
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(config.payments.timeoutMs),
   });
-  const detail = (await response.json().catch(() => null)) as T | null;
+  const detail = (await response.json().catch(() => null)) as (T & { detail?: unknown }) | null;
   if (!response.ok) {
-    throw new ApiError('server', 'Khalti rejected the payment request. Check the credentials.');
+    // Khalti's `detail` says why : "Invalid token.", "Amount must be less than 200." : which is
+    // the difference between a one-minute fix and a guessed credential. It never holds a key.
+    const reason = typeof detail?.detail === 'string' ? `: ${detail.detail}` : '';
+    throw new ApiError('server', `Khalti rejected the payment request${reason}`);
   }
   if (!detail) throw new ApiError('server', 'Khalti returned an empty response.');
   return detail;
@@ -43,8 +46,15 @@ async function call<T>(path: string, body: Record<string, unknown>): Promise<T> 
 export const khaltiGateway: PaymentGateway = {
   id: 'khalti',
 
+  missingEnvironment() {
+    const missing: string[] = [];
+    if (!process.env.KHALTI_SECRET_KEY?.trim()) missing.push('KHALTI_SECRET_KEY');
+    if (isLiveMode() && !process.env.KHALTI_BASE_URL?.trim()) missing.push('KHALTI_BASE_URL');
+    return missing;
+  },
+
   isConfigured() {
-    return Boolean(process.env.KHALTI_SECRET_KEY);
+    return this.missingEnvironment().length === 0;
   },
 
   async start(request: PaymentRequest): Promise<PaymentRedirect> {
@@ -71,8 +81,12 @@ export const khaltiGateway: PaymentGateway = {
     if (!this.isConfigured()) {
       throw new ApiError('unavailable', 'Khalti is not configured.');
     }
-    const pidx = query.get('pidx');
-    if (!pidx) throw new ApiError('validation', 'Khalti did not return a payment id.');
+    const pidx = query.get('pidx')?.trim();
+    // The callback is public, and verifying it means a server-to-server call to Khalti. Only a
+    // plausible Khalti id is worth that request; anything else is refused before we ask them.
+    if (!pidx || !/^[A-Za-z0-9_-]{8,64}$/.test(pidx)) {
+      throw new ApiError('validation', 'Khalti did not return a valid payment id.');
+    }
 
     const result = await call<{
       status?: string;

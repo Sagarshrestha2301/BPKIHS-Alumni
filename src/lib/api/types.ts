@@ -53,6 +53,8 @@ export interface Alumnus {
   country: string;
   note?: string;
   photoUrl?: string;
+  /** Professional areas the member chose to show, at most eight. */
+  expertise?: string[];
   /** Present only when the privacy setting allows the viewer to see it. */
   email?: string;
   /** Present only when the privacy setting allows the viewer to see it. */
@@ -63,6 +65,28 @@ export interface Alumnus {
   source: AlumniSource;
   placeholder?: boolean;
   createdAt: string;
+}
+
+/**
+ * The signed-in member's own record: the public profile plus the review note only they and the
+ * Association may read. Public directory endpoints keep returning `Alumnus`.
+ */
+export interface OwnAlumnus extends Alumnus {
+  rejectionReason?: string;
+  /** Whether the member has agreed to their uploaded photo being published. */
+  photoConsent: boolean;
+}
+
+/** What the member chose to upload, kept as a browser File until the request is made. */
+export interface ProfilePhotoUpload {
+  file: File;
+  consent: boolean;
+}
+
+/** The state of the member's photo after an upload or a removal. */
+export interface ProfilePhotoResult {
+  photoUrl?: string;
+  photoConsent: boolean;
 }
 
 /* ---------- Donations ---------- */
@@ -83,6 +107,18 @@ export interface FundsBreakdownItem {
   category: string;
   sharePercent: number;
   amountMinor: number;
+}
+
+/**
+ * One confirmed gift on the public transparency page.
+ *
+ * This shape is deliberately small: no donor id, no email and no amount. `name` is omitted at
+ * the source when the donor gave anonymously, so the address never leaves the server.
+ */
+export interface PublicDonor {
+  name?: string;
+  goalTitle?: string;
+  givenAt: string;
 }
 
 /* ---------- Governance ---------- */
@@ -251,7 +287,22 @@ export interface TicketResult {
 
 export interface OkResult {
   ok: true;
-} /* ---------- Auth ---------- */
+}
+
+/**
+ * The answer to a newsletter subscribe. `confirmationEmailSent` is false only when a
+ * confirmation email was needed and the provider refused it, so the form can say so instead of
+ * pointing the visitor at an inbox nothing will arrive in.
+ *
+ * An address that is already confirmed needs no email and answers true: the flag must not
+ * become a way to test whether an address is on the list.
+ */
+export interface NewsletterSubscribeResult {
+  ok: true;
+  confirmationEmailSent: boolean;
+}
+
+/* ---------- Auth ---------- */
 export interface Session {
   userId: string;
   name: string;

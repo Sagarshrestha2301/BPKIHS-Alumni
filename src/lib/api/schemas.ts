@@ -8,6 +8,8 @@ import { z } from 'zod';
 
 import {
   EMAIL_PATTERN,
+  EXPERTISE_ITEM_MAX_LENGTH,
+  EXPERTISE_MAX_ITEMS,
   HELPDESK_TOPICS,
   MAX_DONATION_MINOR,
   MAX_EVENT_PARTY_SIZE,
@@ -71,6 +73,27 @@ export const privacySchema = z.object({
   profile: z.enum(VISIBILITIES),
 });
 
+/**
+ * Expertise tags. Entries are trimmed, collapsed and de-duplicated case-insensitively, and
+ * blanks are dropped, so "Public  health" and "public health" cannot both be stored.
+ */
+export const expertiseSchema = z
+  .array(z.string().trim().max(EXPERTISE_ITEM_MAX_LENGTH, TOO_LONG))
+  .max(EXPERTISE_MAX_ITEMS, `Choose up to ${EXPERTISE_MAX_ITEMS} areas.`)
+  .transform((items) => {
+    const seen = new Set<string>();
+    const clean: string[] = [];
+    for (const item of items) {
+      const value = item.replace(/\s+/g, ' ').trim();
+      if (!value) continue;
+      const key = value.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      clean.push(value);
+    }
+    return clean;
+  });
+
 export const registrationSchema = z
   .object({
     fullName: requiredText('Enter your full name.', 100),
@@ -115,6 +138,54 @@ export type VerifyRegistrationInput = z.infer<typeof verifyRegistrationSchema>;
 
 export const resendRegistrationCodeSchema = z.object({ email: emailField });
 export type ResendRegistrationCodeInput = z.infer<typeof resendRegistrationCodeSchema>;
+
+/**
+ * What a signed-in member may change about their own profile. Programme, batch year, email
+ * and the review status are deliberately absent: only the office changes those.
+ */
+export const profileUpdateSchema = z.object({
+  fullName: requiredText('Enter your full name.', 100),
+  phone: optionalPhone,
+  furtherStudies: optionalText(150),
+  currentPosition: optionalText(120),
+  organisation: optionalText(120),
+  city: optionalText(80),
+  country: requiredText('Enter your country.', 80),
+  note: optionalText(500),
+  expertise: expertiseSchema,
+  privacy: privacySchema,
+});
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+
+/* ---------- account security ---------- */
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password.').max(128),
+    newPassword: passwordField,
+    confirmPassword: z.string().min(1, 'Repeat the new password.'),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: 'The two passwords do not match.',
+    path: ['confirmPassword'],
+  });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+/** Always answered with the same success message, so it cannot reveal registered addresses. */
+export const forgotPasswordSchema = z.object({ email: emailField });
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().trim().min(1, 'That reset link is not valid.'),
+    password: passwordField,
+    confirmPassword: z.string().min(1, 'Repeat the new password.'),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: 'The two passwords do not match.',
+    path: ['confirmPassword'],
+  });
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 /* ---------- donations ---------- */
 
@@ -174,6 +245,23 @@ export const helpdeskSchema = z.object({
 });
 export type HelpdeskInput = z.infer<typeof helpdeskSchema>;
 
+/**
+ * The public contact form for institutional enquiries. It needs no account: a hospital,
+ * vendor or donor can write to the Association without joining the directory.
+ */
+export const contactMessageSchema = z.object({
+  name: requiredText('Enter your name.', 100),
+  email: emailField,
+  organisation: optionalText(120),
+  subject: requiredText('Enter a short subject.', 120),
+  message: z
+    .string()
+    .trim()
+    .min(20, 'Please give us a little more detail (at least 20 characters).')
+    .max(2000, TOO_LONG),
+});
+export type ContactMessageInput = z.infer<typeof contactMessageSchema>;
+
 /* ---------- newsletter ---------- */
 
 export const newsletterSubscribeSchema = z.object({
@@ -185,6 +273,12 @@ export type NewsletterSubscribeInput = z.infer<typeof newsletterSubscribeSchema>
 export const newsletterPrefsSchema = z.object({
   email: emailField,
   optIn: z.boolean(),
+  /**
+   * The subscriber's token, taken from a newsletter email. An address alone is public
+   * knowledge, so a preference change needs this proof of ownership; without it the API
+   * only emails a confirmation link and changes nothing.
+   */
+  token: z.string().trim().min(1).max(200).optional(),
 });
 export type NewsletterPrefsInput = z.infer<typeof newsletterPrefsSchema>;
 
@@ -198,6 +292,19 @@ export const memberPostSchema = z.object({
     .trim()
     .min(20, 'Please write at least 20 characters.')
     .max(3000, 'Please keep it under 3,000 characters.'),
+  /** An optional photo or video still, shown with the post once it is approved. */
+  imageUrl: z
+    .string()
+    .trim()
+    .max(500, TOO_LONG)
+    .refine(
+      (value) =>
+        value === '' ||
+        (value.startsWith('/') && !value.startsWith('//')) ||
+        value.startsWith('https://'),
+      'Use an https:// URL or a path beginning with /.',
+    )
+    .optional(),
   authorName: requiredText('Enter your name.', 100),
   /** Not shown publicly; used by moderators to reach the author. */
   authorEmail: emailField,

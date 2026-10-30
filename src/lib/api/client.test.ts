@@ -21,9 +21,9 @@ describe('getApiClient', () => {
 });
 
 describe('adapter shape', () => {
-  it('lists 27 methods', () => {
-    expect(API_METHOD_NAMES).toHaveLength(27);
-    expect(new Set(API_METHOD_NAMES).size).toBe(27);
+  it('lists 36 methods', () => {
+    expect(API_METHOD_NAMES).toHaveLength(36);
+    expect(new Set(API_METHOD_NAMES).size).toBe(36);
   });
 
   it('has exactly the contract methods', () => {
@@ -33,6 +33,23 @@ describe('adapter shape', () => {
   it('reports a network error when the API cannot be reached', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
     await expect(httpAdapter.getSiteStats()).rejects.toMatchObject({ code: 'network' });
+    fetch.mockRestore();
+  });
+
+  it('points a two-factor account at the administrator sign-in form', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ twoFactorRedirect: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await expect(
+      httpAdapter.login({ email: 'admin@example.com', password: 'a-long-password' }),
+    ).rejects.toMatchObject({
+      code: 'unauthorized',
+      message: expect.stringContaining('administrator page'),
+    });
     fetch.mockRestore();
   });
 

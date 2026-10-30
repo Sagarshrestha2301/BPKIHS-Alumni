@@ -14,6 +14,27 @@ function fromAddress(): string {
   return process.env.EMAIL_FROM?.trim() || `${config.appName} <no-reply@localhost>`;
 }
 
+/**
+ * Header values are single-line by definition. A tribute name, a post title or a campaign
+ * subject can reach a Subject line, and a `\r\n` in one of them is header injection: an extra
+ * `Bcc:` or `Reply-To:` added to our own message. Providers usually reject that, but this is
+ * the layer we control, so every header is flattened before it leaves the process.
+ */
+export function sanitizeHeaderValue(value: string, maxLength = 998): string {
+  return value
+    .replace(/[\r\n\u0000-\u001f\u007f]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/** Keeps an address out of the logs while leaving enough to diagnose a failure. */
+function maskAddress(address: string): string {
+  const [local, domain] = address.split('@');
+  if (!domain) return '***';
+  return `${local?.slice(0, 1) ?? ''}***@${domain}`;
+}
+
 function transport(): 'resend' | 'console' {
   const value = process.env.EMAIL_TRANSPORT?.trim().toLowerCase() || 'console';
   if (value !== 'resend' && value !== 'console') {
@@ -24,12 +45,12 @@ function transport(): 'resend' | 'console' {
 
 function payloadFor(message: EmailMessage) {
   return {
-    from: fromAddress(),
-    to: [message.to],
-    subject: message.subject,
+    from: sanitizeHeaderValue(fromAddress(), 320),
+    to: [sanitizeHeaderValue(message.to, 320)],
+    subject: sanitizeHeaderValue(message.subject),
     text: message.text,
     ...(message.html ? { html: message.html } : {}),
-    ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+    ...(message.replyTo ? { reply_to: sanitizeHeaderValue(message.replyTo, 320) } : {}),
   };
 }
 
@@ -131,11 +152,18 @@ export async function sendEmailBatch(messages: EmailMessage[]): Promise<void> {
 /**
  * Email is a notification, not part of the transaction. A rejected message (unverified
  * sending domain, provider outage) is logged and the donation, RSVP or ticket still stands.
+ *
+ * Returns whether the message left the server. Most callers ignore it; the newsletter
+ * confirmation form uses it to say so, because a visitor waiting for a link that was never
+ * sent has no way to find out.
  */
-export async function sendEmailSafely(message: EmailMessage): Promise<void> {
+export async function sendEmailSafely(message: EmailMessage): Promise<boolean> {
   try {
     await sendEmail(message);
+    return true;
   } catch (error) {
-    console.error('[email] delivery failed', message.to, error);
+    // The address is personal data; mask it in logs that may be shipped off the host.
+    console.error('[email] delivery failed', maskAddress(message.to), error);
+    return false;
   }
 }

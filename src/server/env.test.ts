@@ -18,6 +18,8 @@ function validEnv(
     RESEND_API_KEY: 're_test_key',
     EMAIL_FROM: 'BPKIHS Alumni <no-reply@alumni.org>',
     CONTACT_EMAIL: 'office@alumni.org',
+    TURNSTILE_SECRET_KEY: 'turnstile-secret',
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'turnstile-site-key',
     NODE_ENV: 'production',
   };
   return { ...base, ..._overrides };
@@ -63,6 +65,15 @@ describe('productionEnvProblems', () => {
     ).toContainEqual(expect.stringContaining('example value'));
   });
 
+  it('requires bot protection keys', () => {
+    expect(productionEnvProblems(validEnv({ TURNSTILE_SECRET_KEY: undefined }))).toContainEqual(
+      expect.stringContaining('TURNSTILE_SECRET_KEY'),
+    );
+    expect(
+      productionEnvProblems(validEnv({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: undefined })),
+    ).toContainEqual(expect.stringContaining('NEXT_PUBLIC_TURNSTILE_SITE_KEY'));
+  });
+
   it('requires a gateway and its live URL', () => {
     expect(
       productionEnvProblems(
@@ -80,5 +91,49 @@ describe('productionEnvProblems', () => {
     productionEnvProblems(validEnv({ PAYMENT_MODE: 'sandbox' }));
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('sandbox'));
     warn.mockRestore();
+  });
+
+  function connectipsEnv(
+    overrides: Record<string, string | undefined> = {},
+  ): Record<string, string | undefined> {
+    return validEnv({
+      ESEWA_PRODUCT_CODE: undefined,
+      ESEWA_SECRET_KEY: undefined,
+      ESEWA_GATEWAY_URL: undefined,
+      CONNECTIPS_BASE_URL: 'https://uat.connectips.example',
+      CONNECTIPS_MERCHANT_ID: '550',
+      CONNECTIPS_APP_ID: 'MER-550-APP-1',
+      CONNECTIPS_APP_NAME: 'BPKIHS Alumni',
+      CONNECTIPS_APP_PASSWORD: 'app-password',
+      CONNECTIPS_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nplaceholder\n-----END PRIVATE KEY-----',
+      ...overrides,
+    });
+  }
+
+  it('accepts ConnectIPS as the only configured gateway', () => {
+    expect(productionEnvProblems(connectipsEnv())).toEqual([]);
+  });
+
+  it('rejects a partly configured ConnectIPS', () => {
+    expect(
+      productionEnvProblems(connectipsEnv({ CONNECTIPS_APP_PASSWORD: undefined })),
+    ).toContainEqual(expect.stringContaining('partly configured'));
+    expect(
+      productionEnvProblems(
+        connectipsEnv({
+          CONNECTIPS_PRIVATE_KEY: undefined,
+          CONNECTIPS_PRIVATE_KEY_PATH: undefined,
+        }),
+      ),
+    ).toContainEqual(expect.stringContaining('partly configured'));
+  });
+
+  it('rejects a non-https ConnectIPS base URL and a non-numeric merchant id', () => {
+    expect(
+      productionEnvProblems(connectipsEnv({ CONNECTIPS_BASE_URL: 'http://gateway.example' })),
+    ).toContainEqual(expect.stringContaining('HTTPS'));
+    expect(
+      productionEnvProblems(connectipsEnv({ CONNECTIPS_MERCHANT_ID: 'MERCHANT' })),
+    ).toContainEqual(expect.stringContaining('numeric'));
   });
 });

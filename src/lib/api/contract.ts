@@ -4,15 +4,20 @@
  * Input types come from the Zod schemas; result types from ./types.
  */
 import type {
+  ChangePasswordInput,
+  ContactMessageInput,
   DonationInput,
+  ForgotPasswordInput,
   HelpdeskInput,
   LoginInput,
   MemberPostInput,
   NewsletterPrefsInput,
   NewsletterSubscribeInput,
   PostReportInput,
+  ProfileUpdateInput,
   RegistrationInput,
   ResendRegistrationCodeInput,
+  ResetPasswordInput,
   RsvpInput,
   SignupInput,
   VerifyRegistrationInput,
@@ -30,15 +35,27 @@ import type {
   FeedListParams,
   FeedPost,
   FundsBreakdownItem,
+  NewsletterSubscribeResult,
   OkResult,
   Paginated,
   PostSubmissionResult,
+  ProfilePhotoResult,
+  ProfilePhotoUpload,
+  PublicDonor,
   RegistrationResult,
   Session,
   SiteStats,
   TicketResult,
   WelcomeMessage,
 } from './types';
+
+/**
+ * Transport data that is not part of the form's schema. Today that is only the Cloudflare
+ * Turnstile token the public forms must present; it travels in a header, not the body.
+ */
+export interface RequestOptions {
+  botToken?: string;
+}
 
 export interface ApiClient {
   /* site */
@@ -51,7 +68,10 @@ export interface ApiClient {
   getAlumnus(id: string): Promise<Alumnus>;
   /** Countries and batch years that exist among listed alumni, for the filter menus. */
   getAlumniFilterOptions(): Promise<AlumniFilterOptions>;
-  submitRegistration(input: RegistrationInput): Promise<RegistrationResult>;
+  submitRegistration(
+    input: RegistrationInput,
+    options?: RequestOptions,
+  ): Promise<RegistrationResult>;
   /** Confirms the emailed code and signs the new member in. */
   verifyRegistration(input: VerifyRegistrationInput): Promise<Session>;
   /** Sends a fresh code. Always resolves, so it cannot be used to probe addresses. */
@@ -62,6 +82,8 @@ export interface ApiClient {
   getGoal(id: string): Promise<DonationGoal>;
   createDonation(input: DonationInput): Promise<DonationResult>;
   getFundsBreakdown(): Promise<FundsBreakdownItem[]>;
+  /** Confirmed gifts, newest first. Anonymous donors carry no name. */
+  listPublicDonors(params?: { page?: number; pageSize?: number }): Promise<Paginated<PublicDonor>>;
 
   /* governance */
   listBoard(params: { current: boolean }): Promise<BoardMember[]>;
@@ -69,18 +91,35 @@ export interface ApiClient {
   /* events */
   listEvents(params?: EventListParams): Promise<Paginated<AlumniEvent>>;
   getEvent(slug: string): Promise<AlumniEvent>;
-  submitRsvp(eventId: string, input: RsvpInput): Promise<OkResult>;
+  submitRsvp(eventId: string, input: RsvpInput, options?: RequestOptions): Promise<OkResult>;
 
   /* community */
   listFeed(params?: FeedListParams): Promise<Paginated<FeedPost>>;
+  getPost(id: string): Promise<FeedPost>;
   submitPost(input: MemberPostInput): Promise<PostSubmissionResult>;
   reportPost(postId: string, input: PostReportInput): Promise<OkResult>;
-  subscribeNewsletter(input: NewsletterSubscribeInput): Promise<OkResult>;
-  updateNewsletterPrefs(input: NewsletterPrefsInput): Promise<OkResult>;
+  subscribeNewsletter(
+    input: NewsletterSubscribeInput,
+    options?: RequestOptions,
+  ): Promise<NewsletterSubscribeResult>;
+  updateNewsletterPrefs(input: NewsletterPrefsInput, options?: RequestOptions): Promise<OkResult>;
 
   /* support */
   listFaq(): Promise<FaqItem[]>;
   submitSupportTicket(input: HelpdeskInput): Promise<TicketResult>;
+  /** Public contact form; no account needed. */
+  submitContactMessage(input: ContactMessageInput, options?: RequestOptions): Promise<TicketResult>;
+
+  /* account */
+  updateMyProfile(input: ProfileUpdateInput): Promise<Alumnus>;
+  /** Uploads a new photo after the member agrees to publication. */
+  uploadMyPhoto(input: ProfilePhotoUpload): Promise<ProfilePhotoResult>;
+  /** Removes the stored photo and withdraws publication consent. */
+  removeMyPhoto(): Promise<ProfilePhotoResult>;
+  changePassword(input: ChangePasswordInput): Promise<OkResult>;
+  /** Emails a reset link when the address has an account; always resolves. */
+  requestPasswordReset(input: ForgotPasswordInput): Promise<OkResult>;
+  resetPassword(input: ResetPasswordInput): Promise<OkResult>;
 
   /* auth */
   getSession(): Promise<Session | null>;
@@ -106,17 +145,26 @@ const METHODS: { [K in keyof ApiClient]: true } = {
   getGoal: true,
   createDonation: true,
   getFundsBreakdown: true,
+  listPublicDonors: true,
   listBoard: true,
   listEvents: true,
   getEvent: true,
   submitRsvp: true,
   listFeed: true,
+  getPost: true,
   submitPost: true,
   reportPost: true,
   subscribeNewsletter: true,
   updateNewsletterPrefs: true,
   listFaq: true,
   submitSupportTicket: true,
+  submitContactMessage: true,
+  updateMyProfile: true,
+  uploadMyPhoto: true,
+  removeMyPhoto: true,
+  changePassword: true,
+  requestPasswordReset: true,
+  resetPassword: true,
   getSession: true,
   login: true,
   signup: true,

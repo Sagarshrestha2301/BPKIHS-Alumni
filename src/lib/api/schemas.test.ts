@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MIN_DONATION_MINOR, PROGRAMMES } from '@/lib/constants/domain';
 
 import {
+  contactMessageSchema,
   donationSchema,
   helpdeskSchema,
   loginSchema,
@@ -83,7 +84,7 @@ describe('registrationSchema', () => {
       password: 'short',
       confirmPassword: 'short',
     });
-    expect(messages(short)).toContain('Use at least 12 characters.');
+    expect(messages(short)).toContain('Use at least 8 characters.');
 
     const mismatch = registrationSchema.safeParse({
       ...validRegistration,
@@ -246,6 +247,43 @@ describe('memberPostSchema', () => {
   it('rejects a body that is too short', () => {
     expect(memberPostSchema.safeParse({ ...valid, body: 'Too short' }).success).toBe(false);
   });
+
+  it('accepts an https or site-relative photo URL and rejects insecure links', () => {
+    expect(
+      memberPostSchema.safeParse({ ...valid, imageUrl: 'https://example.org/camp.jpg' }).success,
+    ).toBe(true);
+    expect(memberPostSchema.safeParse({ ...valid, imageUrl: '/images/camp.jpg' }).success).toBe(
+      true,
+    );
+    expect(
+      memberPostSchema.safeParse({ ...valid, imageUrl: 'http://evil.example/a.jpg' }).success,
+    ).toBe(false);
+    expect(memberPostSchema.safeParse({ ...valid, imageUrl: '//evil.example/a.jpg' }).success).toBe(
+      false,
+    );
+  });
+});
+
+describe('contactMessageSchema', () => {
+  const valid = {
+    name: 'Biratnagar Hospital',
+    email: 'office@hospital.example',
+    organisation: 'Biratnagar Hospital',
+    subject: 'Partnership enquiry',
+    message: 'We would like to discuss a collaboration with the Association.',
+  };
+
+  it('accepts a general enquiry without an organisation', () => {
+    expect(contactMessageSchema.safeParse({ ...valid, organisation: undefined }).success).toBe(
+      true,
+    );
+    expect(contactMessageSchema.safeParse({ ...valid, organisation: '' }).success).toBe(true);
+  });
+
+  it('rejects a short message or an invalid address', () => {
+    expect(contactMessageSchema.safeParse({ ...valid, message: 'Hi' }).success).toBe(false);
+    expect(contactMessageSchema.safeParse({ ...valid, email: 'not-an-email' }).success).toBe(false);
+  });
 });
 
 describe('postReportSchema', () => {
@@ -276,24 +314,17 @@ describe('sign-in schemas', () => {
     expect(loginSchema.safeParse({ email: 'asha@example.com', password: '' }).success).toBe(false);
   });
 
-  it('validates signup with a twelve-character password and rejects shorter ones', () => {
+  it('validates signup with an eight-character password and rejects shorter ones', () => {
     expect(
       signupSchema.safeParse({
         fullName: 'Asha Rai',
         email: 'asha@example.com',
-        password: 'Passw0rd!234',
+        password: 'Passw0rd',
       }).success,
     ).toBe(true);
     expect(
-      signupSchema.safeParse({ fullName: '', email: 'asha@example.com', password: 'Passw0rd!234' })
+      signupSchema.safeParse({ fullName: '', email: 'asha@example.com', password: 'Passw0rd' })
         .success,
-    ).toBe(false);
-    expect(
-      signupSchema.safeParse({
-        fullName: 'Asha Rai',
-        email: 'asha@example.com',
-        password: 'Passw0rd!',
-      }).success,
     ).toBe(false);
     expect(
       signupSchema.safeParse({ fullName: 'Asha Rai', email: 'asha@example.com', password: 'short' })

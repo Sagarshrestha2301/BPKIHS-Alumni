@@ -1,7 +1,8 @@
-import { accountPage } from '@/content/account';
+import { accountPage, resetPasswordPage, signInPage } from '@/content/account';
+import { BOT_TOKEN_HEADER } from '@/lib/constants/bot';
 import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from '@/lib/constants/security';
 
-import type { ApiClient } from '../contract';
+import type { ApiClient, RequestOptions } from '../contract';
 import { ApiError } from '../errors';
 import type { Session } from '../types';
 
@@ -33,6 +34,8 @@ const AUTH_CODE_MESSAGES: Record<string, string> = {
   INVALID_OTP: accountPage.verification.failed,
   OTP_EXPIRED: accountPage.verification.expired,
   TOO_MANY_ATTEMPTS: accountPage.verification.tooMany,
+  INVALID_PASSWORD: accountPage.password.wrongCurrent,
+  INVALID_TOKEN: resetPasswordPage.invalid,
 };
 
 function query(params: Record<string, string | number | boolean | undefined>): string {
@@ -50,11 +53,12 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = method === 'GET' || method === 'HEAD' ? undefined : csrfToken();
   let response: Response;
   try {
+    const multipart = init.body instanceof FormData;
     response = await fetch(`${BASE_URL}${path}`, {
       ...init,
       credentials: 'same-origin',
       headers: {
-        ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(init.body && !multipart ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { [CSRF_HEADER_NAME]: token } : {}),
         ...init.headers,
       },
@@ -84,6 +88,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 function body(data: unknown): RequestInit {
   return { method: 'POST', body: JSON.stringify(data) };
+}
+
+/** The public forms attach the Turnstile token; every other call sends no such header. */
+function botHeaders(options?: RequestOptions): Record<string, string> {
+  return options?.botToken ? { [BOT_TOKEN_HEADER]: options.botToken } : {};
 }
 
 function toSession(payload: { user?: { id?: string; name?: string; email?: string } }): Session {
@@ -116,7 +125,8 @@ export const httpAdapter: ApiClient = {
     ),
   getAlumnus: (id) => request(`/api/v1/alumni/${encodeURIComponent(id)}`),
   getAlumniFilterOptions: () => request('/api/v1/alumni/filters'),
-  submitRegistration: (input) => request('/api/v1/registrations', body(input)),
+  submitRegistration: (input, options) =>
+    request('/api/v1/registrations', { ...body(input), headers: botHeaders(options) }),
   verifyRegistration: async (input) => {
     const payload = await request<{ user?: { id?: string; name?: string; email?: string } }>(
       '/api/auth/email-otp/verify-email',
@@ -131,6 +141,8 @@ export const httpAdapter: ApiClient = {
   getGoal: (id) => request(`/api/v1/goals/${encodeURIComponent(id)}`),
   createDonation: (input) => request('/api/v1/donations', body(input)),
   getFundsBreakdown: () => request('/api/v1/funds'),
+  listPublicDonors: (params = {}) =>
+    request(`/api/v1/donations/donors${query({ page: params.page, pageSize: params.pageSize })}`),
 
   /* governance */
   listBoard: (params) => request(`/api/v1/board${query({ current: params.current })}`),
@@ -147,8 +159,11 @@ export const httpAdapter: ApiClient = {
       })}`,
     ),
   getEvent: (slug) => request(`/api/v1/events/${encodeURIComponent(slug)}`),
-  submitRsvp: (eventId, input) =>
-    request(`/api/v1/events/${encodeURIComponent(eventId)}/rsvp`, body(input)),
+  submitRsvp: (eventId, input, options) =>
+    request(`/api/v1/events/${encodeURIComponent(eventId)}/rsvp`, {
+      ...body(input),
+      headers: botHeaders(options),
+    }),
 
   /* community */
   listFeed: (params = {}) =>
@@ -161,16 +176,58 @@ export const httpAdapter: ApiClient = {
         tag: params.tag,
       })}`,
     ),
+  getPost: (id) => request(`/api/v1/feed/${encodeURIComponent(id)}`),
   submitPost: (input) => request('/api/v1/posts', body(input)),
   reportPost: (postId, input) =>
     request(`/api/v1/posts/${encodeURIComponent(postId)}/report`, body(input)),
-  subscribeNewsletter: (input) => request('/api/v1/newsletter', body(input)),
-  updateNewsletterPrefs: (input) =>
-    request('/api/v1/newsletter', { method: 'PATCH', body: JSON.stringify(input) }),
+  subscribeNewsletter: (input, options) =>
+    request('/api/v1/newsletter', { ...body(input), headers: botHeaders(options) }),
+  updateNewsletterPrefs: (input, options) =>
+    request('/api/v1/newsletter', {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+      headers: botHeaders(options),
+    }),
 
   /* support */
   listFaq: () => request('/api/v1/faq'),
   submitSupportTicket: (input) => request('/api/v1/support', body(input)),
+  submitContactMessage: (input, options) =>
+    request('/api/v1/contact', { ...body(input), headers: botHeaders(options) }),
+
+  /* account */
+  updateMyProfile: (input) =>
+    request('/api/v1/account/profile', { method: 'PATCH', body: JSON.stringify(input) }),
+  uploadMyPhoto: (input) => {
+    const form = new FormData();
+    form.set('photo', input.file);
+    form.set('consent', String(input.consent));
+    return request('/api/v1/account/photo', { method: 'POST', body: form });
+  },
+  removeMyPhoto: () => request('/api/v1/account/photo', { method: 'DELETE' }),
+  changePassword: async (input) => {
+    await request(
+      '/api/auth/change-password',
+      body({
+        currentPassword: input.currentPassword,
+        newPassword: input.newPassword,
+        revokeOtherSessions: true,
+      }),
+    );
+    return { ok: true };
+  },
+  requestPasswordReset: async (input) => {
+    // No redirectTo: the email links to our own /reset-password page, which posts the token.
+    await request('/api/auth/request-password-reset', body({ email: input.email }));
+    return { ok: true };
+  },
+  resetPassword: async (input) => {
+    await request(
+      '/api/auth/reset-password',
+      body({ token: input.token, newPassword: input.password }),
+    );
+    return { ok: true };
+  },
 
   /* auth */
   getSession: async () => {
@@ -182,10 +239,17 @@ export const httpAdapter: ApiClient = {
     return { userId: payload.user.id, name: payload.user.name ?? '', email: payload.user.email };
   },
   login: async (input) => {
-    const payload = await request<{ user?: { id?: string; name?: string; email?: string } }>(
-      '/api/auth/sign-in/email',
-      body(input),
-    );
+    const payload = await request<{
+      user?: { id?: string; name?: string; email?: string };
+      twoFactorRedirect?: boolean;
+    }>('/api/auth/sign-in/email', body(input));
+
+    // The member form has no code step. Fail with a message that points at the admin form
+    // instead of trying to read a session the provider deliberately did not create.
+    if (payload.twoFactorRedirect) {
+      throw new ApiError('unauthorized', signInPage.adminTwoFactor);
+    }
+
     return toSession(payload);
   },
   signup: async (input) => {

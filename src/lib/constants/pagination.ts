@@ -22,5 +22,8 @@ export const DONATION_PAGE_SIZE = 25;
 /** Posts added by one "Show more" click in the community feed. */
 export const FEED_PAGE_SIZE = 6;
 
+/** Confirmed gifts shown on the public transparency page. */
+export const DONOR_PAGE_SIZE = 8;
+
 /** Most recent audit entries the dashboard shows; the table is read-only. */
 export const AUDIT_LOG_LIMIT = 200;

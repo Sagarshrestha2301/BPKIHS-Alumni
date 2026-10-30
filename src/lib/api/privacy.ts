@@ -6,14 +6,20 @@
 import type { Alumnus, Visibility } from './types';
 
 /**
- * The public site has no login (D3), so the default visitor is anonymous. An alumni-only
- * setting cannot be verified until accounts exist; until then it is treated as hidden.
+ * Whether this viewer is a signed-in alumnus. Anonymous visitors and donors are outsiders;
+ * alumni and administrators may see `alumni_only` details. Administrators are included
+ * because the dashboard already shows them every record.
  */
 export interface Viewer {
   isAlumnus: boolean;
 }
 
 export const DEFAULT_VIEWER: Viewer = { isAlumnus: false };
+
+/** Maps a Better Auth role to directory visibility. Unknown or absent roles stay outsiders. */
+export function viewerForRole(role: string | null | undefined): Viewer {
+  return { isAlumnus: role === 'alumni' || role === 'admin' };
+}
 
 export function canSee(visibility: Visibility, viewer: Viewer): boolean {
   if (visibility === 'public') return true;

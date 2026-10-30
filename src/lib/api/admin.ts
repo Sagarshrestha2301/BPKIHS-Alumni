@@ -8,6 +8,7 @@ import type {
   BoardMember,
   DonationGoal,
   FaqItem,
+  FeedPost,
   NewsletterInterest,
   WelcomeMessage,
 } from './types';
@@ -29,7 +30,20 @@ export interface AdminBoardMember extends BoardMember {
   sortOrder: number;
 }
 
+export interface AdminPost extends FeedPost {
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminFaqItem extends FaqItem {
+  sortOrder: number;
+}
+
+export interface AdminFundRow {
+  id: string;
+  category: string;
+  sharePercent: number;
+  period: string;
   sortOrder: number;
 }
 
@@ -41,7 +55,8 @@ export interface AdminSubscriber {
   id: string;
   email: string;
   interests: NewsletterInterest[];
-  status: 'subscribed' | 'unsubscribed';
+  /** `pending` asked to join and has not opened its confirmation email yet. */
+  status: 'subscribed' | 'unsubscribed' | 'pending';
   createdAt: string;
   updatedAt: string;
 }
@@ -74,4 +89,5 @@ export interface ContentOverview {
   board: AdminBoardMember[];
   faq: AdminFaqItem[];
   welcome: AdminWelcomeMessage | null;
+  funds: AdminFundRow[];
 }

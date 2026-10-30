@@ -40,6 +40,7 @@ export function queryAlumni(
         person.furtherStudies,
         person.city,
         person.country,
+        ...(person.expertise ?? []),
       ],
       params.q,
     );

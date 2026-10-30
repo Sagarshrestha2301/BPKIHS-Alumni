@@ -86,20 +86,29 @@ function fieldErrorsFrom(error: ZodError): Record<string, string> {
 /**
  * Reads a JSON body with two hard limits: the declared content type and the actual byte
  * size. `request.json()` alone would happily buffer an arbitrarily large body.
+ *
+ * `maxBytes` exists for the one admin route that accepts a CSV file; every other caller
+ * keeps the global limit. A larger limit on a public route would be a denial-of-service
+ * surface, so it is always paired with the admin guard.
  */
-export async function parseBody<T>(request: Request, schema: ZodType<T>): Promise<T> {
+export async function parseBody<T>(
+  request: Request,
+  schema: ZodType<T>,
+  options: { maxBytes?: number } = {},
+): Promise<T> {
   const contentType = request.headers.get('content-type') ?? '';
   if (!contentType.toLowerCase().startsWith('application/json')) {
     throw new ApiError('validation', 'Send the body as application/json.', { status: 415 });
   }
 
+  const maxBytes = options.maxBytes ?? config.http.maxBodyBytes;
   const declared = Number(request.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > config.http.maxBodyBytes) {
+  if (Number.isFinite(declared) && declared > maxBytes) {
     throw new ApiError('validation', 'That request is too large.', { status: 413 });
   }
 
   const text = await request.text();
-  if (new TextEncoder().encode(text).length > config.http.maxBodyBytes) {
+  if (new TextEncoder().encode(text).length > maxBytes) {
     throw new ApiError('validation', 'That request is too large.', { status: 413 });
   }
 

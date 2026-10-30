@@ -1,4 +1,4 @@
-import { and, count, countDistinct, eq, sql } from 'drizzle-orm';
+import { count, countDistinct, eq, sql } from 'drizzle-orm';
 
 import type { AdminFaqItem, AdminWelcomeMessage } from '@/lib/api/admin';
 import type { AdminFaqInput, AdminWelcomeInput } from '@/lib/api/admin-schemas';
@@ -8,7 +8,7 @@ import type { FaqItem, SiteStats, WelcomeMessage } from '@/lib/api/types';
 import { db } from '../db/client';
 import {
   alumni,
-  donationGoals,
+  donations,
   events,
   faqItems,
   feedPosts,
@@ -30,8 +30,11 @@ export async function getSiteStats(): Promise<SiteStats> {
       .where(eq(alumni.status, 'approved')),
     db.select({ value: count() }).from(events).where(eq(events.status, 'past')),
     db
-      .select({ value: sql<string>`coalesce(sum(${donationGoals.raisedMinor}), 0)` })
-      .from(donationGoals),
+      .select({
+        value: sql<string>`coalesce(sum(${donations.amountMinor}), 0)::text`,
+      })
+      .from(donations)
+      .where(eq(donations.status, 'succeeded')),
   ]);
 
   return {
@@ -168,10 +171,9 @@ export async function saveWelcomeMessage(input: AdminWelcomeInput): Promise<Admi
 /** Used by the admin overview; kept here so every dashboard number has one home. */
 export async function getAdminCounts() {
   const [pendingAlumni, pendingPosts, openReports, openTickets] = await Promise.all([
-    db
-      .select({ value: count() })
-      .from(alumni)
-      .where(and(eq(alumni.status, 'pending'), eq(alumni.placeholder, false))),
+    // Imported register rows are pending review too, so they belong in the queue count even
+    // though they carry `placeholder`. Excluding them made the badge disagree with the list.
+    db.select({ value: count() }).from(alumni).where(eq(alumni.status, 'pending')),
     db.select({ value: count() }).from(feedPosts).where(eq(feedPosts.status, 'pending')),
     db.select({ value: count() }).from(postReports).where(eq(postReports.status, 'open')),
     db.select({ value: count() }).from(supportTickets).where(eq(supportTickets.status, 'open')),

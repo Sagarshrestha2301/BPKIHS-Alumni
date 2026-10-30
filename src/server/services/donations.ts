@@ -1,16 +1,24 @@
-import { asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, or, sql } from 'drizzle-orm';
 
-import type { AdminGoal } from '@/lib/api/admin';
-import type { AdminGoalInput } from '@/lib/api/admin-schemas';
+import type { AdminFundRow, AdminGoal } from '@/lib/api/admin';
+import type { AdminFundInput, AdminGoalInput } from '@/lib/api/admin-schemas';
 import { ApiError } from '@/lib/api/errors';
 import type { DonationInput } from '@/lib/api/schemas';
-import type { DonationGoal, DonationResult, FundsBreakdownItem } from '@/lib/api/types';
+import type {
+  DonationGoal,
+  DonationResult,
+  FundsBreakdownItem,
+  Paginated,
+  PublicDonor,
+} from '@/lib/api/types';
 import { CURRENCY } from '@/lib/constants/domain';
+import { DONATION_PAGE_SIZE } from '@/lib/constants/pagination';
 
 import { config } from '../config';
 import { db } from '../db/client';
-import { donationGoals, donations, fundsBreakdown } from '../db/schema';
+import { donationGoals, donations, fundsBreakdown, user } from '../db/schema';
 import { gatewayFor, paymentMode, startPayment } from '../payments';
+import { type AdminGivingMonth, buildGivingMonths } from './donation-summary';
 
 function toGoal(row: typeof donationGoals.$inferSelect): DonationGoal {
   return {
@@ -43,31 +51,96 @@ export async function getGoal(id: string): Promise<DonationGoal> {
 
 export async function getFundsBreakdown(): Promise<FundsBreakdownItem[]> {
   const [totalRow] = await db
-    .select({ value: sql<string>`coalesce(sum(${donationGoals.raisedMinor}), 0)` })
-    .from(donationGoals);
+    .select({
+      value: sql<string>`coalesce(sum(${donations.amountMinor}) filter (where ${donations.status} = 'succeeded'), 0)::text`,
+    })
+    .from(donations);
   const total = Number(totalRow?.value ?? 0);
 
   const shares = await db.select().from(fundsBreakdown).orderBy(asc(fundsBreakdown.sortOrder));
 
-  let allocated = 0;
-  return shares.map((item, index) => {
-    const amountMinor =
-      index === shares.length - 1
-        ? total - allocated
-        : Math.round((total * item.sharePercent) / 100);
-    allocated += amountMinor;
-    return {
-      category: item.category,
-      sharePercent: item.sharePercent,
-      amountMinor,
-    };
-  });
+  const items: FundsBreakdownItem[] = shares.map((item) => ({
+    category: item.category,
+    sharePercent: item.sharePercent,
+    amountMinor: Math.round((total * item.sharePercent) / 100),
+  }));
+
+  // A partly filled plan is shown honestly rather than inflating the last category: the
+  // remainder appears as its own unallocated line until an admin assigns it.
+  const allocatedShare = items.reduce((sum, item) => sum + item.sharePercent, 0);
+  if (allocatedShare > 0 && allocatedShare < 100) {
+    items.push({
+      category: 'Unallocated',
+      sharePercent: 100 - allocatedShare,
+      amountMinor: Math.round((total * (100 - allocatedShare)) / 100),
+    });
+  }
+  return items;
+}
+
+/**
+ * Confirmed gifts for the public transparency page.
+ *
+ * Only four columns are read and an anonymous gift never leaves the query with a name, so a
+ * caller cannot render an identity the donor asked to hide. Email and user ids are never
+ * selected at all.
+ */
+export async function listPublicDonors(
+  params: { page?: number; pageSize?: number } = {},
+): Promise<Paginated<PublicDonor>> {
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = Math.min(
+    config.pagination.maxPageSize,
+    Math.max(1, params.pageSize ?? config.pagination.donorPageSize),
+  );
+
+  const [rows, total] = await Promise.all([
+    db
+      .select({
+        name: user.name,
+        anonymous: donations.anonymous,
+        goalTitle: donationGoals.title,
+        givenAt: donations.createdAt,
+      })
+      .from(donations)
+      .leftJoin(user, eq(donations.userId, user.id))
+      .leftJoin(donationGoals, eq(donations.goalId, donationGoals.id))
+      .where(eq(donations.status, 'succeeded'))
+      .orderBy(desc(donations.createdAt), desc(donations.id))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(donations)
+      .where(eq(donations.status, 'succeeded')),
+  ]);
+
+  return {
+    items: rows.map((row) => ({
+      ...(!row.anonymous && row.name ? { name: row.name } : {}),
+      ...(row.goalTitle ? { goalTitle: row.goalTitle } : {}),
+      givenAt: row.givenAt.toISOString(),
+    })),
+    total: Number(total[0]?.value ?? 0),
+    page,
+    pageSize,
+  };
 }
 
 export interface DonorDetails {
   userId?: string;
   name?: string;
   email?: string;
+}
+
+/**
+ * ConnectIPS caps `TXNID` at 20 characters, so the 36-character donation id cannot be sent.
+ * Every donation gets a short reference before it is written; an adapter that needs one sends
+ * it, and its callback resolves the donation through it. 20 uppercase hex characters, which
+ * is 80 bits of `randomUUID` worth of entropy and fits every gateway's field length.
+ */
+function gatewayOrderReference(): string {
+  return crypto.randomUUID().replace(/-/g, '').slice(0, 20).toUpperCase();
 }
 
 export async function createDonation(
@@ -86,9 +159,11 @@ export async function createDonation(
   paymentMode();
   gatewayFor(input.method);
   const donationId = crypto.randomUUID();
+  const gatewayOrderRef = gatewayOrderReference();
 
   await db.insert(donations).values({
     id: donationId,
+    gatewayOrderRef,
     userId: donor.userId ?? null,
     goalId: input.goalId ?? null,
     eventId: input.eventId ?? null,
@@ -104,6 +179,7 @@ export async function createDonation(
   try {
     const redirect = await startPayment(input.method, {
       donationId,
+      reference: gatewayOrderRef,
       amountMinor: input.amountMinor,
       description: input.goalId
         ? config.payments.goalGiftDescription
@@ -221,8 +297,21 @@ export interface DonationExportRow {
  * Unlike the paged read this has no offsets: one click means one file. `config.pagination.exportLimit`
  * caps it so the endpoint cannot stream an unbounded table.
  */
+function donationAdminWhere(params: { status?: DonationExportStatus; q?: string }) {
+  const term = params.q
+    ?.trim()
+    .slice(0, 100)
+    .replace(/[\\%_]/g, '\\$&');
+  return and(
+    params.status ? eq(donations.status, params.status) : undefined,
+    term
+      ? or(ilike(donations.id, `%${term}%`), ilike(donations.gatewayRef, `%${term}%`))
+      : undefined,
+  );
+}
+
 export async function listDonationsForExport(
-  params: { status?: DonationExportStatus } = {},
+  params: { status?: DonationExportStatus; q?: string } = {},
 ): Promise<DonationExportRow[]> {
   const rows = await db
     .select({
@@ -235,8 +324,8 @@ export async function listDonationsForExport(
     })
     .from(donations)
     .leftJoin(donationGoals, eq(donations.goalId, donationGoals.id))
-    .where(params.status ? eq(donations.status, params.status) : undefined)
-    .orderBy(desc(donations.createdAt))
+    .where(donationAdminWhere(params))
+    .orderBy(desc(donations.createdAt), desc(donations.id))
     .limit(config.pagination.exportLimit);
 
   return rows.map((row) => ({
@@ -249,21 +338,107 @@ export async function listDonationsForExport(
   }));
 }
 
-export async function listDonationsForAdmin(params: { page?: number; pageSize?: number } = {}) {
+export type { AdminGivingMonth };
+
+export interface AdminGivingSummary {
+  raisedMinor: number;
+  gifts: number;
+  thisMonthMinor: number;
+  thisMonthGifts: number;
+  pendingDonations: number;
+  failedDonations: number;
+  months: AdminGivingMonth[];
+}
+
+/** Confirmed payments only; editable goal targets and pending checkouts are not gifts. */
+export async function getAdminGivingSummary(now = new Date()): Promise<AdminGivingSummary> {
+  // Include the current month and five preceding calendar months. The local calendar boundary
+  // is converted to a timestamptz in SQL so grouping follows the configured site timezone.
+  // Interpolate ISO strings, not Date objects: a Date sent as a raw sql-template parameter
+  // reaches postgres.js's bind phase unserialised and fails with "Received an instance of Date".
+  const nowIso = now.toISOString();
+  const firstVisibleMonth = sql`((date_trunc('month', ${nowIso}::timestamptz at time zone ${config.timeZone}) - interval '5 months') at time zone ${config.timeZone})`;
+
+  const [totals, monthly] = await Promise.all([
+    db
+      .select({
+        raisedMinor: sql<string>`coalesce(sum(${donations.amountMinor}) filter (where ${donations.status} = 'succeeded'), 0)::text`,
+        gifts: sql<number>`count(*) filter (where ${donations.status} = 'succeeded')::int`,
+        pendingDonations: sql<number>`count(*) filter (where ${donations.status} = 'pending')::int`,
+        failedDonations: sql<number>`count(*) filter (where ${donations.status} = 'failed')::int`,
+      })
+      .from(donations),
+    db
+      .select({
+        key: sql<string>`to_char(${donations.succeededAt} at time zone ${config.timeZone}, 'YYYY-MM')`,
+        raisedMinor: sql<string>`coalesce(sum(${donations.amountMinor}), 0)::text`,
+        gifts: sql<number>`count(*)::int`,
+      })
+      .from(donations)
+      .where(
+        and(
+          eq(donations.status, 'succeeded'),
+          gte(donations.succeededAt, firstVisibleMonth),
+          sql`${donations.succeededAt} <= ${nowIso}`,
+        ),
+      )
+      // Group by the first output column positionally, not by a copied expression: drizzle
+      // emits separate parameter placeholders for each template, and Postgres must treat
+      // GROUP BY's expression as *the same* one the SELECT uses to accept it.
+      .groupBy(sql`1`),
+  ]);
+
+  const months = buildGivingMonths(monthly, now);
+  const row = totals[0];
+  const currentMonth = months[months.length - 1]?.key;
+  const current = months.find((item) => item.key === currentMonth);
+
+  return {
+    raisedMinor: Number(row?.raisedMinor ?? 0),
+    gifts: Number(row?.gifts ?? 0),
+    thisMonthMinor: current?.raisedMinor ?? 0,
+    thisMonthGifts: current?.gifts ?? 0,
+    pendingDonations: Number(row?.pendingDonations ?? 0),
+    failedDonations: Number(row?.failedDonations ?? 0),
+    months,
+  };
+}
+
+export async function listDonationsForAdmin(
+  params: { page?: number; pageSize?: number; status?: DonationExportStatus; q?: string } = {},
+) {
   const page = Math.max(1, params.page ?? 1);
   const pageSize = Math.min(
     config.pagination.maxPageSize,
-    Math.max(1, params.pageSize ?? config.pagination.donationPageSize),
+    Math.max(1, params.pageSize ?? DONATION_PAGE_SIZE),
   );
-  const [rows, total] = await Promise.all([
-    db
-      .select()
-      .from(donations)
-      .orderBy(donations.createdAt)
-      .limit(pageSize)
-      .offset((page - 1) * pageSize),
-    db.select({ value: sql<number>`count(*)::int` }).from(donations),
-  ]);
+  const where = donationAdminWhere(params);
+  const [totalRow] = await db
+    .select({ value: sql<number>`count(*)::int` })
+    .from(donations)
+    .where(where);
+  const total = Number(totalRow?.value ?? 0);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const rows = await db
+    .select({
+      id: donations.id,
+      amountMinor: donations.amountMinor,
+      currency: donations.currency,
+      method: donations.method,
+      status: donations.status,
+      anonymous: donations.anonymous,
+      goalId: donations.goalId,
+      goalTitle: donationGoals.title,
+      tribute: donations.tribute,
+      createdAt: donations.createdAt,
+    })
+    .from(donations)
+    .leftJoin(donationGoals, eq(donations.goalId, donationGoals.id))
+    .where(where)
+    .orderBy(desc(donations.createdAt), desc(donations.id))
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize);
 
   return {
     items: rows.map((row) => ({
@@ -274,10 +449,91 @@ export async function listDonationsForAdmin(params: { page?: number; pageSize?: 
       status: row.status,
       anonymous: row.anonymous,
       goalId: row.goalId,
+      goalTitle: row.goalTitle,
+      tribute: row.tribute ?? null,
       createdAt: row.createdAt.toISOString(),
     })),
-    total: Number(total[0]?.value ?? 0),
-    page,
+    total,
+    page: currentPage,
     pageSize,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Funds breakdown                                                    */
+/* ------------------------------------------------------------------ */
+
+function toAdminFund(row: typeof fundsBreakdown.$inferSelect): AdminFundRow {
+  return {
+    id: row.id,
+    category: row.category,
+    sharePercent: row.sharePercent,
+    period: row.period,
+    sortOrder: row.sortOrder,
+  };
+}
+
+export async function listFundsForAdmin(): Promise<AdminFundRow[]> {
+  const rows = await db.select().from(fundsBreakdown).orderBy(asc(fundsBreakdown.sortOrder));
+  return rows.map(toAdminFund);
+}
+
+/**
+ * Percentages must never add up to more than the whole. Leaving a gap is allowed: the
+ * transparency page shows the remainder as unallocated until every row is filled in.
+ */
+async function assertShareBudget(sharePercent: number, exceptId?: string) {
+  const rows = await db
+    .select({ id: fundsBreakdown.id, sharePercent: fundsBreakdown.sharePercent })
+    .from(fundsBreakdown);
+  const used = rows
+    .filter((row) => row.id !== exceptId)
+    .reduce((sum, row) => sum + row.sharePercent, 0);
+  if (used + sharePercent > 100) {
+    throw new ApiError(
+      'conflict',
+      `The shares would add up to ${used + sharePercent}%. Leave room for the remaining categories.`,
+    );
+  }
+}
+
+export async function createFundRow(input: AdminFundInput): Promise<AdminFundRow> {
+  await assertShareBudget(input.sharePercent);
+  const [row] = await db
+    .insert(fundsBreakdown)
+    .values({
+      id: `fund-${crypto.randomUUID()}`,
+      category: input.category,
+      sharePercent: input.sharePercent,
+      period: input.period || 'current',
+      sortOrder: input.sortOrder,
+    })
+    .returning();
+  if (!row) throw new ApiError('server', 'The fund category could not be saved.');
+  return toAdminFund(row);
+}
+
+export async function updateFundRow(id: string, input: AdminFundInput): Promise<AdminFundRow> {
+  await assertShareBudget(input.sharePercent, id);
+  const [row] = await db
+    .update(fundsBreakdown)
+    .set({
+      category: input.category,
+      sharePercent: input.sharePercent,
+      period: input.period || 'current',
+      sortOrder: input.sortOrder,
+    })
+    .where(eq(fundsBreakdown.id, id))
+    .returning();
+  if (!row) throw new ApiError('not_found', 'That fund category was not found.');
+  return toAdminFund(row);
+}
+
+export async function deleteFundRow(id: string): Promise<{ ok: true }> {
+  const [row] = await db
+    .delete(fundsBreakdown)
+    .where(eq(fundsBreakdown.id, id))
+    .returning({ id: fundsBreakdown.id });
+  if (!row) throw new ApiError('not_found', 'That fund category was not found.');
+  return { ok: true };
 }

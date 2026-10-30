@@ -4,8 +4,11 @@ import {
   adminBoardInputSchema,
   adminEventInputSchema,
   adminFaqInputSchema,
+  adminFundInputSchema,
   adminGoalInputSchema,
+  adminPostInputSchema,
   adminWelcomeInputSchema,
+  alumniImportRequestSchema,
   newsletterCampaignInputSchema,
 } from './admin-schemas';
 
@@ -106,16 +109,6 @@ describe('other content schemas', () => {
       }).success,
     ).toBe(true);
   });
-
-  it('validates the welcome message', () => {
-    expect(
-      adminWelcomeInputSchema.safeParse({
-        author: 'Dr Sita Rai',
-        role: 'President',
-        text: 'Welcome to the alumni community of BPKIHS.',
-      }).success,
-    ).toBe(true);
-  });
 });
 
 describe('newsletterCampaignInputSchema', () => {
@@ -133,5 +126,118 @@ describe('newsletterCampaignInputSchema', () => {
         testEmail: 'office@example.org',
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('adminFundInputSchema', () => {
+  it('accepts a whole share between 1 and 100', () => {
+    expect(
+      adminFundInputSchema.safeParse({
+        category: 'Scholarships',
+        sharePercent: 40,
+        sortOrder: 0,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects a share of zero or above 100', () => {
+    expect(
+      adminFundInputSchema.safeParse({ category: 'A', sharePercent: 0, sortOrder: 0 }).success,
+    ).toBe(false);
+    expect(
+      adminFundInputSchema.safeParse({ category: 'A', sharePercent: 101, sortOrder: 0 }).success,
+    ).toBe(false);
+  });
+
+  it('rejects a fractional share', () => {
+    expect(
+      adminFundInputSchema.safeParse({
+        category: 'A',
+        sharePercent: 12.5,
+        sortOrder: 0,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('adminPostInputSchema', () => {
+  it('accepts a staff announcement with a secure image', () => {
+    expect(
+      adminPostInputSchema.safeParse({
+        type: 'announcement',
+        title: 'Annual general meeting',
+        body: 'The annual general meeting will be held in Dharan this December.',
+        author: 'BPKIHS Alumni Association',
+        imageUrl: '/images/auditorium.jpg',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects a member-only type and an insecure image', () => {
+    expect(
+      adminPostInputSchema.safeParse({
+        type: 'in_memoriam',
+        title: 'Not a staff type',
+        body: 'A long enough body for the staff editor.',
+        author: 'BPKIHS Alumni Association',
+      }).success,
+    ).toBe(true);
+    expect(
+      adminPostInputSchema.safeParse({
+        type: 'news',
+        title: 'Staff news',
+        body: 'A long enough body for the staff editor.',
+        author: 'BPKIHS Alumni Association',
+        imageUrl: 'http://evil.example/a.jpg',
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('adminWelcomeInputSchema', () => {
+  it('accepts a complete welcome message with an https video', () => {
+    expect(
+      adminWelcomeInputSchema.safeParse({
+        author: 'Dr Rukmini Basnyat',
+        role: 'President, BPKIHS Alumni Association',
+        text: 'Welcome to the alumni network. Whatever took you away from Dharan, you are still part of this community.',
+        videoUrl: 'https://www.youtube.com/watch?v=abc',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects an empty message', () => {
+    expect(
+      adminWelcomeInputSchema.safeParse({
+        author: 'Dr Rukmini Basnyat',
+        role: 'President',
+        text: 'Too short',
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('alumniImportRequestSchema', () => {
+  const base = {
+    csv: 'Name,Email\nAsha,asha@example.com\n',
+    mapping: {
+      fullName: 0,
+      email: 1,
+      programme: null,
+      batchYear: null,
+      country: null,
+      phone: null,
+      city: null,
+      currentPosition: null,
+      organisation: null,
+      furtherStudies: null,
+      note: null,
+    },
+    dryRun: true,
+  };
+
+  it('holds imported rows unless publication is chosen explicitly', () => {
+    expect(alumniImportRequestSchema.parse(base).publish).toBe(false);
+    expect(alumniImportRequestSchema.parse({ ...base, publish: true }).publish).toBe(true);
   });
 });

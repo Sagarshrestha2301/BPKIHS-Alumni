@@ -86,8 +86,55 @@ export function productionEnvProblems(
 
   const esewa = Boolean(value('ESEWA_PRODUCT_CODE') && value('ESEWA_SECRET_KEY'));
   const khalti = Boolean(value('KHALTI_SECRET_KEY'));
-  if (!esewa && !khalti) {
-    problems.push('Configure at least one payment gateway: eSewa or Khalti.');
+
+  // ConnectIPS is optional, but half a configuration must never look like a working gateway.
+  const connectipsBase = value('CONNECTIPS_BASE_URL');
+  const connectipsMerchant = value('CONNECTIPS_MERCHANT_ID');
+  const connectipsAppId = value('CONNECTIPS_APP_ID');
+  const connectipsAppName = value('CONNECTIPS_APP_NAME');
+  const connectipsPassword = value('CONNECTIPS_APP_PASSWORD');
+  const connectipsPem = value('CONNECTIPS_PRIVATE_KEY');
+  const connectipsPemPath = value('CONNECTIPS_PRIVATE_KEY_PATH');
+  const connectipsAny = Boolean(
+    connectipsBase ||
+    connectipsMerchant ||
+    connectipsAppId ||
+    connectipsAppName ||
+    connectipsPassword ||
+    connectipsPem ||
+    connectipsPemPath,
+  );
+  const connectipsSigning = Boolean(connectipsPem || connectipsPemPath);
+  const connectips = Boolean(
+    connectipsBase &&
+    connectipsMerchant &&
+    connectipsAppId &&
+    connectipsAppName &&
+    connectipsPassword &&
+    connectipsSigning,
+  );
+  if (connectipsAny && !connectips) {
+    problems.push(
+      'ConnectIPS is partly configured: set CONNECTIPS_BASE_URL, CONNECTIPS_MERCHANT_ID, CONNECTIPS_APP_ID, CONNECTIPS_APP_NAME, CONNECTIPS_APP_PASSWORD and the PEM signing key (CONNECTIPS_PRIVATE_KEY or CONNECTIPS_PRIVATE_KEY_PATH).',
+    );
+  }
+  if (connectips) {
+    if (!/^https:\/\//.test(connectipsBase as string) && !isLocalhost(connectipsBase as string)) {
+      problems.push('CONNECTIPS_BASE_URL must be an HTTPS URL outside localhost.');
+    }
+    if (!/^[0-9]{1,15}$/.test(connectipsMerchant as string)) {
+      problems.push('CONNECTIPS_MERCHANT_ID must be a numeric id of at most 15 digits.');
+    }
+    if ((connectipsAppId as string).length > 15) {
+      problems.push('CONNECTIPS_APP_ID must be at most 15 characters.');
+    }
+    if ((connectipsAppName as string).length > 30) {
+      problems.push('CONNECTIPS_APP_NAME must be at most 30 characters.');
+    }
+  }
+
+  if (!esewa && !khalti && !connectips) {
+    problems.push('Configure at least one payment gateway: eSewa, Khalti or ConnectIPS.');
   }
 
   const esewaUrl = value('ESEWA_GATEWAY_URL');
@@ -110,6 +157,16 @@ export function productionEnvProblems(
     (!isHttpUrl(khaltiUrl) || (!khaltiUrl.startsWith('https://') && !isLocalhost(khaltiUrl)))
   ) {
     problems.push('KHALTI_BASE_URL must be an HTTPS URL outside localhost.');
+  }
+
+  // Public forms are scriptable without this, so production refuses to start without it.
+  if (!value('TURNSTILE_SECRET_KEY')) {
+    problems.push('TURNSTILE_SECRET_KEY is required to protect the public forms from bots.');
+  }
+  if (!value('NEXT_PUBLIC_TURNSTILE_SITE_KEY')) {
+    problems.push(
+      'NEXT_PUBLIC_TURNSTILE_SITE_KEY is required at build time (the Turnstile widget cannot render without it).',
+    );
   }
 
   if (value('EMAIL_TRANSPORT') !== 'resend') {

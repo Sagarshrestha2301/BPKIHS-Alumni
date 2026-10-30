@@ -4,14 +4,23 @@ import { ApiError } from '@/lib/api/errors';
 import { isListable, toPublicView, type Viewer } from '@/lib/api/privacy';
 import { buildAlumniFilterOptions, queryAlumni } from '@/lib/api/queries';
 import type { AlumniFilterOptions, AlumniListParams, Alumnus, Paginated } from '@/lib/api/types';
+import { isStoredPhoto, profilePhotoUrl } from '@/lib/photo/url';
 
 import { config } from '../config';
 import { db } from '../db/client';
-import { alumni, user } from '../db/schema';
+import { alumni, session, user } from '../db/schema';
 
 type AlumniRow = typeof alumni.$inferSelect;
 
 export function toAlumnus(row: AlumniRow): Alumnus {
+  // A stored key is never exposed. The API builds a URL that checks this viewer's access on
+  // every request; an external URL (for example a board photo) is passed through unchanged.
+  const photoUrl = isStoredPhoto(row.photoUrl)
+    ? row.photoConsent
+      ? profilePhotoUrl(row.id, row.photoUrl)
+      : undefined
+    : (row.photoUrl ?? undefined);
+
   return {
     id: row.id,
     fullName: row.fullName,
@@ -23,7 +32,8 @@ export function toAlumnus(row: AlumniRow): Alumnus {
     ...(row.city ? { city: row.city } : {}),
     country: row.country,
     ...(row.note ? { note: row.note } : {}),
-    ...(row.photoUrl ? { photoUrl: row.photoUrl } : {}),
+    ...(photoUrl ? { photoUrl } : {}),
+    ...(row.expertise.length > 0 ? { expertise: row.expertise } : {}),
     ...(row.email ? { email: row.email } : {}),
     ...(row.phone ? { phone: row.phone } : {}),
     privacy: {
@@ -92,6 +102,29 @@ export interface AdminAlumniParams {
   pageSize?: number;
 }
 
+export interface AlumniStatusCounts {
+  all: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+/** How many profiles sit in each decision state, for the filter chips. */
+export async function getAlumniStatusCounts(): Promise<AlumniStatusCounts> {
+  const rows = await db
+    .select({ status: alumni.status, value: sql<number>`count(*)::int` })
+    .from(alumni)
+    .groupBy(alumni.status);
+
+  const counts: AlumniStatusCounts = { all: 0, pending: 0, approved: 0, rejected: 0 };
+  for (const row of rows) {
+    const value = Number(row.value);
+    counts[row.status] = value;
+    counts.all += value;
+  }
+  return counts;
+}
+
 export async function listAlumniForAdmin(params: AdminAlumniParams = {}) {
   const page = Math.max(1, params.page ?? 1);
   const pageSize = Math.min(
@@ -144,6 +177,8 @@ export async function approveAlumnus(id: string, adminId: string) {
       status: alumni.status,
       source: alumni.source,
       userId: alumni.userId,
+      fullName: alumni.fullName,
+      email: alumni.email,
       emailVerified: user.emailVerified,
     })
     .from(alumni)
@@ -159,27 +194,85 @@ export async function approveAlumnus(id: string, adminId: string) {
     );
   }
 
-  const [row] = await db
-    .update(alumni)
-    .set({ status: 'approved', approvedAt: new Date(), approvedBy: adminId, updatedAt: new Date() })
-    .where(eq(alumni.id, id))
-    .returning({ id: alumni.id });
-  if (!row) throw new ApiError('not_found', 'That registration was not found.');
-  return { ok: true as const };
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(alumni)
+      .set({ status: 'approved', approvedAt: now, approvedBy: adminId, updatedAt: now })
+      .where(eq(alumni.id, id))
+      .returning({ id: alumni.id });
+    if (!row) throw new ApiError('not_found', 'That registration was not found.');
+
+    // Approval is what turns an account into an alumnus. Only a donor is promoted: an admin
+    // who also has an alumni record keeps the higher role.
+    if (record.userId) {
+      await tx
+        .update(user)
+        .set({ role: 'alumni', updatedAt: now })
+        .where(and(eq(user.id, record.userId), eq(user.role, 'donor')));
+    }
+  });
+
+  // Only a self-registration owns an inbox we may write to. A CSV-imported profile is a
+  // directory entry without consent, so approval must never email it.
+  return {
+    ok: true as const,
+    member: {
+      fullName: record.fullName,
+      email: record.email,
+      notify: record.source === 'self_registered' && record.userId !== null,
+    },
+  };
 }
 
 export async function rejectAlumnus(id: string, reason: string, adminId: string) {
-  const [row] = await db
-    .update(alumni)
-    .set({
-      status: 'rejected',
-      rejectionReason: reason,
-      approvedAt: null,
-      approvedBy: adminId,
-      updatedAt: new Date(),
+  const [record] = await db
+    .select({
+      userId: alumni.userId,
+      source: alumni.source,
+      fullName: alumni.fullName,
+      email: alumni.email,
     })
-    .where(eq(alumni.id, id))
-    .returning({ id: alumni.id });
-  if (!row) throw new ApiError('not_found', 'That registration was not found.');
-  return { ok: true as const };
+    .from(alumni)
+    .where(eq(alumni.id, id));
+  if (!record) throw new ApiError('not_found', 'That registration was not found.');
+
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    await tx
+      .update(alumni)
+      .set({
+        status: 'rejected',
+        rejectionReason: reason,
+        approvedAt: null,
+        approvedBy: adminId,
+        updatedAt: now,
+      })
+      .where(eq(alumni.id, id));
+
+    // A rejected member loses access to alumni-only directory data. Administrators keep
+    // their role even if their own profile is rejected. When a role actually changes, live
+    // sessions are deleted too: the session cookie caches the role for a few minutes, and a
+    // revoked member must not keep the alumni view until it expires.
+    if (record.userId) {
+      const demoted = await tx
+        .update(user)
+        .set({ role: 'donor', updatedAt: now })
+        .where(and(eq(user.id, record.userId), eq(user.role, 'alumni')))
+        .returning({ id: user.id });
+
+      if (demoted.length > 0) {
+        await tx.delete(session).where(eq(session.userId, record.userId));
+      }
+    }
+  });
+
+  return {
+    ok: true as const,
+    member: {
+      fullName: record.fullName,
+      email: record.email,
+      notify: record.source === 'self_registered' && record.userId !== null,
+    },
+  };
 }

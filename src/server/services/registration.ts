@@ -3,7 +3,7 @@ import { eq, sql } from 'drizzle-orm';
 
 import { ApiError } from '@/lib/api/errors';
 import type { RegistrationInput, ResendRegistrationCodeInput } from '@/lib/api/schemas';
-import type { RegistrationResult } from '@/lib/api/types';
+import type { OwnAlumnus, RegistrationResult } from '@/lib/api/types';
 
 import { auth } from '../auth';
 import { db } from '../db/client';
@@ -14,6 +14,10 @@ import { toAlumnus } from './alumni';
  * Self-registration creates two things: the profile the Association reviews, and the account
  * that owns it. The account exists so the member can sign in, confirm the email address and
  * watch the review; the profile is what appears in the directory once approved.
+ *
+ * The account starts as `donor`, not `alumni`: until the Association approves the profile it
+ * must not read `alumni_only` directory fields. `approveAlumnus()` grants the alumni role, and
+ * `rejectAlumnus()` takes it away again.
  *
  * The password is hashed with the same routine Better Auth uses, because the account row is
  * the one Better Auth signs in against later.
@@ -107,7 +111,7 @@ export async function submitRegistration(input: RegistrationInput): Promise<Regi
         name: input.fullName,
         email,
         emailVerified: false,
-        role: 'alumni',
+        role: 'donor',
         createdAt: now,
         updatedAt: now,
       });
@@ -154,7 +158,13 @@ export async function resendRegistrationCode(
 }
 
 /** The signed-in member's own profile, or null when the account has no registration. */
-export async function findRegistrationForUser(userId: string) {
+export async function findRegistrationForUser(userId: string): Promise<OwnAlumnus | null> {
   const [row] = await db.select().from(alumni).where(eq(alumni.userId, userId));
-  return row ? toAlumnus(row) : null;
+  if (!row) return null;
+
+  return {
+    ...toAlumnus(row),
+    ...(row.rejectionReason ? { rejectionReason: row.rejectionReason } : {}),
+    photoConsent: row.photoConsent,
+  };
 }

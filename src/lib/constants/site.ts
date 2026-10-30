@@ -10,6 +10,13 @@
 export const DEVELOPMENT_ORIGIN = 'http://localhost:3000';
 
 /**
+ * Brand navy, the same value as `--color-primary-900` in `styles/tokens.css` and the
+ * `theme_color` in the web-app manifest. It is duplicated here rather than read from CSS so
+ * the metadata exports, which are static and evaluated outside a stylesheet, can use it.
+ */
+export const NAVY = '#0b2a4a';
+
+/**
  * Absolute public origin, with no trailing slash, for canonical URLs, the sitemap and
  * structured data. Built from `NEXT_PUBLIC_SITE_URL` so the browser bundle and the server
  * agree; production validation rejects a missing or mismatched value.

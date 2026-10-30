@@ -7,7 +7,7 @@ import { formatNpr } from '@/lib/format/money';
 import { db } from '../db/client';
 import { donationGoals, donations, paymentEvents, user } from '../db/schema';
 import { sendEmailSafely } from '../email';
-import type { PaymentVerification } from './types';
+import type { PaymentGatewayId, PaymentVerification } from './types';
 
 export interface CompletedDonation {
   donationId: string;
@@ -19,7 +19,7 @@ export interface CompletedDonation {
 
 export async function completeDonation(
   verification: PaymentVerification,
-  gateway: 'esewa' | 'khalti',
+  gateway: PaymentGatewayId,
 ): Promise<CompletedDonation> {
   if (!verification.donationId) {
     throw new ApiError('validation', 'The payment callback did not include our donation id.');
@@ -31,8 +31,18 @@ export async function completeDonation(
     .where(eq(donations.id, verification.donationId));
   if (!donation) throw new ApiError('not_found', 'That donation was not found.');
 
-  // A signed callback still has to match the amount we asked for.
+  // A signature proves the message came from the gateway; it does not prove how much was paid.
+  // A successful callback must therefore state the amount, and it must match what we asked
+  // for. Rejecting a missing amount closes the case where a malformed response would
+  // otherwise complete any amount at all.
+  if (verification.status === 'succeeded' && verification.amountMinor === undefined) {
+    throw new ApiError('validation', 'The gateway did not report an amount for this payment.');
+  }
+  // Only a success has to match. A failed validation may legitimately report zero (ConnectIPS
+  // does), and refusing to record the failure would leave the donation pending forever. Marking
+  // it failed is safe: the update below can never overwrite a succeeded donation.
   if (
+    verification.status === 'succeeded' &&
     verification.amountMinor !== undefined &&
     verification.amountMinor !== Number(donation.amountMinor)
   ) {
@@ -90,6 +100,7 @@ export async function completeDonation(
           gateway,
           gatewayRef: verification.reference,
           gatewayPayload: verification.payload,
+          succeededAt: new Date(),
           updatedAt: new Date(),
         })
         .where(and(eq(donations.id, donation.id), ne(donations.status, 'succeeded')))
@@ -111,22 +122,40 @@ export async function completeDonation(
       }
     });
 
-    if (donation.userId) {
-      const [donor] = await db
-        .select({ email: user.email, name: user.name })
-        .from(user)
-        .where(eq(user.id, donation.userId));
-      if (donor) {
-        await sendEmailSafely({
-          to: donor.email,
-          ...emailCopy.donationReceipt({
-            name: donor.name,
-            amount: formatNpr(Number(donation.amountMinor)),
-            reference: donation.id,
-            ...(goal ? { goalTitle: goal.title } : {}),
-          }),
-        });
-      }
+    const [donor] = donation.userId
+      ? await db
+          .select({ email: user.email, name: user.name })
+          .from(user)
+          .where(eq(user.id, donation.userId))
+      : [];
+
+    if (donor) {
+      await sendEmailSafely({
+        to: donor.email,
+        ...emailCopy.donationReceipt({
+          name: donor.name,
+          amount: formatNpr(Number(donation.amountMinor)),
+          reference: donation.id,
+          ...(goal ? { goalTitle: goal.title } : {}),
+        }),
+      });
+    }
+
+    // The tribute form promises one message to the person named. It is best-effort, like the
+    // receipt: a mail failure must never undo a confirmed payment. The amount is never
+    // included, and an anonymous donor is not named.
+    if (donation.tribute?.notifyEmail) {
+      await sendEmailSafely({
+        to: donation.tribute.notifyEmail,
+        ...emailCopy.tributeNotification({
+          recipientName: donation.tribute.name,
+          kind: donation.tribute.type,
+          donorName:
+            donation.anonymous || !donor ? 'A member of the BPKIHS alumni community' : donor.name,
+          ...(donation.tribute.message ? { message: donation.tribute.message } : {}),
+          ...(goal ? { goalTitle: goal.title } : {}),
+        }),
+      });
     }
   }
 

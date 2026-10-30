@@ -15,6 +15,10 @@ export const PROGRAMMES = [
 ] as const;
 export type Programme = (typeof PROGRAMMES)[number];
 
+/** Account roles. A self-registration becomes `alumni` only when the Association approves it. */
+export const USER_ROLES = ['donor', 'alumni', 'admin'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
 export const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
@@ -37,6 +41,13 @@ export const PAYMENT_METHODS = [
   'paypal',
 ] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/**
+ * Methods with a working adapter. Whether one is offered also depends on its credentials being
+ * configured, which only the server knows; Fonepay has no adapter yet and is absent here.
+ */
+export const IMPLEMENTED_PAYMENT_METHODS = ['esewa', 'khalti', 'connectips'] as const;
+export type ImplementedPaymentMethod = (typeof IMPLEMENTED_PAYMENT_METHODS)[number];
 
 export const TRIBUTE_TYPES = ['in_honour', 'in_memory'] as const;
 export type TributeType = (typeof TRIBUTE_TYPES)[number];
@@ -89,8 +100,11 @@ export const MIN_BATCH_YEAR = 1990;
 /** Most people one RSVP may bring, including the person registering. */
 export const MAX_EVENT_PARTY_SIZE = 6;
 
-/** Minimum accepted account password. There is no MFA, so the floor is above the old 8. */
-export const PASSWORD_MIN_LENGTH = 12;
+/**
+ * Minimum accepted account password: the familiar 8-character floor. Length above it is still
+ * encouraged by the hint copy, and two-factor remains available for administrators.
+ */
+export const PASSWORD_MIN_LENGTH = 8;
 
 /** Default digits in the emailed registration code and the browser's resend cooldown. */
 export const REGISTRATION_CODE_LENGTH = 6;
@@ -99,6 +113,24 @@ export const REGISTRATION_CODE_RESEND_SECONDS = 60;
 /** Newsletter campaign limits, shared by the composer and the API schema. */
 export const NEWSLETTER_SUBJECT_MAX_LENGTH = 120;
 export const NEWSLETTER_BODY_MAX_LENGTH = 20_000;
+
+/** Areas of expertise a member may list, and the length of each entry. */
+export const EXPERTISE_MAX_ITEMS = 8;
+export const EXPERTISE_ITEM_MAX_LENGTH = 40;
+
+/** Suggestions offered by the profile editor. Members may still type their own. */
+export const EXPERTISE_SUGGESTIONS = [
+  'Clinical medicine',
+  'Surgery',
+  'Dentistry',
+  'Nursing',
+  'Public health',
+  'Medical education',
+  'Research',
+  'Hospital administration',
+  'Global health',
+  'Entrepreneurship',
+] as const;
 
 /** Same pattern the newsletter form already uses. */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

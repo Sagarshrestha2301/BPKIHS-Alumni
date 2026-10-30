@@ -1,18 +1,30 @@
 import { headers } from 'next/headers';
 
+import { type Viewer, viewerForRole } from '@/lib/api/privacy';
+import { ADMIN_TWO_FACTOR_REQUIRED } from '@/lib/auth/two-factor';
+
 import { config } from '../config';
 import { AuthError } from './errors';
 import { auth } from './index';
+import { adminTwoFactorPending } from './two-factor-status';
 
 export { AuthError, type AuthErrorCode } from './errors';
+export type { Viewer } from '@/lib/api/privacy';
 
-export type Viewer = { isAlumnus: boolean };
-
-/** No sign-in means the anonymous viewer, so alumni-only fields stay hidden (D29). */
+/** No sign-in means the anonymous viewer, so alumni-only fields stay hidden. */
 export const ANONYMOUS_VIEWER: Viewer = { isAlumnus: false };
 
 export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
+}
+
+/**
+ * Directory visibility for the current request. Only alumni and admins are insiders; a donor
+ * account, a pending registration and a signed-out visitor all see the public view.
+ */
+export async function getViewer(): Promise<Viewer> {
+  const session = await getSession();
+  return viewerForRole(session?.user.role);
 }
 
 export type AuthSession = NonNullable<Awaited<ReturnType<typeof getSession>>>;
@@ -32,6 +44,13 @@ export async function requireAdmin(): Promise<AuthSession> {
   }
   if (adminSessionIsStale(session)) {
     throw new AuthError('unauthenticated', 'Your admin session expired. Sign in again.');
+  }
+  // Production administrators must use an authenticator app. The enrolment page talks to
+  // Better Auth directly, so it is not blocked by this API guard; the rest of /api/v1/admin
+  // answers 403 until the account finishes enrolment. The live column is read because the
+  // session cookie's cached user lags behind enrolment and removal.
+  if (await adminTwoFactorPending(session.user)) {
+    throw new AuthError('forbidden', ADMIN_TWO_FACTOR_REQUIRED);
   }
   return session;
 }

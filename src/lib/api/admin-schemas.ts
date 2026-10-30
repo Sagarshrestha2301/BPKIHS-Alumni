@@ -5,11 +5,18 @@
 import { z } from 'zod';
 
 import {
+  EMAIL_PATTERN,
   EVENT_MODES,
   EVENT_STATUSES,
+  MIN_BATCH_YEAR,
   NEWSLETTER_BODY_MAX_LENGTH,
   NEWSLETTER_SUBJECT_MAX_LENGTH,
+  PHONE_PATTERN,
+  POST_TYPES,
+  PROGRAMMES,
 } from '@/lib/constants/domain';
+
+import { IMPORT_MAX_BYTES } from './alumni-import';
 
 const TOO_LONG = 'That is too long. Please shorten it.';
 
@@ -115,13 +122,92 @@ export const adminFaqInputSchema = z.object({
 export type AdminFaqInput = z.infer<typeof adminFaqInputSchema>;
 
 export const adminWelcomeInputSchema = z.object({
-  author: requiredText('Enter the author name.', 100),
-  role: requiredText('Enter the author role.', 80),
-  text: z.string().trim().min(20, 'Write at least 20 characters.').max(1500, TOO_LONG),
+  author: requiredText('Enter the author.', 120),
+  role: requiredText('Enter the author role.', 120),
+  text: z.string().trim().min(20, 'Write at least 20 characters.').max(4000, TOO_LONG),
   videoUrl: assetUrl,
   photoUrl: assetUrl,
 });
 export type AdminWelcomeInput = z.infer<typeof adminWelcomeInputSchema>;
+
+export const adminFundInputSchema = z.object({
+  category: requiredText('Enter a category.', 100),
+  sharePercent: z
+    .number('Enter a share between 1 and 100.')
+    .int('Enter a whole percentage.')
+    .min(1, 'Enter a share between 1 and 100.')
+    .max(100, 'Enter a share between 1 and 100.'),
+  period: optionalText(40),
+  sortOrder: z.number().int().min(0).max(10_000),
+});
+export type AdminFundInput = z.infer<typeof adminFundInputSchema>;
+
+export const adminPostInputSchema = z.object({
+  type: z.enum(POST_TYPES),
+  title: z.string().trim().min(5, 'Enter a title of at least 5 characters.').max(120, TOO_LONG),
+  body: z.string().trim().min(20, 'Write at least 20 characters.').max(5000, TOO_LONG),
+  author: requiredText('Enter the byline.', 100),
+  imageUrl: assetUrl,
+});
+export type AdminPostInput = z.infer<typeof adminPostInputSchema>;
+
+/* ---------- register import ---------- */
+
+/** One mapped CSV row. The programme is normalised before this runs. */
+export const alumniImportRowSchema = z.object({
+  fullName: requiredText('Enter the full name.', 100),
+  email: z.string().trim().toLowerCase().regex(EMAIL_PATTERN, 'Enter a valid email address.'),
+  phone: z
+    .string()
+    .trim()
+    .regex(PHONE_PATTERN, 'Enter a valid phone number.')
+    .or(z.literal(''))
+    .optional(),
+  programme: z.enum(PROGRAMMES),
+  batchYear: z
+    .number('Enter the batch year, for example 2012.')
+    .int('Enter a whole batch year.')
+    .min(MIN_BATCH_YEAR, `Enter a year from ${MIN_BATCH_YEAR} onwards.`)
+    .refine((year) => year <= new Date().getFullYear() + 1, 'That year is too far ahead.'),
+  furtherStudies: optionalText(150),
+  currentPosition: optionalText(120),
+  organisation: optionalText(120),
+  city: optionalText(80),
+  country: requiredText('Enter the country.', 80),
+  note: optionalText(500),
+});
+export type AlumniImportRow = z.infer<typeof alumniImportRowSchema>;
+
+const importColumn = z.number().int().min(0).max(200).nullable();
+
+/** Every field is present; null means the column is not mapped. */
+export const alumniImportMappingSchema = z.object({
+  fullName: importColumn,
+  email: importColumn,
+  programme: importColumn,
+  batchYear: importColumn,
+  country: importColumn,
+  phone: importColumn,
+  city: importColumn,
+  currentPosition: importColumn,
+  organisation: importColumn,
+  furtherStudies: importColumn,
+  note: importColumn,
+});
+export type AlumniImportMapping = z.infer<typeof alumniImportMappingSchema>;
+
+export const alumniImportRequestSchema = z.object({
+  csv: z.string().min(1, 'Choose a CSV file.').max(IMPORT_MAX_BYTES, 'That file is too large.'),
+  mapping: alumniImportMappingSchema,
+  dryRun: z.boolean(),
+  /**
+   * Whether the imported profiles may appear in the directory immediately. Off by default:
+   * a register row has not agreed to publication, so it waits for review or a claim.
+   */
+  publish: z.boolean().default(false),
+  filename: z.string().trim().max(200).optional(),
+});
+export type AlumniImportRequest = z.infer<typeof alumniImportRequestSchema>;
 
 export const newsletterCampaignInputSchema = z.object({
   subject: z

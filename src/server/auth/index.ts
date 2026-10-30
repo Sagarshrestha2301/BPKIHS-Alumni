@@ -1,13 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
-import { admin, emailOTP } from 'better-auth/plugins';
+import { admin, emailOTP, twoFactor } from 'better-auth/plugins';
 
 import { emailCopy } from '@/content/email';
 
 import { config } from '../config';
 import { db } from '../db/client';
-import { account, session, user, verification } from '../db/schema';
+import { account, session, twoFactor as twoFactorTable, user, verification } from '../db/schema';
 import { sendEmail } from '../email';
 import { appUrl, usesHttps } from '../http/app-url';
 
@@ -19,16 +19,33 @@ const origin = appUrl();
 const secureCookies = usesHttps();
 
 /**
- * Accounts exist for three reasons:
+ * `npm run dev` binds port 3000, but a dev server can still end up elsewhere: a preview tool
+ * that assigns a port, or `next dev -p 4000`. Better Auth validates the `Origin` header on
+ * every request that carries a session cookie, so a mismatch stays invisible until a signed-in
+ * member submits a form : sign-out then fails with "Invalid origin".
+ *
+ * Development therefore trusts loopback on any port. Production trusts exactly the configured
+ * origin; a typo there still fails closed rather than accepting the request.
+ */
+const isProduction = process.env.NODE_ENV === 'production';
+const trustedOrigins = isProduction
+  ? [origin]
+  : [origin, 'http://localhost:*', 'http://127.0.0.1:*', 'http://[::1]:*'];
+
+/**
+ * Accounts exist to give a person an identity:
  * - the donation gate (decision D3), so a receipt can be emailed;
+ * - the alumni directory, community posting and reporting, and the helpdesk, which are
+ *   members-only;
  * - the admin dashboard, which needs a role;
  * - self-registration, so a member can confirm their address and follow the review.
  *
- * Browsing the public site never needs an account: the directory, events and community pages
- * stay anonymous.
+ * Reading the public site : events, community posts, the about pages and the goals : needs
+ * no account.
  *
  * Security decisions (ASVS 2.x and 3.x):
- * - 12-character minimum passwords, longer than the old 8, because there is no MFA yet;
+ * - 8-character minimum passwords, and TOTP two-factor available to every account so an
+ *   administrator can protect the dashboard with something other than a password;
  * - an absolute session lifetime of one day and a rolling refresh, so a stolen cookie does
  *   not stay valid for a month;
  * - Secure, HttpOnly, SameSite=Lax cookies in production;
@@ -38,10 +55,10 @@ export const auth = betterAuth({
   appName: config.appName,
   baseURL: origin,
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: [origin],
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: 'pg',
-    schema: { user, session, account, verification },
+    schema: { user, session, account, verification, twoFactor: twoFactorTable },
   }),
   emailAndPassword: {
     enabled: true,
@@ -54,6 +71,16 @@ export const auth = betterAuth({
      */
     requireEmailVerification: false,
     autoSignIn: true,
+    /** An emailed link, single use, and a successful reset signs every other device out. */
+    resetPasswordTokenExpiresIn: config.passwords.resetTokenMinutes * 60,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, token }) => {
+      const url = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
+      await sendEmail({
+        to: user.email,
+        ...emailCopy.passwordReset({ url, minutes: config.passwords.resetTokenMinutes }),
+      });
+    },
   },
   emailVerification: {
     /** Verifying by code signs the member in, so the register page can continue to /account. */
@@ -72,6 +99,12 @@ export const auth = betterAuth({
     window: config.auth.globalWindowSeconds,
     max: config.auth.globalMax,
     customRules: {
+      // The header asks for this on every page load; the global limit would throttle it
+      // under ordinary traffic and leave signed-in visitors with a signed-out header.
+      '/get-session': {
+        window: config.auth.sessionWindowSeconds,
+        max: config.auth.sessionMax,
+      },
       '/sign-in/email': {
         window: config.auth.signInWindowSeconds,
         max: config.auth.signInMax,
@@ -87,6 +120,10 @@ export const auth = betterAuth({
       '/email-otp/verify-email': {
         window: config.auth.otpWindowSeconds,
         max: config.auth.otpMax,
+      },
+      '/request-password-reset': {
+        window: config.auth.signInWindowSeconds,
+        max: config.auth.signInMax,
       },
     },
   },
@@ -125,6 +162,14 @@ export const auth = betterAuth({
           }),
         });
       },
+    }),
+    /**
+     * TOTP for administrators. The secret never reaches the client after enrolment, backup
+     * codes are hashed, and every sign-in asks for a code once the account turns it on.
+     */
+    twoFactor({
+      issuer: config.appName,
+      twoFactorTable: 'twoFactor',
     }),
     admin({
       defaultRole: 'donor',

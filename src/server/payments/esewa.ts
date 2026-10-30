@@ -4,7 +4,7 @@ import { ApiError } from '@/lib/api/errors';
 import { appUrl } from '@/server/http/app-url';
 
 import { config } from '../config';
-import { paymentMode } from './mode';
+import { isLiveMode, paymentMode } from './mode';
 import type { PaymentGateway, PaymentRedirect, PaymentRequest, PaymentVerification } from './types';
 
 /**
@@ -41,8 +41,17 @@ function safeEqual(a: string, b: string): boolean {
 export const esewaGateway: PaymentGateway = {
   id: 'esewa',
 
+  missingEnvironment() {
+    const missing: string[] = [];
+    if (!process.env.ESEWA_PRODUCT_CODE?.trim()) missing.push('ESEWA_PRODUCT_CODE');
+    if (!process.env.ESEWA_SECRET_KEY) missing.push('ESEWA_SECRET_KEY');
+    // `start()` throws in live mode without this, so the gateway is not ready without it.
+    if (isLiveMode() && !process.env.ESEWA_GATEWAY_URL?.trim()) missing.push('ESEWA_GATEWAY_URL');
+    return missing;
+  },
+
   isConfigured() {
-    return Boolean(process.env.ESEWA_PRODUCT_CODE && process.env.ESEWA_SECRET_KEY);
+    return this.missingEnvironment().length === 0;
   },
 
   async start(request: PaymentRequest): Promise<PaymentRedirect> {

@@ -18,8 +18,16 @@ import {
   AUDIT_LOG_LIMIT,
   DEFAULT_PAGE_SIZE,
   DONATION_PAGE_SIZE,
+  DONOR_PAGE_SIZE,
   MAX_PAGE_SIZE,
 } from '../lib/constants/pagination';
+import {
+  PHOTO_MAX_BYTES,
+  PHOTO_MAX_DIMENSION,
+  PHOTO_MIN_DIMENSION,
+  PHOTO_OUTPUT_QUALITY,
+  PHOTO_OUTPUT_SIZE,
+} from '../lib/constants/photo';
 import { DEVELOPMENT_ORIGIN, SITE_TIME_ZONE } from '../lib/constants/site';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -62,6 +70,8 @@ export type RateLimitBucket =
   | 'report'
   | 'newsletter'
   | 'support'
+  | 'profile'
+  | 'photo'
   | 'admin'
   | 'adminRead'
   | 'csrf';
@@ -92,14 +102,23 @@ export const config = {
   },
 
   passwords: {
-    minLength: integer('PASSWORD_MIN_LENGTH', PASSWORD_MIN_LENGTH, 12, 64),
+    minLength: integer('PASSWORD_MIN_LENGTH', PASSWORD_MIN_LENGTH, 8, 64),
     maxLength: integer('PASSWORD_MAX_LENGTH', 128, 64, 256),
+    /** Lifetime of an emailed password-reset link. */
+    resetTokenMinutes: integer('PASSWORD_RESET_TOKEN_MINUTES', 30, 5, 120),
   },
 
   auth: {
     /** Better Auth's own limiter, in addition to the route limiter. */
     globalMax: 100,
     globalWindowSeconds: 60,
+    /**
+     * Every page load asks who is signed in, so that one read needs a far wider window than
+     * a credential check. It compares a cookie (and its cache) rather than doing work, and a
+     * throttled answer would silently sign the header out for a real visitor.
+     */
+    sessionMax: integer('AUTH_SESSION_MAX', 1000, 60, 100_000),
+    sessionWindowSeconds: integer('AUTH_SESSION_WINDOW_SECONDS', 60, 10, 3600),
     signInMax: integer('AUTH_SIGN_IN_MAX', 5, 1, 100),
     signInWindowSeconds: integer('AUTH_SIGN_IN_WINDOW_SECONDS', 60, 10, 3600),
     signUpMax: integer('AUTH_SIGN_UP_MAX', 5, 1, 100),
@@ -139,10 +158,30 @@ export const config = {
     report: { max: 5, windowMs: 60_000 },
     newsletter: { max: 5, windowMs: 60_000 },
     support: { max: 5, windowMs: 60_000 },
+    profile: { max: 20, windowMs: 60_000 },
+    photo: { max: 6, windowMs: 60_000 },
     admin: { max: 60, windowMs: 60_000 },
     adminRead: { max: 240, windowMs: 60_000 },
     csrf: { max: 60, windowMs: 60_000 },
   } satisfies Record<RateLimitBucket, RateLimitRule>,
+
+  photos: {
+    /**
+     * Directory for resized profile photos. Relative paths resolve from the process working
+     * directory; use an absolute path on a VPS so a deploy cannot replace the directory.
+     * The files are never served directly: `/api/v1/alumni/[id]/photo` checks access first.
+     */
+    directory: text('PHOTO_UPLOAD_DIR', '.uploads/photos'),
+    /** Shared with the browser; see `src/lib/constants/photo.ts`. */
+    maxBytes: PHOTO_MAX_BYTES,
+    minDimension: integer('PHOTO_MIN_DIMENSION', PHOTO_MIN_DIMENSION, 1, 2000),
+    maxDimension: integer('PHOTO_MAX_DIMENSION', PHOTO_MAX_DIMENSION, 500, 12_000),
+    outputSize: integer('PHOTO_OUTPUT_SIZE', PHOTO_OUTPUT_SIZE, 128, 1600),
+    quality: integer('PHOTO_QUALITY', PHOTO_OUTPUT_QUALITY, 40, 100),
+    /** Files are written with owner-only-write permissions; group read is enough for nginx. */
+    fileMode: 0o640,
+    directoryMode: 0o750,
+  },
 
   pagination: {
     /** Shared with the browser helpers; see `src/lib/constants/pagination.ts`. */
@@ -150,6 +189,7 @@ export const config = {
     maxPageSize: MAX_PAGE_SIZE,
     adminPageSize: ADMIN_PAGE_SIZE,
     donationPageSize: DONATION_PAGE_SIZE,
+    donorPageSize: DONOR_PAGE_SIZE,
     auditLimit: AUDIT_LOG_LIMIT,
     /** Hard cap on rows in one CSV export, so a click cannot stream an unbounded table. */
     exportLimit: integer('EXPORT_MAX_ROWS', 5000, 1, 100_000),
@@ -162,6 +202,11 @@ export const config = {
     maxRecipients: integer('NEWSLETTER_MAX_RECIPIENTS', 2000, 1, 10_000),
   },
 
+  bot: {
+    /** How long a Turnstile verification may take before the form answers "try again". */
+    timeoutMs: integer('BOT_VERIFY_TIMEOUT_MS', 5_000, 1_000, 30_000),
+  },
+
   email: {
     timeoutMs: integer('EMAIL_TIMEOUT_MS', 15_000, 1_000, 60_000),
     apiUrl: 'https://api.resend.com/emails',
@@ -169,10 +214,15 @@ export const config = {
   },
 
   payments: {
+    /** Milliseconds before a payment gateway call times out. */
     timeoutMs: integer('PAYMENT_TIMEOUT_MS', 15_000, 1_000, 60_000),
+    /** eSewa sandbox form post URL (set to production URL in live mode). */
     esewaSandboxUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
+    /** Khalti sandbox API base URL (set to production in live mode). */
     khaltiSandboxBaseUrl: 'https://dev.khalti.com/api/v2',
+    /** Description shown when a donor gives to a specific goal. */
     goalGiftDescription: 'BPKIHS Alumni Association gift',
+    /** Description shown for anonymous or general donations. */
     generalGiftDescription: 'General fund gift',
   },
 

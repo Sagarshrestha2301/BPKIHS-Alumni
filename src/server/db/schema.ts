@@ -37,6 +37,7 @@ import {
   RECIPIENT_KINDS,
   REPORT_REASONS,
   TRIBUTE_TYPES,
+  USER_ROLES,
   VISIBILITIES,
 } from '../../lib/constants/domain';
 
@@ -60,11 +61,16 @@ export const reportReasonEnum = pgEnum('report_reason', [...REPORT_REASONS]);
 export const reportStatusEnum = pgEnum('report_status', ['open', 'reviewed', 'dismissed']);
 export const rsvpStatusEnum = pgEnum('rsvp_status', ['confirmed', 'waitlist']);
 export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'closed']);
-export const subscriberStatusEnum = pgEnum('subscriber_status', ['subscribed', 'unsubscribed']);
+/** `pending` is an address that asked to join but has not opened the confirmation email yet. */
+export const subscriberStatusEnum = pgEnum('subscriber_status', [
+  'subscribed',
+  'unsubscribed',
+  'pending',
+]);
 export const campaignStatusEnum = pgEnum('campaign_status', ['sending', 'sent', 'failed']);
 export const tributeTypeEnum = pgEnum('tribute_type', [...TRIBUTE_TYPES]);
 export const recipientKindEnum = pgEnum('recipient_kind', [...RECIPIENT_KINDS]);
-export const userRoleEnum = pgEnum('user_role', ['donor', 'alumni', 'admin']);
+export const userRoleEnum = pgEnum('user_role', [...USER_ROLES]);
 export const paymentGatewayEnum = pgEnum('payment_gateway', [
   'esewa',
   'khalti',
@@ -87,6 +93,8 @@ export const user = pgTable(
     emailVerified: boolean('email_verified').notNull().default(false),
     image: text('image'),
     role: userRoleEnum('role').notNull().default('donor'),
+    /** Set by the two-factor plugin once an authenticator app confirms a TOTP code. */
+    twoFactorEnabled: boolean('two_factor_enabled').notNull().default(false),
     banned: boolean('banned').notNull().default(false),
     banReason: text('ban_reason'),
     banExpires: timestamp('ban_expires', { withTimezone: true }),
@@ -152,6 +160,30 @@ export const verification = pgTable(
   (table) => [index('verification_identifier_idx').on(table.identifier)],
 );
 
+/**
+ * Better Auth's two-factor plugin stores the encrypted TOTP secret and the hashed backup
+ * codes here. The secret is encrypted with `BETTER_AUTH_SECRET`, so a database dump alone
+ * does not let someone generate valid codes.
+ */
+export const twoFactor = pgTable(
+  'two_factor',
+  {
+    id: text('id').primaryKey(),
+    secret: text('secret').notNull(),
+    backupCodes: text('backup_codes').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    verified: boolean('verified').notNull().default(true),
+    failedVerificationCount: integer('failed_verification_count').notNull().default(0),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  },
+  (table) => [
+    index('two_factor_user_id_idx').on(table.userId),
+    index('two_factor_secret_idx').on(table.secret),
+  ],
+);
+
 /* ------------------------------------------------------------------ */
 /* Alumni                                                             */
 /* ------------------------------------------------------------------ */
@@ -173,6 +205,20 @@ export const alumni = pgTable(
     country: text('country').notNull(),
     note: text('note'),
     photoUrl: text('photo_url'),
+    /**
+     * Explicit agreement to publish an uploaded photo in the directory. The photo is never
+     * shown without it, and removing the photo clears it again.
+     */
+    photoConsent: boolean('photo_consent').notNull().default(false),
+    /**
+     * Professional areas the member claims, displayed as tags on the directory profile. Kept
+     * as a string array so the directory can search it without a join table; the API caps the
+     * number and length of entries.
+     */
+    expertise: text('expertise')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     privacyEmail: visibilityEnum('privacy_email').notNull().default('hidden'),
     privacyPhone: visibilityEnum('privacy_phone').notNull().default('hidden'),
     privacyProfile: visibilityEnum('privacy_profile').notNull().default('public'),
@@ -236,9 +282,17 @@ export const donations = pgTable(
     anonymous: boolean('anonymous').notNull().default(false),
     tribute: jsonb('tribute').$type<TributeDetails>(),
     gateway: paymentGatewayEnum('gateway'),
+    /**
+     * Short reference we send to the gateway when the payment starts. ConnectIPS requires its
+     * `TXNID` to be at most 20 characters, so the 36-character donation id cannot be used; its
+     * return carries only `?TXNID=`, and the adapter resolves the donation with this value.
+     */
+    gatewayOrderRef: text('gateway_order_ref'),
     gatewayRef: text('gateway_ref'),
     gatewayPayload: jsonb('gateway_payload').$type<Record<string, unknown>>(),
     receiptSentAt: timestamp('receipt_sent_at', { withTimezone: true }),
+    /** Set only when a verified gateway callback changes this gift to succeeded. */
+    succeededAt: timestamp('succeeded_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -246,8 +300,10 @@ export const donations = pgTable(
     index('donations_user_idx').on(table.userId),
     index('donations_goal_idx').on(table.goalId),
     index('donations_status_idx').on(table.status),
+    index('donations_succeeded_at_idx').on(table.status, table.succeededAt),
     index('donations_created_idx').on(table.createdAt),
     uniqueIndex('donations_gateway_ref_unique').on(table.gateway, table.gatewayRef),
+    uniqueIndex('donations_gateway_order_ref_unique').on(table.gateway, table.gatewayOrderRef),
   ],
 );
 
@@ -267,6 +323,26 @@ export const paymentEvents = pgTable(
     index('payment_events_donation_idx').on(table.donationId),
   ],
 );
+
+export const gatewayCheckStatusEnum = pgEnum('gateway_check_status', [
+  'passed',
+  'failed',
+  'blocked',
+]);
+
+/**
+ * The last integration check per gateway, shown on the admin Payments page. One row per
+ * gateway: this is a status light, not a history. The acceptance script overwrites it on every
+ * run, so "when" is always the most recent attempt.
+ */
+export const gatewayChecks = pgTable('gateway_checks', {
+  gateway: paymentGatewayEnum('gateway').primaryKey(),
+  status: gatewayCheckStatusEnum('status').notNull(),
+  /** Payment mode at the time of the check, or `unset` when it was blocked early. */
+  mode: text('mode').notNull(),
+  detail: text('detail').notNull(),
+  checkedAt: timestamp('checked_at', { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const fundsBreakdown = pgTable('funds_breakdown', {
   id: text('id').primaryKey(),
@@ -415,8 +491,19 @@ export const newsletterSubscribers = pgTable(
       .array()
       .notNull()
       .default(sql`'{}'::newsletter_interest[]`),
+    /**
+     * The service always writes the status explicitly; `subscribeNewsletter` writes `pending`.
+     * The default stays on an existing enum value because Drizzle applies migrations in one
+     * transaction, and PostgreSQL forbids using a value added by that same transaction.
+     */
     status: subscriberStatusEnum('status').notNull().default('subscribed'),
     token: text('token').notNull(),
+    /**
+     * When the provider accepted the confirmation email; null while none has gone out. A
+     * failed send leaves it null, so the next attempt is allowed immediately rather than
+     * waiting for the resend window.
+     */
+    confirmationSentAt: timestamp('confirmation_sent_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

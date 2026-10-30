@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canSee, DEFAULT_VIEWER, isListable, toPublicView } from './privacy';
+import { canSee, DEFAULT_VIEWER, isListable, toPublicView, viewerForRole } from './privacy';
 import type { Alumnus } from './types';
 
 const alumnus: Alumnus = {
@@ -53,6 +53,16 @@ describe('isListable', () => {
     expect(isListable(restricted, alumniViewer)).toBe(true);
     expect(isListable(restricted, outsider)).toBe(false);
     expect(isListable(restricted)).toBe(false);
+  });
+});
+
+describe('viewerForRole', () => {
+  it('admits alumni and administrators, and nobody else', () => {
+    expect(viewerForRole('alumni').isAlumnus).toBe(true);
+    expect(viewerForRole('admin').isAlumnus).toBe(true);
+    expect(viewerForRole('donor').isAlumnus).toBe(false);
+    expect(viewerForRole(undefined).isAlumnus).toBe(false);
+    expect(viewerForRole('something-else').isAlumnus).toBe(false);
   });
 });
 
