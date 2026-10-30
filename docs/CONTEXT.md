@@ -1,9 +1,9 @@
-# CONTEXT.md — BPKIHS Alumni Website (Frontend)
+# CONTEXT.md : BPKIHS Alumni Website (Frontend)
 
 > **Purpose:** One file to paste or upload into any new chat so work continues without loss.
 > **Companion files:** `ROADMAP.md` (phases and checklists) and `DESIGN.md` (visual system and per-page specs).
 > **Scope:** Frontend only. Do not design or write backend code yet. Everything must be backend-ready.
-> **Last updated:** 25 Oct 2026 (Session 11: registration creates a member account, D25 rewritten)
+> **Last updated:** 26 Oct 2026 (Session 17: Cloudflare Turnstile on the public forms)
 
 ---
 
@@ -69,7 +69,7 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D3 | Login | No login across the public site. **Login/signup is requested only when a person chooses to donate**, through Better Auth |
 | D4 | Branding | Use logos and images from bpkihs.edu |
 | D5 | Language | English only. Do not build i18n yet (but keep strings out of deep logic so it can be added) |
-| D6 | Payments | **Real gateways only.** eSewa ePay v2 and Khalti ePayment v2, verified callbacks, no simulator. ConnectIPS and Fonepay are not offered |
+| D6 | Payments | **Real gateways only.** eSewa ePay v2 and Khalti ePayment v2 are live. ConnectIPS was built on 29 Oct 2026 and is offered once NCHL's merchant values are configured; Fonepay is agreed but not built. Verified callbacks, no simulator |
 | D7 | Process | Build pages straight away; no separate wireframe approval step |
 | D8 | Content | No digital content exists (the alumni register is on paper). Production starts empty and the Association enters real content through `/admin/content`; there is no demo dataset |
 | D9 | Responsiveness | Mobile and desktop, fully responsive |
@@ -89,16 +89,16 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 | D23 | Forms | Every field uses `FormField` (label above, hint, inline error with icon, `aria-describedby`/`aria-invalid` linked). Required fields show `*` plus `aria-required`. Errors are never shown by colour alone |
 | D24 | Layout primitives | Pages are built from `Section` (48px/96px rhythm) and `Container` (max 1200px). Headings use the serif and the scale in `tokens.css` |
 | D25 | Registration (proposal §2.2) | Public form that also creates the member's account: email + password, confirmed by an emailed one-time code. The profile is stored as `pending` and published after approval in `/admin/alumni`; approval needs a confirmed address |
-| D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter has signup **and** subscribe/unsubscribe management; the automated digest is backend work |
+| D26 | Community posting (proposal §2.4) | Feed is read-only plus a **"Share an update" form** (no login) that submits as `pending` for moderation, and a **Report** button on posts. Post tags: Achievement, Event, Announcement, In Memoriam (plus News, Story, Notice). Newsletter signup is **double opt-in** (a pending row joins only after the emailed link is confirmed) with subscribe/unsubscribe management; the automated digest is backend work |
 | D27 | Admin dashboard | Built in Phase 9 against the real admin API: overview, registrations, posts, reports, tickets and the donation ledger |
 | D28 | Proposal additions | `BMIT` programme; board `visionStatement`; stats = alumni, funds raised, active programmes; search by name, specialisation, location/country; Donate button on every profile; tribute recipient (batch, mentor, alumnus); event-linked donation drives; past-event galleries; helpdesk topics (account, profile verification, donation receipt); welcome message as text or video |
-| D29 | Anonymous viewer | The public site has no member sign-in, so every visitor is treated as anonymous. Fields and profiles marked `alumni_only` are hidden in the API layer, not in the UI |
+| D29 | Anonymous viewer | The public site can be browsed anonymously. A signed-in alumnus or administrator is the insider viewer; a signed-out visitor and a normal (`donor`) account receive only public fields. Profiles and fields marked `alumni_only` are hidden in the API layer, not in the UI |
 | D30 | Currency | NPR only in the UI. Money stays an integer in minor units plus a currency code, so a USD toggle can be added later without touching the data |
 
 ### 3.2 Reasonable assumptions (change any of these)
 
 - A1: Light mode only; accessibility target WCAG 2.2 AA.
-- A2: Payment methods offered: eSewa and Khalti. ConnectIPS and Fonepay need adapters before they can be shown.
+- A2: Live payment methods: eSewa and Khalti. ConnectIPS is built (29 Oct 2026) and will appear once its merchant pack is configured; Fonepay is agreed but has no adapter. A gateway stays hidden until it is fully configured.
 - A3 (superseded by D25, 25 Oct 2026): Alumni registration used to be a public form with no account. It now creates an account so the member can confirm their email address and check the review; the profile still lands as `pending` and is approved in the admin dashboard.
 - A4: ~~The admin dashboard UI is built last, behind a mock gate~~ Superseded: the dashboard is built against the real API.
 - A5: ~~NPR with a USD toggle~~ Superseded by D30: NPR only for now.
@@ -110,10 +110,10 @@ Act as a **senior frontend and fullstack engineer** who knows the whole stack, b
 |---|---|
 | Phase | **11 complete.** Public site, backend and admin dashboard built; production hardening done. Phase 10 (accessibility/QA) remains |
 | Public site | Home, About/Board/How We Work, Directory and profiles, Register, Donate (goals, checkout, thank-you, transparency, tribute), Events (listing, detail, RSVP, gallery), Community (feed, newsletter), Support and FAQ, Legal ×3 |
-| Backend | Postgres schema and migrations, `/api/v1`, Better Auth, eSewa/Khalti with verified callbacks, admin API, health check and production env validation |
-| Last change (23 Oct 2026) | Removed the mock adapter, simulator, demo checkout methods, demonstration copy and placeholder contacts. Production starts empty with real content. Added startup env checks, `/api/health`, a runtime migration runner, admin bootstrap and `DEPLOYMENT.md` |
-| Next | **Production launch** (live merchant accounts, verified Resend domain, real content, legal review) and Phase 10 (accessibility audit, Lighthouse, cross-browser) |
-| Quality gate | `typecheck`, `lint`, `npm test` (54 files, 299 tests), `npm run test:e2e` (106 passed, 10 skipped) and `npm run build` pass. Production smoke: `/api/health` 200, admin API 401 without a session, no admin content in the redirect HTML |
+| Backend | Postgres schema and migrations, `/api/v1`, Better Auth, eSewa/Khalti/ConnectIPS with verified callbacks (Fonepay pending its integration document), admin API, health check and production env validation |
+| Last change (27 Oct 2026) | The home page is photo-led. The hero is a real BPKIHS campus photograph (`public/hero-bpkihs-campus.jpg`, Wikimedia Commons, CC BY-SA 4.0, credited in the hero and DESIGN.md) under a primary-900 wash and a left-to-right gradient, served by `next/image` with `preload` from a 157 KB 2:1 source. The community cards now lead with each post's photo in a 16:9 band, with a primary-100 type-icon panel filling the same band when a post has no photo, so a mixed row stays aligned. Copy keeps AA contrast over the hero; the LCP budget and accessibility scans pass. Newsletter double opt-in is recorded in `TRACKER.md` C9 |
+| Next | **Production launch** (live merchant accounts, verified Resend domain, real content, legal review) and Phase 10 (manual accessibility/device passes) |
+| Quality gate | `format:check`, `typecheck`, `lint`, `npm test` (66 files, 387 tests), `npm run test:e2e` (273 passed, 0 failed, 76 skipped) and `npm run build` pass. Production smoke: `/api/health` 200, admin API 401 without a session, no admin content in the redirect HTML |
 | Waiting on owner | Q2/Q3 (logo, brand colours, name), Q4, Q7–Q10, live merchant credentials, sending domain and real content |
 | Placeholder in use | Text wordmark "BPKIHS Alumni Association" until a logo is supplied |
 
@@ -287,7 +287,8 @@ interface Alumnus {
   city?: string;
   country: string;
   note?: string;
-  photoUrl?: string;
+  photoUrl?: string;               // stored-key photo is served via the checked API route
+  photoConsent?: boolean;         // own record only; explicit publication agreement
   email?: string;                  // visibility-controlled
   phone?: string;                  // visibility-controlled
   privacy: { email: Visibility; phone: Visibility; profile: Visibility };
@@ -427,6 +428,23 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 | 11 | 25 Oct 2026 | Registration now creates the member's account as well as the profile: password (12 characters minimum), a six-digit code emailed to the address, `/sign-in` and `/account`, and a resend button with a countdown. Better Auth's email-OTP plugin stores codes hashed, expires them in 15 minutes, allows five guesses and rate-limits sends per address. Approval refuses a self-registration whose address is unconfirmed, and an imported register row is claimed rather than duplicated | D25 rewritten, A3 superseded. `BACKEND.md`, `SECURITY.md`, `HOWTO.md`, `DESIGN.md` and the privacy copy updated. Verified against Postgres: register → code printed by the console transport → verify → `/account`; typecheck, lint, unit tests and build pass |
 
+| 12 | 25 Oct 2026 | Closed the last automatic Phase 10 items and two product gaps: `/community/[id]` post pages backed by `GET /api/v1/feed/[id]`; a privacy-safe recent-gift list on `/donate/transparency` backed by `GET /api/v1/donations/donors`; Firefox and WebKit Playwright smoke projects; a throttled 4G / 4x CPU LCP check; and Vite 8's native `resolve.tsconfigPaths` replacing `vite-tsconfig-paths` | Next's `use cache` boundary rethrows an `ApiError` as a plain `Error`, so the cached post getter returns `null` and the page calls `notFound()`; the donor query never selects an email or user id and drops the name of an anonymous gift inside the service. `npm run ci` (317 tests) and the full browser suite (182 passed, 67 skipped) pass; `BACKEND.md`, `HOWTO.md`, `ROADMAP.md` and `TRACKER.md` updated. Still open: manual screen-reader and real-device passes, CSV import, photo upload, scheduled digest (C8) |
+
+| 13 | 25 Oct 2026 | Closed the remaining code-side gaps: administrator TOTP at `/admin/security` (Better Auth two-factor, encrypted secret, hashed backup codes, challenge sign-in and `ADMIN_RESET_2FA` recovery); approval and rejection emails to self-registered members only; `scripts/backup-db.sh` and `scripts/healthcheck.sh` with cron and alert instructions; every admin page now declares `instant = false`; the import browser test no longer shares a profile name between parallel workers and centres the confirmation button over the sticky header | Migration `0003_mute_mercury` adds `two_factor` and `user.two_factor_enabled`. `e2e/mfa.spec.ts` uses a throwaway administrator because enrolment replaces the account's session. Format, typecheck, lint, 340 unit tests, production build and the full browser suite (223 passed, 0 failed, 68 skipped) pass. The scripts are installed, but the host cron entries and an external uptime monitor remain a launch task |
+
+| 14 | 25 Oct 2026 | Added profile photos end to end. `/register` step 2 and `/account/profile` accept a JPEG, PNG or WebP up to 5 MB with a separate consent checkbox; the file is held in the browser until email verification signs the member in, then uploaded. `sharp` validates, applies orientation, strips EXIF/GPS and writes a 512 × 512 WebP to `PHOTO_UPLOAD_DIR`; files are served only by `/api/v1/alumni/[id]/photo`, which re-checks approval and profile visibility. `alumni.photo_consent` (migration `0004_conscious_wendell_rand`) records agreement; replace and delete remove the old file. The registration form, profile editor and directory cards/profile now show photos. Docs and `.env.example` cover persistent VPS storage, nginx body size and photo backups | Storage choice: the app server's persistent disk, matching the documented single-process VPS deployment; an ephemeral or multi-instance host needs an object-storage driver. Verified with unit tests, typecheck, lint, production build and `e2e/photo.spec.ts` (real upload, viewer-checked delivery, fake-image rejection, deletion). |
+| 15 | 26 Oct 2026 | Remedied the open items from `PROPOSAL-COMPLIANCE-AUDIT.md` in its recommended order: the directory is public to signed-out visitors with `alumni_only` records hidden by the API and Directory back in the header nav; `/admin/content` gained a funds-breakdown editor (shares capped at 100%, remainder shown as unallocated) and `/donate/transparency` an empty state; `POST /api/v1/contact` gives institutions a no-account enquiry form beside the member helpdesk; `/admin/posts` now also creates staff news/announcements already published and member posts accept an optional photo URL; a confirmed tribute emails the person named and the ledger shows the tribute; `npm run newsletter:digest` sends the monthly digest from cron (records a campaign, skips a repeat, `--dry-run` previews); the register import asks publish-or-hold and defaults to holding rows for review; the welcome message and its admin editor are restored on the home page | The old pending-queue `GET /api/v1/admin/posts` was kept while `POST` was added beside it. New schema unit tests cover the contact, member-post, fund, staff-post, welcome and import-publish rules. `format:check`, `typecheck`, `lint`, 370 unit tests, production build and the full browser suite (267 passed, 0 failed, 70 skipped) pass. Docs (README, HANDOVER, TRACKER, BACKEND, HOWTO, DEPLOYMENT, ROADMAP, this file and the audit) updated in one pass. |
+
+| 16 | 26 Oct 2026 | Security review of the whole application (60 route handlers, 39 pages, schema, email, payments, uploads, scripts): fixed ten weaknesses in `docs/SECURITY-AUDIT.md` : newsletter preferences accepted an address alone (token or mailed confirmation now required), the unsubscribe link in every newsletter pointed at a missing route (added, 303 with `no-store`), email headers took user text unsanitised, a successful payment callback could omit the amount, Khalti's public callback accepted any `pidx`, route params were decoded twice, recipient addresses reached the logs, the `next/image` allowlist accepted internal hosts, the dev database listened on every interface, and a repeat subscribe re-sent the welcome email | No critical or high finding: role escalation, CSRF, origin, IDOR, injection, upload and payment-forgery probes all failed to get in. Live evidence and the residual-risk list (bot protection, double opt-in, gateway IP allowlist, mandatory TOTP) are in the report. `format:check`, `typecheck`, `lint`, 378 unit tests, production build and the full browser suite (267 passed, 0 failed, 70 skipped) pass |
+
+| 17 | 26 Oct 2026 | Closed the top residual risk from the security review: bot protection on the public forms. Registration, RSVP, `POST /api/v1/contact` and newsletter subscribe/preferences now require a Cloudflare Turnstile token (`x-bot-token` header), verified against `siteverify` after schema validation so a field error never burns the single-use token. Shared `BotCheck` widget (lazy script, reset after failure, load-failure copy); `TURNSTILE_SECRET_KEY` is a production boot requirement and a no-op in development so the browser suite needs no Cloudflare account; CSP allows exactly `https://challenges.cloudflare.com` | `src/server/bot/turnstile.ts` fails closed on timeout, network error or a malformed reply. `env.ts`, `.env.example`, README, DEPLOYMENT, HOWTO, SECURITY and SECURITY-AUDIT updated. `format:check`, `typecheck`, `lint`, 386 unit tests, production build and the full browser suite (267 passed, 0 failed, 70 skipped) pass |
+
+| 18 | 27 Oct 2026 | Visual pass on the home page. The hero is a full-bleed BPKIHS campus photograph under a primary-900 wash and gradient, from a credited CC BY-SA Wikimedia file. The community feed cards lead with each post's `imageUrl` at 16:9; a post without a photo gets a primary-100 panel with its type icon at the same height, so mixed rows align on desktop and stacked cards keep a consistent rhythm on mobile. The compact `/community` listing stays text-only. | The photo URL is author-supplied, so the card renders it `unoptimized` (no host allowlist entry) with decorative `alt`, and the panel is `aria-hidden`. `DESIGN.md` §5.4 and §8.1 record the treatment. Unit tests cover photo, panel and text-only cards; typecheck, lint, unit tests and the browser suites for home, accessibility, overflow and throttling pass |
+
+| 19 | 29 Oct 2026 | Agreed to add ConnectIPS and Fonepay as real gateways once the Association supplies merchant packs. Recorded the scope, required credentials and onboarding steps in `HANDOVER.md` §2 and `TRACKER.md` C7, and updated the status documents. | D6 and A2 amended: the two extra gateways are agreed additions, not launch blockers, and each stays hidden until fully configured. No adapter code yet : ConnectIPS has public NCHL documentation; Fonepay's current specification must come from Fonepay. eSewa/Khalti and the no-simulator rule are unchanged. |
+
+| 20 | 29 Oct 2026 | Built the ConnectIPS adapter against the official NCHL docs: RSA-SHA256 signed form POST, server-side `validatetxn` validation with Basic auth, `SUCCESS`-only completion and an amount check against the stored donation. Added `donations.gateway_order_ref` (migration 0008) because ConnectIPS caps `TXNID` at 20 characters; the short reference is what the return URL carries. Checkout now asks the server which gateways are actually configured instead of hard-coding eSewa/Khalti. | The signing key must be PEM (NCHL's `CREDITOR.pfx` is converted once with openssl; Node cannot read PKCS#12). Env validation rejects a partly configured gateway, CSP `form-action` allows `CONNECTIPS_BASE_URL`, and Fonepay remains unbuilt. Adapter, registry and env tests added. **No NCHL UAT call yet** : the merchant pack is outstanding. |
+
 *Append a new row after every working session.*
 
 ---
@@ -435,12 +453,12 @@ Home · About · Board · How We Work · Directory · Profile · Register · Don
 
 | # | Question | Default if unanswered |
 |---|----------|----------------------|
-| Q1 | ~~Re-upload the proposal~~ **Answered, see 12.1** | — |
+| Q1 | ~~Re-upload the proposal~~ **Answered, see 12.1** | : |
 | Q2 | Exact brand colours and the logo file for the Association (not just BPKIHS)? | Provisional palette in `DESIGN.md` |
 | Q3 | Association name and tagline (e.g. "BPKIHS Alumni Association")? | "BPKIHS Alumni Association" |
 | Q4 | Is there a domain or a Nepali-year (BS) date requirement? | Gregorian dates only |
 | Q5 | Donation currencies: NPR only, or NPR and USD? | NPR only for now (D30); the data model already carries a currency code |
-| Q6 | ~~Admin dashboard timing~~ **Answered, see 12.1** | — |
+| Q6 | ~~Admin dashboard timing~~ **Answered, see 12.1** | : |
 | Q7 | Should the directory show alumni photos? Consent wording? | Optional photo with consent checkbox |
 | Q8 | Who is the contact for helpdesk copy and FAQ answers? (Proposal names Kushal Adhikari as Project Lead; that is the developer's contact, not Association copy) | Placeholder FAQ |
 | Q9 | Social links to include (Facebook, LinkedIn, etc.)? | Facebook (from bpkihs.edu) |

@@ -1,4 +1,4 @@
-# Handover — BPKIHS Alumni Association website
+# Handover : BPKIHS Alumni Association website
 
 Everything a new maintainer or the Association office needs: the logins that exist today, the
 accounts that must be opened in the Association's own name, where every secret lives, the API,
@@ -7,7 +7,7 @@ file is the transfer document.
 
 **What this is.** A Next.js 16 (App Router, TypeScript) site with one Postgres 16 database. One
 data path: the browser talks to `/api/v1/*`, the server talks to Postgres. There is no mock mode,
-no demo dataset and no payment simulator — if the database or a gateway is missing, the site
+no demo dataset and no payment simulator : if the database or a gateway is missing, the site
 fails loudly instead of pretending.
 
 > **Do not commit this file after filling in real secrets.** `.env*` is git-ignored; this file is
@@ -25,7 +25,7 @@ None of it is production.
 | **Admin dashboard** | <http://localhost:3000/admin/sign-in>                      | `admin@bpkihs.local`       | `E2eTestAdmin!99`            |
 | **Database**        | `postgres://bpkihs:bpkihs_dev@localhost:5433/bpkihs`       | `bpkihs`                   | `bpkihs_dev`                 |
 | **Database (psql)** | `docker exec -it bpkihs-postgres psql -U bpkihs -d bpkihs` | `bpkihs`                   | `bpkihs_dev`                 |
-| **Drizzle Studio**  | `npm run db:studio`                                        | —                          | uses `DATABASE_URL`          |
+| **Drizzle Studio**  | `npm run db:studio`                                        | :                          | uses `DATABASE_URL`          |
 | **Member account**  | <http://localhost:3000/sign-in>                            | the address you registered | the password you chose there |
 
 The admin address is `.local`, so it can never be used in production. **Verified working** against
@@ -52,7 +52,8 @@ DELETE FROM "user" WHERE email LIKE 'e2e.%' OR email LIKE 'e2e.admin.%';
 
 ### Resetting an admin password
 
-This is the only recovery path — there is no self-service password reset:
+Members reset their own password from `/sign-in` → **Forgotten your password?**. This command is
+the break-glass path for an administrator:
 
 ```bash
 ADMIN_EMAIL=admin@bpkihs.local \
@@ -62,7 +63,13 @@ npm run db:admin
 ```
 
 The script creates the account if it does not exist, or promotes the existing one and replaces its
-password. It enforces a 12-character minimum and rejects a short weak-password list.
+password. It enforces an 8-character minimum and rejects a short weak-password list.
+
+Production requires TOTP for administrators: an account without it can reach `/admin/security`
+and nothing else in the dashboard, and `/api/v1/admin/*` answers 403. If the administrator has
+lost both the authenticator and the backup codes, add `ADMIN_RESET_2FA=true`. That is the
+documented break-glass path; it removes only that account's authenticator and resets its
+password. Enrol again immediately after signing in.
 
 ---
 
@@ -71,16 +78,18 @@ password. It enforces a 12-character minimum and rejects a short weak-password l
 Nothing here can be registered on the Association's behalf. Each row is an account in **its**
 name, with credentials that stay with the office.
 
-| Service                 | Why it is needed                                                      | Where to create it                                     | What you get                                                       |
-| ----------------------- | --------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| **Resend** (email)      | registration codes, donation receipts, RSVP confirmations, newsletter | <https://resend.com>                                   | `RESEND_API_KEY`, plus a verified sending domain                   |
-| **eSewa merchant**      | eSewa donations, real money                                           | <https://developer.esewa.com.np> → merchant onboarding | `ESEWA_PRODUCT_CODE`, `ESEWA_SECRET_KEY`, live `ESEWA_GATEWAY_URL` |
-| **Khalti merchant**     | Khalti donations, real money                                          | <https://docs.khalti.com> → merchant onboarding        | `KHALTI_SECRET_KEY`, live `KHALTI_BASE_URL`                        |
-| **Domain registrar**    | the public hostname                                                   | any registrar                                          | the domain, and control of DNS records                             |
-| **DNS / email records** | SPF, DKIM, DMARC so mail is delivered                                 | wherever DNS is hosted                                 | the records Resend gives you                                       |
-| **Server or host**      | runs the Node process                                                 | Association's choice                                   | a Linux host with Node 20+ and a public IP                         |
-| **Postgres 16**         | the data                                                              | the same host, or a managed provider                   | `DATABASE_URL`                                                     |
-| **Backup storage**      | nightly database dumps                                                | any object storage                                     | a bucket and a retention policy                                    |
+| Service                 | Why it is needed                                                      | Where to create it                                     | What you get                                                                                                  |
+| ----------------------- | --------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Resend** (email)      | registration codes, donation receipts, RSVP confirmations, newsletter | <https://resend.com>                                   | `RESEND_API_KEY`, plus a verified sending domain                                                              |
+| **eSewa merchant**      | eSewa donations, real money                                           | <https://developer.esewa.com.np> → merchant onboarding | `ESEWA_PRODUCT_CODE`, `ESEWA_SECRET_KEY`, live `ESEWA_GATEWAY_URL`                                            |
+| **Khalti merchant**     | Khalti donations, real money                                          | <https://docs.khalti.com> → merchant onboarding        | `KHALTI_SECRET_KEY`, live `KHALTI_BASE_URL`                                                                   |
+| **ConnectIPS merchant** | ConnectIPS donations, real money                                      | Association's bank → NCHL technical enrollment         | merchant ID, app ID/name, app password, signing certificate, UAT/production base URLs, registered return URLs |
+| **Fonepay merchant**    | Fonepay donations, real money                                         | Association's bank or Fonepay                          | merchant code (`PID`), shared secret, status-API credentials, current integration document, base URLs         |
+| **Domain registrar**    | the public hostname                                                   | any registrar                                          | the domain, and control of DNS records                                                                        |
+| **DNS / email records** | SPF, DKIM, DMARC so mail is delivered                                 | wherever DNS is hosted                                 | the records Resend gives you                                                                                  |
+| **Server or host**      | runs the Node process                                                 | Association's choice                                   | a Linux host with Node 20+ and a public IP                                                                    |
+| **Postgres 16**         | the data                                                              | the same host, or a managed provider                   | `DATABASE_URL`                                                                                                |
+| **Backup storage**      | nightly database dumps                                                | any object storage                                     | a bucket and a retention policy                                                                               |
 
 ### Public sandbox credentials (safe to share, take no real money)
 
@@ -93,14 +102,79 @@ ESEWA_SECRET_KEY=8gBm/:&EnhH.1/q
 ESEWA_GATEWAY_URL=https://rc-epay.esewa.com.np/api/epay/main/v2/form
 ```
 
-Khalti's sandbox key is per-developer-account — copy the one already in your `.env.local`.
+Khalti's sandbox key is per-developer-account : copy the one already in your `.env.local`.
+
+### ConnectIPS and Fonepay (agreed 29 October 2026 : not live yet)
+
+Both were agreed as real gateways. **ConnectIPS is built** (29 Oct 2026) and appears at checkout
+only once every value below is present; **Fonepay has no adapter yet**. There is still no
+simulator, and a half-configured gateway stays hidden rather than failing after the donor chooses
+it (`TRACKER.md` C7a/C7b).
+
+**ConnectIPS (NCHL)**
+
+1. Apply through the Association's bank. The bank completes KYC and sends the merchant for NCHL
+   technical enrollment. NCHL then issues the merchant ID, app ID/name, app password and signing
+   certificate (`CREDITOR.pfx`), and confirms the UAT and production base URLs. The public docs
+   use a `{base_url}` placeholder and publish neither host : take both from NCHL.
+2. Register the static success and failure URLs with NCHL integration support. Both can be
+   `https://<APP_URL>/api/v1/payments/connectips/callback`; localhost is accepted for UAT.
+   ConnectIPS appends only `?TXNID=` and the adapter validates the transaction server-side.
+3. Put these in `.env.local` or the host secret store: `CONNECTIPS_BASE_URL`,
+   `CONNECTIPS_MERCHANT_ID`, `CONNECTIPS_APP_ID`, `CONNECTIPS_APP_NAME`, `CONNECTIPS_APP_PASSWORD`,
+   and the signing key. NCHL issues `CREDITOR.pfx`; Node cannot read PKCS#12, so convert it once
+   and keep the PEM private:
+
+   ```bash
+   openssl pkcs12 -in CREDITOR.pfx -nocerts -nodes -out connectips.key
+   chmod 600 connectips.key
+   ```
+
+   Then set `CONNECTIPS_PRIVATE_KEY_PATH=./connectips.key`, or paste the PEM into
+   `CONNECTIPS_PRIVATE_KEY` (literal `\n` escapes are accepted).
+
+4. Check the credentials before a browser payment:
+
+   ```bash
+   npm run connectips:accept            # sign, post the initiation form, call validation
+   npm run connectips:accept -- --dry-run   # sign only, nothing leaves the machine
+   ```
+
+   It prints PASS/WARN/FAIL per step and exits non-zero on a failure. A pass proves NCHL accepted
+   the merchant credentials and the RSA token; it cannot complete the OTP, so run one sandbox
+   donation next, confirm the goal total and receipt, then switch to the production host and live
+   keys. The adapter and its unit tests are in place; this sandbox run is the remaining acceptance
+   step.
+
+Amounts are paisa, `TXNDATE` is `DD-MM-YYYY`, and the initiation token is RSA-SHA256 over the
+official comma-separated string (ending `TOKEN=TOKEN`). Validation uses Basic auth with the app
+ID and password plus a separately signed token. `TXNID` is at most 20 characters, so the donation
+stores a short `gateway_order_ref` and the adapter resolves it on return; the amount in the
+validation token comes from that stored donation, never from the URL. The browser return is never
+proof of payment.
+
+**Fonepay**
+
+1. Apply through the Association's bank or Fonepay. Ask for the **current** merchant integration
+   document as well as the merchant code (`PID`), shared secret, status-API username/password,
+   sandbox and production base URLs, and the return-URL registration procedure.
+2. Register `https://<APP_URL>/api/v1/payments/fonepay/callback` as the return URL (`RU`).
+3. Put the values in `.env.local` or the host secret store: `FONEPAY_BASE_URL`,
+   `FONEPAY_MERCHANT_CODE`, `FONEPAY_SECRET_KEY`, and `FONEPAY_API_USERNAME` /
+   `FONEPAY_API_PASSWORD` if the status API uses them. Final names are confirmed with the adapter.
+4. Run one sandbox donation before going live.
+
+Do not implement from the 2020 "Web Integration 2.0" document that circulates online: its
+sandbox paths and callback-signature rules conflict, and no current Fonepay-hosted API manual is
+public. The return parameters are untrusted; the adapter must verify the transaction with
+Fonepay's status API and compare the amount before completion.
 
 ---
 
 ## 3. Every environment variable
 
 Two places only: `.env.local` for development (git-ignored, copied from `.env.example`), and the
-hosting platform's environment for production. Never both conflicting — the process environment
+hosting platform's environment for production. Never both conflicting : the process environment
 wins.
 
 ### Required in production
@@ -111,19 +185,22 @@ wins.
 | `BETTER_AUTH_SECRET`   | signing key for sessions and codes, ≥32 chars                        | generate, below                                              |
 | `APP_URL`              | public origin used for redirects and payment returns, https, no path | `http://localhost:3000`                                      |
 | `NEXT_PUBLIC_SITE_URL` | same origin at build time, for canonical links                       | `http://localhost:3000`                                      |
-| `PAYMENT_MODE`         | `sandbox` or `live` — nothing else                                   | `sandbox`                                                    |
+| `PAYMENT_MODE`         | `sandbox` or `live` : nothing else                                   | `sandbox`                                                    |
 | `ESEWA_PRODUCT_CODE`   | eSewa merchant product code                                          | `EPAYTEST`                                                   |
 | `ESEWA_SECRET_KEY`     | eSewa signature secret                                               | sandbox value above                                          |
 | `ESEWA_GATEWAY_URL`    | eSewa form endpoint, required when live                              | sandbox URL above                                            |
 | `KHALTI_SECRET_KEY`    | Khalti secret key                                                    | from your Khalti account                                     |
 | `KHALTI_BASE_URL`      | Khalti API base, required when live                                  | `https://dev.khalti.com/api/v2`                              |
 | `EMAIL_TRANSPORT`      | `console` or `resend`; production must be `resend`                   | `console`                                                    |
-| `RESEND_API_KEY`       | Resend API key                                                       | —                                                            |
+| `RESEND_API_KEY`       | Resend API key                                                       | :                                                            |
 | `EMAIL_FROM`           | verified sender, e.g. `Alumni <no-reply@domain>`                     | `"BPKIHS Alumni Association <no-reply@bpkihs-alumni.local>"` |
-| `CONTACT_EMAIL`        | public office address shown on `/support`                            | —                                                            |
+| `CONTACT_EMAIL`        | public office address shown on `/support`                            | :                                                            |
+| `PHOTO_UPLOAD_DIR`     | writable persistent directory for profile photos                     | `.uploads/photos` (dev)                                      |
 
 `npm run check:env` refuses a deploy that is missing any of these, and the server throws at start
-(`src/server/env.ts`). Generate the auth secret with:
+(`src/server/env.ts`). ConnectIPS variables are read: a partial set fails `check:env`, and a
+complete set adds the gateway. The Fonepay variables listed in §2 are still reserved and ignored
+until C7b lands. Generate the auth secret with:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
@@ -150,6 +227,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 | `HSTS_MAX_AGE_SECONDS`                                       | `15552000`                  | HSTS max-age (180 days)             |
 | `NEWSLETTER_BATCH_SIZE` / `NEWSLETTER_MAX_RECIPIENTS`        | `50` / `2000`               | send batching and hard cap          |
 | `IMAGE_HOSTS`                                                | `bpkihs.edu`                | hosts allowed for `next/image`      |
+| `PHOTO_UPLOAD_DIR`                                           | `.uploads/photos`           | persistent profile-photo directory  |
+| `PHOTO_MIN_DIMENSION` / `PHOTO_MAX_DIMENSION`                | `200` / `6000`              | accepted source dimensions          |
+| `PHOTO_OUTPUT_SIZE` / `PHOTO_QUALITY`                        | `512` / `82`                | stored WebP size and quality        |
 
 ### Where the current values are
 
@@ -157,8 +237,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 | -------------------- | -------------------------------------------------------------------- |
 | `DATABASE_URL`       | `.env.local` (dev)                                                   |
 | `BETTER_AUTH_SECRET` | `.env.local` (dev)                                                   |
-| `RESEND_API_KEY`     | `.env.local` (dev) — obtainable again only from the Resend dashboard |
-| `KHALTI_SECRET_KEY`  | `.env.local` (dev) — from the Khalti dashboard                       |
+| `RESEND_API_KEY`     | `.env.local` (dev) : obtainable again only from the Resend dashboard |
+| `KHALTI_SECRET_KEY`  | `.env.local` (dev) : from the Khalti dashboard                       |
 | Production values    | do not exist yet; set them at deploy time in the host's environment  |
 
 If you are handing this to a person outside the Association, rotate `BETTER_AUTH_SECRET`
@@ -190,7 +270,7 @@ Codes: `validation` 422, `unauthorized` 401, `forbidden` 403, `not_found` 404, `
 
 | Method     | Path                                                                         | Purpose                                                          |
 | ---------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| GET        | `/api/health`                                                                | liveness plus database check — point monitoring here             |
+| GET        | `/api/health`                                                                | liveness plus database check : point monitoring here             |
 | POST       | `/api/v1/registrations`                                                      | register: creates the account and pending profile, emails a code |
 | POST       | `/api/v1/registrations/resend`                                               | resend the code                                                  |
 | GET        | `/api/v1/alumni`, `/api/v1/alumni/filters`, `/api/v1/alumni/[id]`            | directory (approved profiles only)                               |
@@ -202,15 +282,17 @@ Codes: `validation` 422, `unauthorized` 401, `forbidden` 403, `not_found` 404, `
 | POST       | `/api/v1/donations`                                                          | start a donation, returns the gateway redirect                   |
 | GET/POST   | `/api/v1/payments/[gateway]/callback`                                        | eSewa/Khalti return and verification                             |
 | POST/PATCH | `/api/v1/newsletter`                                                         | subscribe, confirm, unsubscribe                                  |
-| POST       | `/api/v1/support`                                                            | helpdesk ticket                                                  |
+| POST       | `/api/v1/support`                                                            | helpdesk ticket (members, after sign-in)                         |
+| POST       | `/api/v1/contact`                                                            | general / institutional enquiry, no account needed               |
 | GET        | `/api/v1/faq`, `/api/v1/board`, `/api/v1/site/stats`, `/api/v1/site/welcome` | content                                                          |
 
 ### Admin (session cookie + `role = 'admin'`, idle timeout applies)
 
-`/api/v1/admin/overview`, `/admin/alumni` (+ `[id]/approve`, `[id]/reject`), `/admin/posts`
-(+ approve/reject), `/admin/reports` (+ resolve), `/admin/tickets` (+ `[id]`), `/admin/donations`,
-`/admin/newsletter`, `/admin/audit`, `/admin/content` (+ `board`, `events`, `faq`, `goals`,
-`welcome` — each with GET/POST and PATCH/DELETE by id).
+`/api/v1/admin/overview`, `/admin/alumni` (+ `[id]/approve`, `[id]/reject`, `import`),
+`/admin/posts` (queue on GET, staff post created already-published on POST, plus `[id]`
+PATCH/DELETE and `[id]/approve`, `[id]/reject`), `/admin/reports` (+ resolve), `/admin/tickets`
+(+ `[id]`), `/admin/donations`, `/admin/newsletter`, `/admin/audit`, `/admin/content` (+ `board`,
+`events`, `faq`, `funds`, `goals`, `welcome` : each with GET/POST and PATCH/DELETE by id).
 
 Everything an admin does is written to the audit log with the actor, target and time.
 
@@ -229,7 +311,7 @@ The full data model, payment sequence and auth design are in
 2. Set every variable in section 3, with `PAYMENT_MODE=sandbox` and `EMAIL_TRANSPORT=console` first.
 3. `npm ci`, then `npm run check:env`. Fix everything it lists.
 4. `npm run build`, then `npm run db:migrate:prod`.
-5. `ADMIN_EMAIL=… ADMIN_PASSWORD=… ADMIN_NAME=… npm run db:admin` — this is the production admin,
+5. `ADMIN_EMAIL=… ADMIN_PASSWORD=… ADMIN_NAME=… npm run db:admin` : this is the production admin,
    not the `.local` one.
 6. Verify the sending domain in Resend (SPF, DKIM, DMARC), set `EMAIL_FROM`, switch
    `EMAIL_TRANSPORT=resend`, and send one real message to a non-owner address.
@@ -237,10 +319,12 @@ The full data model, payment sequence and auth design are in
    confirm it appears in `/admin/donations` and that the receipt arrives, then refund it.
 8. Point DNS at the host, issue TLS, and confirm `APP_URL` and `NEXT_PUBLIC_SITE_URL` match it
    exactly.
-9. Migrate the written alumni register (or approve registrations as they arrive), enter board
-   members, FAQ, goals, events and contact details.
-10. Schedule nightly `pg_dump` backups to off-host storage, monitor `/api/health`, and keep an
-    eye on the audit log.
+9. Migrate the written alumni register (choosing whether each file may be published or is held
+   for review), enter board members, FAQ, goals, events, the funds breakdown and contact details.
+10. Schedule nightly `pg_dump` backups and a photo-directory archive to off-host storage, monitor
+    `/api/health`, and keep an eye on the audit log.
+11. Install the monthly digest: `5 7 1 * * cd /srv/bpkihs-alumni && npm run newsletter:digest`
+    (preview it first with `npm run newsletter:digest -- --dry-run`).
 
 Steps 1–5 are in [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md). Steps 6–10 are the Association's
 own work; nothing here can be done without their credentials.
@@ -251,12 +335,14 @@ own work; nothing here can be done without their credentials.
 
 [`docs/TRACKER.md`](./docs/TRACKER.md) is the authoritative list. The four things that block
 launch: live merchant credentials, a verified sending domain, real Association content, and legal
-and privacy sign-off. Four e2e tests also fail on a fresh database because nothing seeds the donor
-and goal they expect — a test-fixture gap, not a product bug.
+and privacy sign-off. The browser suite seeds its own fixtures before it runs, so a fresh
+checkout only needs Postgres up.
 
-Not built: CSV import of the written register, photo upload (profiles use image URLs),
-ConnectIPS/Fonepay adapters, self-service password reset, and shared rate limiting across more
-than one server instance (the limiter is in-process, so a single instance is assumed).
+Not built: the Fonepay adapter (ConnectIPS is built and waits on NCHL's UAT pack; see §2) and
+shared rate limiting across more than one server instance (the limiter is in-process, so a single
+instance is assumed). Profile photos are now
+uploaded and served through the app; they require a persistent `PHOTO_UPLOAD_DIR` and are backed
+up separately from the database.
 
 ---
 
@@ -266,7 +352,7 @@ than one server instance (the limiter is in-process, so a single instance is ass
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | As it arrives | approve or reject registrations in `/admin/alumni`, publish or reject posts, answer tickets                                  |
 | Weekly        | check `/admin/donations` against the bank statement, resolve reports, look at the audit log                                  |
-| Monthly       | read backups (restore one into a scratch database), `npm audit`, `npm outdated`, update dependencies and re-run `npm run ci` |     | Before any change | `npm run ci` must pass: format, types, lint, 317 unit tests, build. `npm run test:e2e` seeds its own fixture accounts and goal, so it needs nothing prepared |
+| Monthly       | read backups (restore one into a scratch database), `npm audit`, `npm outdated`, update dependencies and re-run `npm run ci` |     | Before any change | `npm run ci` must pass: format, types, lint, 387 unit tests, build. `npm run test:e2e` seeds its own fixture accounts and goal, so it needs nothing prepared |
 
 Troubleshooting lives in [`docs/HOWTO.md`](./docs/HOWTO.md) section 9. Two entries worth knowing
 before you start: a dev server that logs `ECONNREFUSED` is a stopped database, not a bug

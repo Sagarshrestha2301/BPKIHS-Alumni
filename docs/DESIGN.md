@@ -1,7 +1,7 @@
-# DESIGN.md — BPKIHS Alumni Website (Frontend)
+# DESIGN.md : BPKIHS Alumni Website (Frontend)
 
 > Companion to `CONTEXT.md` and `ROADMAP.md`.
-> **Direction (D11):** Hybrid — *institutional trust with a modern layout.*
+> **Direction (D11):** Hybrid : *institutional trust with a modern layout.*
 > **Homepage emphasis (D12):** Balanced mix of donations, directory/registration, and events/community.
 > **Status:** Palette and fonts are **provisional** until the Association logo and brand colours are confirmed (Context Q2).
 > **Implementation:** Tokens are applied in code in Phase 1 Step 3 and Phase 2. See section 11 for how they map to Tailwind and shadcn/ui.
@@ -142,8 +142,16 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 
 ### 5.4 Imagery
 
+- The home hero uses the institute's own campus photograph: `public/hero-bpkihs-campus.jpg`,
+  cropped 2:1 from the banner `bpkihs.edu` publishes (520×320 source, scaled up; the navy wash
+  keeps the softness from reading). The credit is rendered beneath the hero CTAs and must stay
+  while that file is in use. When the communications office supplies a higher-resolution
+  original, replace the file and update the credit in `src/content/home.ts`.
 - Use BPKIHS campus and institutional images from bpkihs.edu (D4), cropped consistently (16:9 hero, 4:3 cards, 1:1 avatars).
-- Overlay hero images with a primary-900 gradient to keep text legible.
+- Home community cards are photo-led: a post's `imageUrl` fills a 16:9 band at the top of the card (`object-cover`, decorative `alt` because the title sits beside it). The URL is author-supplied, so `next/image` renders it unoptimized rather than adding every possible host to the optimiser allowlist.
+- A post without a photo keeps the same 16:9 band as a `primary-100` panel with the post type's icon at 45 % `primary-700`, so a mixed row still lines up. The compact `/community` listing stays text-only.
+- Overlay hero images with a primary-900 wash plus a left-to-right primary-900 gradient, so the
+  copy never sits on a bright part of the photograph and the image still shows on the open side.
 - Every image has meaningful alt text; decorative images use empty alt.
 - Avatars: initials fallback with a tinted background.
 
@@ -154,7 +162,7 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 | Area | 360 px | 768 px | 1024+ px |
 |---|---|---|---|
 | Nav | Menu sheet + bottom bar | Menu sheet | Full inline nav |
-| Hero | Stacked, image below text | Stacked, larger | Split text/image |
+| Hero | Full-bleed photo, text over a navy overlay | Same, taller | Same, photo opens up on the right |
 | Card grids | 1 column | 2 columns | 3–4 columns |
 | Directory filters | Bottom sheet | Collapsible panel | Sticky left sidebar |
 | Tables | Card list | Scroll container | Full table |
@@ -189,12 +197,12 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 **Goal:** Give a first-time visitor three clear paths with equal weight and build trust quickly.
 
 **Sections (in order)**
-1. **Hero:** eyebrow "BPKIHS Alumni Association"; headline (placeholder: "Once BPKIHS, always BPKIHS"); one-line mission; three equal CTAs: *Give*, *Find alumni*, *Join the network*. Background: campus image with gradient.
+1. **Hero:** eyebrow "BPKIHS Alumni Association"; headline (placeholder: "Once BPKIHS, always BPKIHS"); one-line mission; three equal CTAs: *Give*, *Find alumni*, *Join the network*. Background: full-bleed campus photograph under a primary-900 wash and left-to-right gradient, with the photo credit beneath the CTAs.
 2. **Stats band:** alumni registered, funds raised, active programmes (`getSiteStats`); countries and events held optional.
 3. **Three doors:** cards for Donate / Directory + Register / Events + Community, each with a short line and arrow link.
 4. **Featured giving:** top 2–3 goals with progress bars and a "See all goals" link.
 5. **Upcoming events:** next 3 events, with date block and RSVP link.
-6. **From the community:** 3 latest posts (news, story, achievement).
+6. **From the community:** 3 latest posts (news, story, achievement), each a photo-led card from the post's `imageUrl` with a type-icon panel when there is no photo.
 7. **Board preview:** president + 3 members, link to full board.
 8. **Welcome message from the Association** (modelled on BPKIHS's Vice-Chancellor block): photo, name, role, short message as text or an embedded video (`getWelcomeMessage`; placeholder).
 9. **Newsletter signup** strip.
@@ -234,14 +242,16 @@ Each spec lists **sections**, **content**, **states**, **data**, and a **checkli
 
 **Stepper (3 steps)**
 1. **About you:** full name, programme, batch year, country, city.
-2. **Career:** current position, organisation, further studies, short note, optional photo.
-3. **Account and privacy:** email (required, for verification), phone (optional), password and confirmation (12 characters minimum), visibility switches for email, phone and profile, consent checkbox, terms link.
+2. **Career:** current position, organisation, further studies, short note, optional photo with a
+   separate publication-consent checkbox. The file waits in the browser until the email code
+   confirms the account, then uploads to `/account/profile`-quality storage.
+3. **Account and privacy:** email (required, for verification), phone (optional), password and confirmation (8 characters minimum), visibility switches for email, phone and profile, consent checkbox, terms link.
 
 **Validation:** Zod schema; inline errors; progress saved per step in memory only.
 **Verify step:** after submitting, the form is replaced by a code screen naming the address, with a matching-code input, a resend button that counts down, and links back to sign in.
 **Success:** "Thank you. Your email is confirmed and your profile is pending approval" with the reference, a link to `/account` and a link to the Directory.
 **Sign-in:** `/sign-in` (email + password, no indexing) and `/account` (review state, confirm a late address, sign out).
-**Checklist:** [ ] 3 steps [ ] validation [ ] photo upload UI (no real upload) [ ] consent [ ] success [ ] error [ ] keyboard flow
+**Checklist:** [x] 3 steps [x] validation [x] photo upload with consent [x] success [x] error [x] keyboard flow
 
 ---
 

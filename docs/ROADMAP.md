@@ -1,4 +1,4 @@
-# ROADMAP.md — BPKIHS Alumni Website
+# ROADMAP.md : BPKIHS Alumni Website
 
 > Companion to `CONTEXT.md` (decisions, architecture, data) and `DESIGN.md` (visuals, page specs).
 > **Rule:** every phase starts with a plan and ends with a Session Log entry in `CONTEXT.md`.
@@ -18,12 +18,12 @@ until the open questions in `CONTEXT.md` §12 are answered.
 | 2 | Design system and layout shell | [x] |
 | 3 | Data layer (types, API client, contract) | [x] |
 | 4 | Home and About/Governance pages | [x] |
-| 5 | Directory and Registration | [x] (photo upload UI is a stub) |
+| 5 | Directory and Registration | [x] |
 | 6 | Donate flow (with login gate) | [x] UI and backend; live merchant keys still needed |
-| 7 | Events and Community | [x] UI and backend; automated digest is not sent |
+| 7 | Events and Community | [x] UI, backend, post pages and a cron-ready monthly digest |
 | 8 | Support and Legal | [x] draft copy needs Association/legal review |
-| 9 | Admin dashboard UI | [x] overview, moderation, support, donations; events manager and CSV import remain |
-| 10 | Polish, accessibility, performance, QA | [~] foundations done; audit and Lighthouse remain |
+| 9 | Admin dashboard UI | [x] overview, moderation, support, donations, events manager, register import |
+| 10 | Polish, accessibility, performance, QA | [~] automated checks and Lighthouse done; manual keyboard, screen-reader and real-device passes remain |
 | 11 | Backend and deployment | [x] API, schema, auth, payments, production runbook; see `BACKEND.md` and `DEPLOYMENT.md` |
 
 ---
@@ -107,6 +107,14 @@ content (there is no content editor yet), legal review and the accessibility aud
 
 ## What was completed on 25 October 2026
 
+- Member self-service account: `/account` and `/account/profile` show the review state, edit the
+  profile, expertise and privacy settings, change the password, and cover a forgotten password
+  with an emailed single-use link.
+- Role-based access: a registration starts as a normal user, approval promotes it to `alumni`,
+  rejection demotes it and revokes its sessions, and administrators reach `/admin`; the
+  directory shows `alumni_only` records only to alumni and admins.
+- The written register can be imported through `/admin/alumni/import`: map any column names,
+  preview ready/duplicate/invalid rows, then import the valid ones as approved profiles.
 - The browser suite is green and repeatable: a `setup` Playwright project seeds the admin, the
   donor and the scholarship goal (`npm run db:fixtures`) and stores one session per identity, so
   a run signs in twice instead of ten times and no longer trips the sign-in limiter.
@@ -115,17 +123,44 @@ content (there is no content editor yet), legal review and the accessibility aud
 - `/admin/donations` exports the ledger as a CSV, with spreadsheet-formula defusing and an audit
   entry.
 - `sitemap.ts`, `robots.ts`, and JSON-LD for the organisation, events and breadcrumbs.
-- `@axe-core/playwright` scans all 18 public pages for WCAG 2.1 A and AA; the one violation it
+- `@axe-core/playwright` scans all 19 public pages for WCAG 2.1 A and AA; the one violation it
   found (inactive tab contrast) is fixed.
 - Two production bugs found while doing it: the CSP blocked the gateway form POST that completes
   a payment, and checkout offered the sign-in form to a donor whose session had not loaded yet.
+- Phase 10 polish: automated keyboard and focus checks on every page, fonts trimmed (no Devanagari
+  preload), image `sizes` hints, bundle analysis with `npm run analyze` and dead code removed, a
+  copy and placeholder audit, and Lighthouse measured against the production build (90–93
+  performance, 98–100 accessibility, 100 SEO).
+- The e2e fixtures now also create the three goals, three events, three posts, board members and
+  welcome message the public pages render, so a database built from migrations alone is enough.
+- `/community/[id]` gives every post its own page and metadata; `GET /api/v1/feed/[id]` refuses
+  pending posts with a 404. `/donate/transparency` lists confirmed gifts through the new public
+  donor endpoint, which never carries an email and withholds the name of an anonymous donor.
+- The browser suite gained Firefox and WebKit smoke projects, a throttled 4G / low-end CPU check
+  (`e2e/throttle.spec.ts`, LCP under 3 s) and coverage for the post page.
+- Administrator two-factor: `/admin/security` enrols TOTP and backup codes; sign-in becomes a
+  two-step challenge, and a lost device has a documented break-glass recovery.
+- Approval and rejection emails go to self-registered members only, pointing at `/account`;
+  imported register rows are never emailed because there is no consent.
+- `scripts/backup-db.sh` (gzip, retention, optional AES-256) and `scripts/healthcheck.sh`
+  (webhook on failure) close the tooling half of the operations gap; the host cron and uptime
+  monitor still need to be installed at launch.
+- The alumni-import browser test no longer shares a profile name between two parallel workers,
+  and centres the confirmation button so the sticky header cannot intercept it on a phone.
+- Every admin page declares `instant = false`, removing the Cache Components warning logged
+  while navigating the session-guarded dashboard.
+- The suite now creates a throwaway administrator for the two-factor test, because enrolment
+  replaces the account's session and must not disturb the shared fixture.
 
-**Still open:** the manual accessibility and cross-browser passes, Lighthouse, CSV import, photo
-upload, and everything in `TRACKER.md` section A (which needs the Association).
+**Still open:** the manual accessibility pass on real devices, the ConnectIPS sandbox run (adapter
+built; NCHL pack outstanding), the Fonepay adapter (awaiting its current document),
+breached-password lookup, installing the backup/monitor/digest
+schedules on the host, persistent photo storage on the chosen host, and everything in
+`TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 0 — Alignment and docs
+## Phase 0 : Alignment and docs
 
 - [x] Read the proposal and the three reference sites
 - [x] Record decisions D1–D30
@@ -137,7 +172,7 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 1 — Project setup and tooling ✅
+## Phase 1 : Project setup and tooling ✅
 
 - [x] Next.js App Router, TypeScript strict, `noUncheckedIndexedAccess`
 - [x] Tailwind CSS v4 and shadcn/ui (Base UI, Nova)
@@ -145,13 +180,13 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 - [x] Path alias `@/`, folder structure, env files, README
 - [x] Fonts, brand tokens, light mode only, image host for bpkihs.edu
 - [x] Vitest + Testing Library; Playwright; `npm run ci`
-- [ ] Replace `vite-tsconfig-paths` with Vite's native `resolve.tsconfigPaths` (Phase 10)
+- [x] Replaced `vite-tsconfig-paths` with Vite's native `resolve.tsconfigPaths` (25 Oct 2026)
 - [ ] Re-check `npm audit --omit=dev` when shadcn ships a fix (Phase 10; never use `--force`)
 - [x] Add `test`, `test:e2e` and `ci` to the README script table (22 Oct 2026)
 
 ---
 
-## Phase 2 — Design system and layout shell ✅
+## Phase 2 : Design system and layout shell ✅
 
 - [x] Type scale, spacing, container and shadow tokens
 - [x] `Container`, `Section`, `Eyebrow`, `SectionHeading`, `DonateButton`/`DonateLink`
@@ -164,7 +199,7 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 3 — Data layer ✅
+## Phase 3 : Data layer ✅
 
 - [x] `lib/api/types.ts`, domain constants and Zod schemas
 - [x] `lib/api/contract.ts` and the real HTTP adapter
@@ -176,7 +211,7 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 4 — Home and About/Governance ✅
+## Phase 4 : Home and About/Governance ✅
 
 - [x] Hero with three equal CTAs
 - [x] Welcome message, stats band, three doors
@@ -187,7 +222,7 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 5 — Directory and Registration
+## Phase 5 : Directory and Registration
 
 **Directory**
 - [x] Search, programme/batch/country/city filters and “further studies”
@@ -195,18 +230,21 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 - [x] Desktop sidebar, mobile filter sheet and active-filter chips
 - [x] Person cards, sorting, pagination (12 per page)
 - [x] Profile page with privacy-aware fields
+- [x] Browsable signed out: public profiles, search and filters for everyone, `alumni_only`
+      records hidden by the API, with Directory back in the main navigation (26 Oct 2026)
 - [x] Loading, empty, error and success states
 
 **Registration**
 - [x] Three-step form with Zod validation and per-step checks
 - [x] Consent and privacy choices
 - [x] Success “pending approval” screen with reference
-- [ ] Photo upload: the control is a disabled stub until storage exists
+- [x] Photo upload: `/register` and `/account/profile`, with consent, validation and deletion
+      (25 Oct 2026; C2)
 - [x] Approval queue: `/admin/alumni` approves and rejects with a reason (24 Oct 2026)
 
 ---
 
-## Phase 6 — Donate flow (UI only)
+## Phase 6 : Donate flow (UI only)
 
 - [x] `/donate` goals with progress bars, quick amounts and general fund
 - [x] NPR-only display (decision D30; no USD toggle)
@@ -216,12 +254,14 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 - [x] `/donate/transparency` with a donut and table
 - [x] `/donate/tribute` form
 - [x] Gateway redirect, signed callback / server lookup, idempotent completion and emailed receipt
+- [x] Tribute notification emailed to the person named on confirmation, and the tribute shown in
+      the admin ledger (26 Oct 2026)
 - [ ] Live merchant credentials and a verified sending domain
-- [ ] Donor list on the transparency page (needs a public, privacy-aware API)
+- [x] Donor list on the transparency page (privacy-aware public API; 25 Oct 2026)
 
 ---
 
-## Phase 7 — Events and Community (UI only)
+## Phase 7 : Events and Community (UI only)
 
 **Events**
 - [x] Listing with Upcoming/Past tabs and search
@@ -233,17 +273,21 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 **Community**
 - [x] Feed with type filters and “Load more”
-- [x] “Share an update” form (no login; submits as pending)
+- [x] “Share an update” form (members only; submits as pending, optional photo URL) (26 Oct 2026)
 - [x] Report action on posts
 - [x] Newsletter signup, interests and unsubscribe preferences
-- [ ] Automated digest and post-detail page (backend / later polish)
+- [x] Post-detail page with its own metadata (25 Oct 2026)
+- [x] Automated monthly digest: `npm run newsletter:digest` builds and sends it, records the
+      campaign and skips a repeat run (26 Oct 2026); the cron entry still has to be installed
 
 ---
 
-## Phase 8 — Support and Legal
+## Phase 8 : Support and Legal
 
 - [x] `/support` contact cards and helpdesk form (topics: account, profile verification,
       donation receipt, general)
+- [x] Separate no-account contact form for general and institutional enquiries, posted to
+      `/api/v1/contact` (26 Oct 2026)
 - [x] `/support/faq` with search, categories and accordion
 - [x] `/legal/privacy`, `/legal/terms`, `/legal/accessibility` (draft copy, TOC, review notice)
 - [x] 404, error and loading pages
@@ -252,7 +296,7 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 
 ---
 
-## Phase 9 — Admin dashboard UI
+## Phase 9 : Admin dashboard UI
 
 - [x] Admin gate (Better Auth session, `admin` role)
 - [x] Overview
@@ -262,38 +306,48 @@ upload, and everything in `TRACKER.md` section A (which needs the Association).
 - [x] Events manager: create, edit and delete under `/admin/content` (24 Oct 2026)
 - [x] Posts manager
 - [x] Support tickets list
-- [ ] CSV import UI for the written register (upload → preview → validate → confirm)
+- [x] Register import: upload → map columns → preview → choose publish or hold → confirm
+      (25 Oct 2026; hold-for-review added 26 Oct 2026)
+- [x] Staff post composer: news, notices and announcements created already published (26 Oct 2026)
+- [x] Funds-breakdown editor under `/admin/content`, with shares capped at 100% and an empty
+      state on `/donate/transparency` (26 Oct 2026)
+- [x] Recent-gift list on the public transparency page (25 Oct 2026)
 
 **Exit criteria:** every moderation task the Association does weekly can be completed in the
-dashboard. CSV import is the remaining gap; the ledger export is tracked as C4.
+dashboard, including importing the written register. **Met.**
 
 ---
 
-## Phase 10 — Polish, accessibility, performance, QA
+## Phase 10 : Polish, accessibility, performance, QA
 
 - [x] Keyboard basics, skip link, landmarks and visible focus
 - [x] Contrast audit test
-- [ ] Full keyboard walkthrough of every page
-- [ ] Screen-reader pass (NVDA/VoiceOver) on forms, dialogs and tables
+- [x] Automated keyboard and focus-ring checks on every public page (25 Oct 2026)
+- [ ] Manual keyboard walkthrough and screen-reader pass (NVDA/VoiceOver) on forms, dialogs and
+      tables
 - [x] Automated axe checks on every public page (`e2e/a11y.spec.ts`, 25 Oct 2026)
-- [ ] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95, SEO ≥ 95
-- [ ] Image optimisation and font subsetting
-- [ ] Bundle analysis; remove unused code
-- [ ] Cross-browser: Chrome, Safari, Firefox, Edge; iOS Safari, Android Chrome
+- [x] Lighthouse mobile: performance 90–93, accessibility 98–100, SEO 100 (25 Oct 2026)
+- [x] Image sizing hints and font preload trimming (25 Oct 2026)
+- [x] Bundle analysis (`npm run analyze`) and dead-code removal (25 Oct 2026)
+- [~] Cross-browser: Chromium, Firefox and WebKit smoke pass; Edge and real iOS/Android devices
+      remain
 - [ ] Throttled 4G and low-end device test
-- [ ] Copy review and placeholder audit
+- [x] Copy review and placeholder audit (25 Oct 2026); Association sign-off still open
 - [x] Sitemap, robots and structured data (Organization, Event, BreadcrumbList; 25 Oct 2026)
+- [x] Cross-browser smoke on Firefox and WebKit (25 Oct 2026); a real-device pass is still open
+- [x] Throttled 4G with a 4x CPU throttle, LCP under 3 s (25 Oct 2026)
 
 ---
 
-## Phase 11 — Backend handoff package
+## Phase 11 : Backend handoff package
 
 - [x] `docs/BACKEND.md`: every route, the contract, the data model and payment flow
 - [x] Zod schemas are the validation spec, shared by forms and routes
 - [x] Auth, rate-limit and file-upload needs documented
 - [x] Payment integration notes per gateway
 - [x] `docs/DEPLOYMENT.md`: environment, migrations, admin bootstrap, go-live and rollback
-- [ ] CSV import column spec (blocked on the Association's register format)
+- [x] Register import accepts any column names through the mapping screen (25 Oct 2026)
+- [x] Administrator two-factor, recovery path, backup and health-check scripts (25 Oct 2026)
 
 ---
 
@@ -315,9 +369,11 @@ dashboard. CSV import is the remaining gap; the ledger export is tracked as C4.
 
 **Next:** production launch (deploy, live merchant accounts, verified sending domain, real
 content entered through `/admin/content`) and the manual half of Phase 10 (keyboard and
-screen-reader passes, Lighthouse, cross-browser). The largest remaining product gaps are CSV
-import of the written alumni register and photo upload; both need a decision from the Association
-first.
+screen-reader passes, a real-device cross-browser pass). Photo upload is built against the
+persistent disk of the documented VPS deployment; an ephemeral or multi-instance host needs an
+object-storage driver first. The digest runs from `npm run newsletter:digest` on the host's cron.
+The ConnectIPS adapter is built but needs NCHL's UAT pack for its first sandbox donation; Fonepay
+needs its current integration document before it can be built.
 
 **Still open:** Q2/Q3 (logo and colours), Q4 (dates), Q7 (photos), Q8 (FAQ/helpdesk owner),
 Q9 (social links), Q10 (donation wording).
