@@ -1,0 +1,1 @@
+ALTER TABLE "alumni" ADD COLUMN "photo_consent" boolean DEFAULT false NOT NULL;

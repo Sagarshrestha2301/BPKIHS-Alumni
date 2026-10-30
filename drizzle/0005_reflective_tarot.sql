@@ -1,0 +1,1 @@
+ALTER TYPE "public"."subscriber_status" ADD VALUE 'pending';

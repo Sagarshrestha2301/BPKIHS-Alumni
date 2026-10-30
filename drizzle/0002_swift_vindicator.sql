@@ -1,0 +1,1 @@
+ALTER TABLE "alumni" ADD COLUMN "expertise" text[] DEFAULT '{}'::text[] NOT NULL;

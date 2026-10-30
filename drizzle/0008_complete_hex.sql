@@ -1,0 +1,2 @@
+ALTER TABLE "donations" ADD COLUMN "gateway_order_ref" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "donations_gateway_order_ref_unique" ON "donations" USING btree ("gateway","gateway_order_ref");
