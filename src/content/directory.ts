@@ -1,6 +1,7 @@
 export const directoryPage = {
   title: 'Alumni directory',
-  description: 'Find fellow BPKIHS graduates by name, programme, workplace or place.',
+  description:
+    'Browse public profiles of BPKIHS graduates. Sign in to see members-only details, or join to add your own.',
   search: {
     label: 'Search alumni',
     formLabel: 'Directory search',
@@ -35,18 +36,27 @@ export const directoryPage = {
     chips: { batch: 'Batch', city: 'City', further: 'Further studies' },
   },
   profile: {
-    pageTitle: 'Alumni profile',
     back: 'Back to directory',
     donate: 'Donate',
-    detailsLabel: 'Profile details',
-    work: 'Work',
-    place: 'Location',
+    about: 'About',
+    contact: 'Contact',
     further: 'Further studies',
+    expertise: 'Areas of expertise',
     email: 'Email',
     phone: 'Phone',
-    note: 'About',
+    listedSince: 'Listed since',
+    support: {
+      title: 'Support the Association',
+      text: 'Gifts fund scholarships, teaching and the alumni programme.',
+    },
+    privacyNote: 'Profiles show only what each alumnus chose to share.',
   },
   donateLink: { label: 'Support the Association' },
+  guestNote: {
+    text: 'You are browsing public profiles. Sign in to see members-only contact details.',
+    signIn: 'Sign in',
+    register: 'Join the directory',
+  },
   resultsLabel: 'Alumni results',
   empty: {
     title: 'No alumni found',

@@ -47,6 +47,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         paragraphs: [
           'You choose the visibility of your email, phone and profile separately: public, alumni only or hidden. Hidden details are never returned by the public site.',
           '“Alumni only” information is not shown on the public directory or profile pages. Your account page shows your own details, and the Association can see the full record for verification.',
+          'A profile photo is optional and has its own consent. If you upload one, it follows your profile visibility, is resized and stored without its location metadata, and is deleted when you remove it from your account. You can withdraw photo consent at any time by removing the photo.',
         ],
       },
       {
@@ -162,7 +163,7 @@ export const legalDocuments: Record<LegalDocument['slug'], LegalDocument> = {
         id: 'known',
         title: 'Known gaps',
         paragraphs: [
-          'The site has not yet had a full screen-reader review or an independent audit. Some images supplied by the Association may need better descriptions, and uploading a profile photo is not available yet.',
+          'The site has not yet had a full screen-reader review or an independent audit. Some images supplied by the Association may need better descriptions. Photos uploaded by members can be added and removed from the profile editor.',
         ],
       },
       {

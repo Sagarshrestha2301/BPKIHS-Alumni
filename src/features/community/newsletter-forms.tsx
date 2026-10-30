@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from 'react';
 
+import { BotCheck } from '@/components/shared/bot-check';
 import { FormField } from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +21,8 @@ export function NewsletterSignup({ client }: { client?: ApiClient }) {
   const [interests, setInterests] = useState<NewsletterInterest[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
+  const [botToken, setBotToken] = useState('');
+  const [botReset, setBotReset] = useState(0);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -31,11 +34,24 @@ export function NewsletterSignup({ client }: { client?: ApiClient }) {
     setError(null);
     setStatus('submitting');
     try {
-      await (client ?? getApiClient()).subscribeNewsletter(parsed.data);
+      const result = await (client ?? getApiClient()).subscribeNewsletter(parsed.data, {
+        botToken,
+      });
+      if (!result.confirmationEmailSent) {
+        // The address is pending, but no email went out: say so rather than send the visitor
+        // to an inbox that will stay empty. The next attempt sends again immediately.
+        setStatus('idle');
+        setError(copy.emailFailed);
+        setBotToken('');
+        setBotReset((value) => value + 1);
+        return;
+      }
       setStatus('done');
     } catch (caught) {
       setStatus('idle');
       setError(isApiError(caught) ? caught.message : copy.error);
+      setBotToken('');
+      setBotReset((value) => value + 1);
     }
   }
 
@@ -88,6 +104,8 @@ export function NewsletterSignup({ client }: { client?: ApiClient }) {
         </div>
       </fieldset>
 
+      <BotCheck onToken={setBotToken} resetKey={botReset} />
+
       <Button
         type="submit"
         disabled={status === 'submitting'}
@@ -104,6 +122,8 @@ export function NewsletterPreferences({ client }: { client?: ApiClient }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
+  const [botToken, setBotToken] = useState('');
+  const [botReset, setBotReset] = useState(0);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -115,11 +135,13 @@ export function NewsletterPreferences({ client }: { client?: ApiClient }) {
     setError(null);
     setStatus('submitting');
     try {
-      await (client ?? getApiClient()).updateNewsletterPrefs(parsed.data);
+      await (client ?? getApiClient()).updateNewsletterPrefs(parsed.data, { botToken });
       setStatus('done');
     } catch (caught) {
       setStatus('idle');
       setError(isApiError(caught) ? caught.message : copy.error);
+      setBotToken('');
+      setBotReset((value) => value + 1);
     }
   }
 
@@ -145,6 +167,8 @@ export function NewsletterPreferences({ client }: { client?: ApiClient }) {
           />
         )}
       </FormField>
+      <BotCheck onToken={setBotToken} resetKey={botReset} />
+
       <Button
         type="submit"
         variant="outline"

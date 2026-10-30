@@ -31,9 +31,10 @@ describe('ProfileView', () => {
       />,
     );
     expect(screen.getByText('MBBS, batch 2012')).toBeTruthy();
-    expect(screen.getByText('Consultant, Valley Hospital')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Consultant' })).toBeTruthy();
+    expect(screen.getByText('Valley Hospital')).toBeTruthy();
     expect(screen.getByText('Kathmandu, Nepal')).toBeTruthy();
-    expect(screen.getByText('MD in Medicine')).toBeTruthy();
+    expect(screen.getByText(/MD in Medicine/)).toBeTruthy();
     expect(screen.getByText('Happy to mentor juniors.')).toBeTruthy();
   });
 
@@ -41,10 +42,10 @@ describe('ProfileView', () => {
     render(
       <ProfileView person={{ ...base, email: 'asha@example.com', phone: '+977 9800000000' }} />,
     );
-    expect(screen.getByRole('link', { name: 'asha@example.com' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /asha@example\.com/ }).getAttribute('href')).toBe(
       'mailto:asha@example.com',
     );
-    expect(screen.getByRole('link', { name: '+977 9800000000' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /\+977 9800000000/ }).getAttribute('href')).toBe(
       'tel:+9779800000000',
     );
   });

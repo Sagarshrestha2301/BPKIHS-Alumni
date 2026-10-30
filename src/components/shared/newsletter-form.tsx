@@ -3,9 +3,11 @@
 import { CircleAlertIcon } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
+import { BotCheck } from '@/components/shared/bot-check';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { newsletterPage } from '@/content/community';
 import { type ApiClient, getApiClient } from '@/lib/api/client';
 import { isApiError } from '@/lib/api/errors';
 
@@ -16,6 +18,11 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [botToken, setBotToken] = useState('');
+  const [botReset, setBotReset] = useState(0);
+  // The footer sits on every page, so Turnstile is mounted on first interaction rather than
+  // loading a third-party script for every visitor who never touches the newsletter box.
+  const [botActive, setBotActive] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,12 +34,25 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
     setError(null);
     setSubmitting(true);
     try {
-      await (client ?? getApiClient()).subscribeNewsletter({ email: address, interests: [] });
+      const result = await (client ?? getApiClient()).subscribeNewsletter(
+        { email: address, interests: [] },
+        { botToken },
+      );
+      // The address is held as pending either way. What the visitor must not be told is
+      // "check your inbox" when the provider refused the message.
+      if (!result.confirmationEmailSent) {
+        setError(newsletterPage.emailFailed);
+        setBotToken('');
+        setBotReset((value) => value + 1);
+        return;
+      }
       setDone(true);
     } catch (caught) {
       setError(
         isApiError(caught) ? caught.message : 'We could not subscribe you. Please try again.',
       );
+      setBotToken('');
+      setBotReset((value) => value + 1);
     } finally {
       setSubmitting(false);
     }
@@ -41,7 +61,7 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
   if (done) {
     return (
       <p role="status" className="text-primary-900 font-medium">
-        Thank you. You are on the list.
+        {newsletterPage.success}
       </p>
     );
   }
@@ -58,6 +78,7 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          onFocus={() => setBotActive(true)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'newsletter-error' : undefined}
           className="h-11 bg-white sm:max-w-sm"
@@ -66,8 +87,18 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
           {submitting ? 'Subscribing…' : 'Subscribe'}
         </Button>
       </div>
+      {botActive ? (
+        <div className="mt-3">
+          <BotCheck onToken={setBotToken} resetKey={botReset} />
+        </div>
+      ) : null}
+
       {error ? (
-        <p id="newsletter-error" className="text-danger-600 mt-2 flex items-center gap-1.5 text-sm">
+        <p
+          id="newsletter-error"
+          role="alert"
+          className="text-danger-600 mt-2 flex items-center gap-1.5 text-sm"
+        >
           <CircleAlertIcon aria-hidden="true" className="size-4" />
           {error}
         </p>

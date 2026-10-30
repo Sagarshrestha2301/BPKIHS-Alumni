@@ -12,7 +12,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
     const { action } = await parseBody(request, resolveSchema);
-    const result = await resolveReport(decodeURIComponent(id), action, session.user.id);
+    const result = await resolveReport(id, action, session.user.id);
     await writeAudit({
       actorId: session.user.id,
       action,

@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * Sign-in for the donation gate only (decision D3). The rest of the public site never
- * asks anyone to log in. The session lives in memory: a reload signs you out, on purpose.
- * Sign-in and sign-up go through ApiClient, so the UI does not know or care how the
- * backend implements them.
+ * Sign-in for the donation gate (decision D3) and the sign-in form itself. Members-only
+ * areas : the directory, sharing, reporting and the helpdesk : decide with the session the
+ * server reads, not with this context. The session here lives in memory: a reload signs you
+ * out, on purpose. Sign-in and sign-up go through ApiClient, so the UI does not know or care
+ * how the backend implements them.
  */
 import {
   createContext,

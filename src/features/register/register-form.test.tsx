@@ -94,6 +94,41 @@ describe('RegisterForm', () => {
     expect(await screen.findByText(/invalid otp/i)).toBeInTheDocument();
   });
 
+  it('requires photo consent before leaving the photo step', async () => {
+    renderForm();
+
+    fillAboutStep();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    const photo = new File([new Uint8Array(16)], 'profile.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText(/profile photo/i), {
+      target: { files: [photo] },
+    });
+    expect(screen.getByText('profile.png')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByText('Please agree to your photo appearing in the directory.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /i agree to my photo/i })).toBeInTheDocument();
+  });
+
+  it('rejects a file that is not an accepted image before it reaches the API', async () => {
+    renderForm();
+
+    fillAboutStep();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    const documentFile = new File(['not an image'], 'notes.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText(/profile photo/i), {
+      target: { files: [documentFile] },
+    });
+
+    expect(await screen.findByText('Choose a JPEG, PNG or WebP image.')).toBeInTheDocument();
+    expect(screen.queryByText('notes.pdf')).not.toBeInTheDocument();
+  });
+
   it('goes back to the first step when a later step is invalid', async () => {
     renderForm();
 

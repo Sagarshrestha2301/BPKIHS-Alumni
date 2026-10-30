@@ -2,6 +2,9 @@ export type NavItem = { label: string; href: string };
 
 export const site = {
   name: 'BPKIHS Alumni Association',
+  /** One sentence for places that take a single line: the manifest and the default meta description. */
+  tagline:
+    'The lifelong network of B.P. Koirala Institute of Health Sciences alumni. Find fellow alumni, give back and join events.',
   instituteName: 'B.P. Koirala Institute of Health Sciences',
   instituteUrl: 'https://bpkihs.edu',
   copyrightYear: 2026,
@@ -22,5 +25,8 @@ export const mainNav: readonly NavItem[] = [
 export const utilityNav: readonly NavItem[] = [
   { label: 'Contact', href: '/support' },
   { label: 'FAQ', href: '/support/faq' },
-  { label: 'Sign in', href: '/sign-in' },
 ];
+
+/** Where the utility bar sends a visitor who is not signed in. */
+export const signInHref = '/sign-in';
+export const signInLabel = 'Sign in';

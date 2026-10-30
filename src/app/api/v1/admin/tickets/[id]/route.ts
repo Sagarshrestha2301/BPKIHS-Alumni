@@ -12,7 +12,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
     const { status } = await parseBody(request, patchSchema);
-    const result = await setTicketStatus(decodeURIComponent(id), status);
+    const result = await setTicketStatus(id, status);
     await writeAudit({
       actorId: session.user.id,
       action: 'status',

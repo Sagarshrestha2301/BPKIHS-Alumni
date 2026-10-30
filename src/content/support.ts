@@ -14,13 +14,39 @@ export const supportPage = {
     'We aim to reply within two working days. Include your donation reference if your question is about a gift.',
   helpdeskTitle: 'Send a message',
   helpdeskDescription:
-    'Choose a topic so the message reaches the right person. You do not need an account.',
+    'Choose a topic so the message reaches the right person. We reply to the email you give us.',
+  sendingAs: 'Sending as',
+  signInPrompt: {
+    title: 'Sign in to send your message',
+    text: 'Your message is saved. Sign in with your member account so the Association knows who to reply to. The form will be waiting when you return. Or create an account; it takes a minute.',
+    signIn: 'Sign in',
+    register: 'Create an account',
+    keepEditing: 'Keep editing',
+  },
+  draftRestored: 'Welcome back. Your message was kept. Check it, then press Send message.',
   fields: {
     topic: 'Topic',
     name: 'Full name',
     email: 'Email address',
     subject: 'Subject',
     message: 'Message',
+  },
+  contactForm: {
+    title: 'General and institutional enquiries',
+    description:
+      'For hospitals, partners, vendors, donors and anyone without an account. No sign-in is needed; the office replies to the email you give.',
+    fields: {
+      name: 'Your name',
+      email: 'Email address',
+      organisation: 'Organisation (optional)',
+      subject: 'Subject',
+      message: 'Message',
+    },
+    button: 'Send enquiry',
+    submitting: 'Sending…',
+    successTitle: 'Thank you. Your enquiry has been received.',
+    successBody: 'The Association will reply to the email address you gave.',
+    error: 'We could not send your enquiry. Please check the form and try again.',
   },
   topics: {
     account: 'Account or sign-in',

@@ -1,31 +1,45 @@
-/** Home page copy. Draft until the Association approves its own wording. */
+/** Home page copy; the Association can revise it in the content manager as its priorities change. */
 export const hero = {
   eyebrow: 'BPKIHS Alumni Association',
-  title: 'Once BPKIHS, always BPKIHS',
+  title: 'Connected by BPKIHS. Wherever life takes us.',
   mission:
-    'A network of BPKIHS graduates, in Nepal and abroad, who give back to the institute and look out for each other.',
+    'A place to find old classmates, hear what alumni are doing and stay connected with the institute in Dharan.',
   ctas: [
     { key: 'give', label: 'Give now', href: '/donate' },
     { key: 'find', label: 'Find alumni', href: '/directory' },
     { key: 'join', label: 'Join the network', href: '/register' },
   ],
+  /**
+   * The institute's own campus photograph from bpkihs.edu : the hospital building, its
+   * courtyard tree and the same wide steps alumni walked down. The institute publishes it at
+   * 520×320 only, so the file is centre-cropped to 2:1 and scaled up with a soft kernel; the
+   * navy wash keeps the softness from reading. When the communications office supplies the
+   * original at a higher resolution, replace the file and keep the credit below.
+   */
+  image: {
+    src: '/hero-bpkihs-campus.jpg',
+    alt: 'The BPKIHS hospital building in Dharan, with its courtyard tree and the road in front',
+    credit: 'Photo: B.P. Koirala Institute of Health Sciences, Dharan (bpkihs.edu)',
+    creditHref: 'https://bpkihs.edu/',
+  },
 } as const;
 
 export const doors = {
-  eyebrow: 'Get involved',
-  title: 'Three ways to take part',
-  description: 'Whatever brings you here, start with the one that fits.',
+  eyebrow: 'Stay in touch',
+  title: 'A network that travels with you',
+  description:
+    'Whether you are nearby or working abroad, there are a few easy ways to stay part of BPKIHS.',
   items: [
     {
       key: 'give',
-      title: 'Give',
-      text: 'Back a fundraising goal or give to the general fund, and see how the money is used.',
+      title: 'Support a current goal',
+      text: 'Read what the Association is raising funds for, then choose whether to contribute.',
       links: [{ label: 'See the goals', href: '/donate' }],
     },
     {
       key: 'network',
-      title: 'Find and join alumni',
-      text: 'Look up classmates by programme, batch or country, or add yourself to the directory.',
+      title: 'Find a classmate',
+      text: 'Look up alumni by programme, graduating batch or country. Add your profile if you are not listed.',
       links: [
         { label: 'Browse the directory', href: '/directory' },
         { label: 'Register as an alumnus', href: '/register' },
@@ -33,8 +47,8 @@ export const doors = {
     },
     {
       key: 'events',
-      title: 'Attend and read',
-      text: 'Come to a reunion or webinar, and catch up on news and stories from the community.',
+      title: 'Meet up and catch up',
+      text: 'See upcoming gatherings and read news shared by alumni and the Association.',
       links: [
         { label: 'See upcoming events', href: '/events' },
         { label: 'Read community news', href: '/community' },
@@ -60,11 +74,16 @@ export const upcomingEvents = {
 } as const;
 
 export const communityPosts = {
-  eyebrow: 'Community',
-  title: 'From the community',
-  description: 'News, stories and achievements from fellow alumni.',
+  eyebrow: 'Alumni news',
+  title: 'What classmates are up to',
+  description: 'Notes, milestones and news shared by BPKIHS graduates.',
   allLabel: 'Read more posts',
   allHref: '/community',
+} as const;
+
+export const welcomeSection = {
+  eyebrow: 'A word from us',
+  title: 'A message from the Association',
 } as const;
 
 export const boardPreview = {
@@ -73,9 +92,4 @@ export const boardPreview = {
   description: 'Alumni who give their time to run the Association.',
   allLabel: 'Meet the full board',
   allHref: '/about/board',
-} as const;
-
-export const welcomeSection = {
-  eyebrow: 'A word from us',
-  title: 'A message from the Association',
 } as const;

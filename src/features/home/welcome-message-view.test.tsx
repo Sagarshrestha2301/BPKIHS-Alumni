@@ -28,4 +28,22 @@ describe('WelcomeMessageView', () => {
     const { container } = render(<WelcomeMessageView message={{ ...message, text: '  ' }} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('embeds a YouTube link as a privacy-enhanced iframe', () => {
+    render(
+      <WelcomeMessageView
+        message={{ ...message, videoUrl: 'https://www.youtube.com/watch?v=abc123' }}
+      />,
+    );
+    const frame = screen.getByTitle(`Video message from ${message.author}`);
+    expect(frame.getAttribute('src')).toBe('https://www.youtube-nocookie.com/embed/abc123');
+  });
+
+  it('keeps an unknown video host as a link instead of an iframe', () => {
+    render(
+      <WelcomeMessageView message={{ ...message, videoUrl: 'https://video.example.com/v/1' }} />,
+    );
+    expect(screen.queryByTitle(`Video message from ${message.author}`)).toBeNull();
+    expect(screen.getByRole('link', { name: /Watch the video message/ })).toBeTruthy();
+  });
 });

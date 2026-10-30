@@ -6,7 +6,7 @@ export function CommunityPostsSkeleton() {
     <Section tone="muted" aria-hidden="true">
       <div className="grid gap-6 md:grid-cols-3">
         {[0, 1, 2].map((n) => (
-          <Skeleton key={n} className="h-60 rounded-xl" />
+          <Skeleton key={n} className="h-96 rounded-xl" />
         ))}
       </div>
     </Section>

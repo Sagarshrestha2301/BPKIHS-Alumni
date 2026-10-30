@@ -78,6 +78,8 @@ export interface RecordEditorProps<T extends { id: string }> {
   schema: ZodType<unknown>;
   endpoint: string;
   emptyLabel: string;
+  /** Optional sentence under the section heading, for editors whose job needs explaining. */
+  description?: string;
   toDefaults: (item: T) => Record<string, FormValue>;
   /** Values used when creating a new record, for selects and numbers with a default. */
   newDefaults?: Record<string, FormValue>;
@@ -93,6 +95,7 @@ export function RecordEditor<T extends { id: string }>({
   schema,
   endpoint,
   emptyLabel,
+  description,
   toDefaults,
   newDefaults = {},
   display,
@@ -135,13 +138,13 @@ export function RecordEditor<T extends { id: string }>({
     try {
       parsedInput = collect(new FormData(event.currentTarget), fields);
     } catch {
-      setError('The gallery must be valid JSON.');
+      setError(copy.errors.invalidJson);
       return;
     }
 
     const parsed = schema.safeParse(parsedInput);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Check the highlighted fields.');
+      setError(parsed.error.issues[0]?.message ?? copy.errors.checkFields);
       return;
     }
 
@@ -160,7 +163,7 @@ export function RecordEditor<T extends { id: string }>({
       setNotice(copy.saved);
       setEditing(null);
     } catch (caught) {
-      setError(isApiError(caught) ? caught.message : 'That change did not go through.');
+      setError(isApiError(caught) ? caught.message : copy.errors.actionFailed);
     } finally {
       setPending(false);
     }
@@ -177,7 +180,7 @@ export function RecordEditor<T extends { id: string }>({
       if (editing === id) setEditing(null);
       setNotice(copy.deleted);
     } catch (caught) {
-      setError(isApiError(caught) ? caught.message : 'That change did not go through.');
+      setError(isApiError(caught) ? caught.message : copy.errors.actionFailed);
     } finally {
       setPending(false);
     }
@@ -192,6 +195,7 @@ export function RecordEditor<T extends { id: string }>({
         >
           {copy.sections[section as keyof typeof copy.sections]}
         </h2>
+        {description ? <p className="text-sm text-neutral-600">{description}</p> : null}
         <Button type="button" onClick={openNew} className="h-9">
           <PlusIcon aria-hidden="true" className="size-4" />
           {copy.newItem}

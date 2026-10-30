@@ -1,3 +1,5 @@
+import { photoMaxMegabytes } from '@/lib/constants/photo';
+
 export const registerPage = {
   title: 'Register as an alumnus',
   description:
@@ -34,7 +36,9 @@ export const registerPage = {
     },
     photo: {
       label: 'Profile photo',
-      hint: 'Photo upload is not connected yet. Your profile will use your initials until it is.',
+      hint: `Optional. A JPEG, PNG or WebP image up to ${photoMaxMegabytes()} MB. It is uploaded after you confirm your email.`,
+      selected: 'This photo will be uploaded once your email is confirmed.',
+      remove: 'Remove photo',
     },
     email: {
       label: 'Email address',
@@ -47,7 +51,7 @@ export const registerPage = {
     },
     password: {
       label: 'Password',
-      hint: 'At least 12 characters. You will use it, with your email, to sign in and check your profile.',
+      hint: 'At least 8 characters. You will use it, with your email, to sign in and check your profile.',
     },
     confirmPassword: { label: 'Repeat password', hint: 'Type the same password again.' },
   },
@@ -58,25 +62,25 @@ export const registerPage = {
     email: {
       label: 'Email visibility',
       options: {
-        public: 'Public — shown on your profile',
-        alumni_only: 'Alumni only — not shown publicly yet',
-        hidden: 'Hidden — never shown publicly',
+        public: 'Public: shown on your profile',
+        alumni_only: 'Alumni only: not shown publicly yet',
+        hidden: 'Hidden: never shown publicly',
       },
     },
     phone: {
       label: 'Phone visibility',
       options: {
-        public: 'Public — shown on your profile',
-        alumni_only: 'Alumni only — not shown publicly yet',
-        hidden: 'Hidden — never shown publicly',
+        public: 'Public: shown on your profile',
+        alumni_only: 'Alumni only: not shown publicly yet',
+        hidden: 'Hidden: never shown publicly',
       },
     },
     profile: {
       label: 'Directory visibility',
       options: {
-        public: 'Public — listed in the alumni directory',
-        alumni_only: 'Alumni only — not listed publicly yet',
-        hidden: 'Hidden — not listed at all',
+        public: 'Public: listed in the alumni directory',
+        alumni_only: 'Alumni only: not listed publicly yet',
+        hidden: 'Hidden: not listed at all',
       },
     },
   },
@@ -117,6 +121,10 @@ export const registerPage = {
   success: {
     title: 'Thank you. Your email is confirmed and your profile is pending approval.',
     body: 'The Association will review your details and email you when your profile is live. This usually takes a few working days. You can sign in at any time to check the review.',
+    photoAdded:
+      'Your photo was uploaded. It will appear with your profile once the Association approves it.',
+    photoFailed:
+      'Your registration is complete, but the photo could not be uploaded. Add it from your account profile, or contact the office if it keeps failing.',
     reference: 'Your reference',
     account: 'Go to your account',
     directory: 'Browse the directory',

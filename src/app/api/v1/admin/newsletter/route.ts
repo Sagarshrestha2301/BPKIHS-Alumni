@@ -13,7 +13,10 @@ export async function GET(request: Request) {
         page: pageParam(params.get('page')),
         pageSize: pageSizeParam(params.get('pageSize')),
         q: params.get('q') ?? undefined,
-        status: status === 'subscribed' || status === 'unsubscribed' ? status : undefined,
+        status:
+          status === 'subscribed' || status === 'unsubscribed' || status === 'pending'
+            ? status
+            : undefined,
       }),
       listCampaigns(),
     ]);

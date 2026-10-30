@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { NewsletterForm } from '@/components/shared/newsletter-form';
 import { footerAddress, footerGroups, legalNav } from '@/content/footer';
@@ -10,6 +13,10 @@ const linkClass =
   'text-primary-100 underline-offset-4 hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
 export function SiteFooter() {
+  const pathname = usePathname();
+  // The dashboard has its own shell: no public footer under it.
+  if (pathname.startsWith('/admin')) return null;
+
   return (
     <footer className="pb-14 lg:pb-0">
       <section aria-labelledby="newsletter-heading" className="bg-primary-100 py-10">

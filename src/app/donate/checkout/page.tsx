@@ -13,6 +13,7 @@ import {
   RECIPIENT_KINDS,
   TRIBUTE_TYPES,
 } from '@/lib/constants/domain';
+import { availablePaymentMethods } from '@/server/payments';
 
 export const metadata: Metadata = {
   title: donateCheckoutPage.title,
@@ -20,6 +21,12 @@ export const metadata: Metadata = {
   alternates: { canonical: '/donate/checkout' },
   robots: { index: false, follow: false },
 };
+
+/**
+ * The goal, amount and tribute all arrive in the query string; there is no meaningful shell to
+ * show before they are read. Blocking is deliberate, not an unoptimised page.
+ */
+export const instant = false;
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -63,6 +70,10 @@ export default async function DonateCheckoutPage({
   const goal = await getGoalById(first(params.goal));
   if (!goal) notFound();
 
+  // Only gateways whose adapter exists and whose credentials are configured are offered; the
+  // list is computed on the server so a missing key never becomes a dead option in the browser.
+  const methods = availablePaymentMethods();
+
   return (
     <>
       <PageHeader
@@ -75,6 +86,7 @@ export default async function DonateCheckoutPage({
           goal={goal}
           initialAmountMinor={parseAmount(first(params.amount))}
           tribute={parseTribute(params)}
+          methods={methods}
         />
       </Section>
     </>

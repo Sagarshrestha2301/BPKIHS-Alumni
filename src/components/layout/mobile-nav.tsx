@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sheet';
 import { signInPage } from '@/content/account';
 import { mainNav } from '@/content/site';
+import { useSession } from '@/features/auth/session-provider';
 import { isActivePath } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,8 @@ import { donateCta, focusRing } from './nav-styles';
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { status, session } = useSession();
+  const signedIn = status === 'signed_in';
   const close = () => setOpen(false);
 
   return (
@@ -68,20 +71,32 @@ export function MobileNav() {
             <Link href="/donate" onClick={close} className={cn(donateCta, 'h-12 text-base')}>
               Donate
             </Link>
-            <Link
-              href="/register"
-              onClick={close}
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-12 px-5 text-base')}
-            >
-              Register
-            </Link>
-            <Link
-              href="/sign-in"
-              onClick={close}
-              className={cn(buttonVariants({ variant: 'ghost' }), 'h-12 px-5 text-base')}
-            >
-              {signInPage.title}
-            </Link>
+            {signedIn && session ? (
+              <Link
+                href="/account"
+                onClick={close}
+                className={cn(buttonVariants({ variant: 'outline' }), 'h-12 px-5 text-base')}
+              >
+                {session.name}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  onClick={close}
+                  className={cn(buttonVariants({ variant: 'outline' }), 'h-12 px-5 text-base')}
+                >
+                  Register
+                </Link>
+                <Link
+                  href="/sign-in"
+                  onClick={close}
+                  className={cn(buttonVariants({ variant: 'ghost' }), 'h-12 px-5 text-base')}
+                >
+                  {signInPage.title}
+                </Link>
+              </>
+            )}
           </div>
         </SheetContent>
       </Sheet>

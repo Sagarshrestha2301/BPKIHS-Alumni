@@ -23,6 +23,13 @@ import { cn } from '@/lib/utils';
 
 type Params = Promise<{ slug: string }>;
 
+/**
+ * The slug is URL data, and Next's instant navigation refuses to prerender a route that reads
+ * it outside a Suspense boundary. The page is a blocking route instead: the whole detail page
+ * waits for its event, which is what a person clicking through from the list expects anyway.
+ */
+export const instant = false;
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const event = await getEventBySlug(slug).catch(() => null);
@@ -201,6 +208,9 @@ export default async function EventDetailPage({ params }: { params: Params }) {
                               alt={item.alt}
                               width={640}
                               height={400}
+                              // Two columns from 640px up, one below it; the browser then
+                              // picks the smallest file that fits.
+                              sizes="(min-width: 640px) 50vw, 100vw"
                               className="h-48 w-full rounded-lg border border-neutral-300 object-cover"
                             />
                           </li>

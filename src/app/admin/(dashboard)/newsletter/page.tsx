@@ -6,6 +6,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminNewsletterPage as copy } from '@/content/admin-content';
 import { NewsletterComposer } from '@/features/admin/newsletter-composer';
+import { AdminPageHeader } from '@/features/admin/page-header';
 import { formatDateTime } from '@/lib/format/dates';
 import { cn } from '@/lib/utils';
 import { requireAdminPage } from '@/server/auth/admin-page';
@@ -17,6 +18,9 @@ import {
 } from '@/server/services/newsletter';
 
 export const metadata: Metadata = { title: copy.title };
+
+/** The session guard reads per-request data, so this page blocks instead of prerendering. */
+export const instant = false;
 
 const PAGE_SIZE = config.pagination.adminPageSize;
 
@@ -40,7 +44,11 @@ export default async function AdminNewsletterPage({
   const page = Math.max(1, Number(params.page) || 1);
   const q = params.q?.trim() || undefined;
   const status =
-    params.status === 'subscribed' || params.status === 'unsubscribed' ? params.status : undefined;
+    params.status === 'subscribed' ||
+    params.status === 'unsubscribed' ||
+    params.status === 'pending'
+      ? params.status
+      : undefined;
 
   await requireAdminPage();
 
@@ -53,10 +61,7 @@ export default async function AdminNewsletterPage({
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="font-heading text-primary-900 text-3xl font-semibold">{copy.title}</h1>
-        <p className="mt-2 text-neutral-600">{copy.description}</p>
-      </div>
+      <AdminPageHeader title={copy.title} description={copy.description} />
 
       <NewsletterComposer subscribed={totals.subscribed} total={totals.total} />
 
@@ -94,7 +99,7 @@ export default async function AdminNewsletterPage({
               </thead>
               <tbody className="divide-y divide-neutral-300">
                 {campaigns.map((campaign) => (
-                  <tr key={campaign.id}>
+                  <tr key={campaign.id} className="hover:bg-neutral-50">
                     <td className="text-primary-900 px-4 py-3 font-medium">{campaign.subject}</td>
                     <td className="px-4 py-3 text-neutral-600">{campaign.recipientCount}</td>
                     <td className="px-4 py-3 text-neutral-600">{campaign.sentCount}</td>
@@ -127,22 +132,31 @@ export default async function AdminNewsletterPage({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          {[undefined, 'subscribed', 'unsubscribed'].map((value) => {
+          {([undefined, 'subscribed', 'pending', 'unsubscribed'] as const).map((value) => {
             const active = value === status;
-            const label = value ? copy.statusLabels[value] : 'All';
+            const label = value ? copy.statusLabels[value] : copy.statusLabels.all;
+            const count = value ? totals[value] : totals.total;
             return (
               <Link
                 key={label}
                 href={href({ q, status: value })}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium',
+                  'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors',
                   active
                     ? 'border-primary-700 bg-primary-100 text-primary-900'
-                    : 'hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
+                    : 'hover:border-primary-700 hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
                 )}
               >
                 {label}
+                <span
+                  className={cn(
+                    'text-xs font-semibold',
+                    active ? 'text-primary-700' : 'text-neutral-500',
+                  )}
+                >
+                  {count.toLocaleString('en-US')}
+                </span>
               </Link>
             );
           })}
@@ -190,13 +204,13 @@ export default async function AdminNewsletterPage({
               </thead>
               <tbody className="divide-y divide-neutral-300">
                 {subscribers.items.map((subscriber) => (
-                  <tr key={subscriber.id}>
+                  <tr key={subscriber.id} className="hover:bg-neutral-50">
                     <td className="text-primary-900 px-4 py-3">{subscriber.email}</td>
                     <td className="px-4 py-3 text-neutral-600">
                       {copy.statusLabels[subscriber.status] ?? subscriber.status}
                     </td>
                     <td className="px-4 py-3 text-neutral-600">
-                      {subscriber.interests.join(', ') || '—'}
+                      {subscriber.interests.join(', ') || 'None'}
                     </td>
                     <td className="px-4 py-3 text-neutral-600">
                       {formatDateTime(subscriber.createdAt)}

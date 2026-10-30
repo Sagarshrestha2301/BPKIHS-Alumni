@@ -1,6 +1,6 @@
 import type { AlumniSort } from '@/lib/api/types';
 import { type Programme, PROGRAMMES } from '@/lib/constants/domain';
-import { ANONYMOUS_VIEWER } from '@/server/auth/session';
+import { getViewer } from '@/server/auth/session';
 import { handle, ok } from '@/server/http/respond';
 import { listAlumni } from '@/server/services/alumni';
 
@@ -8,6 +8,9 @@ const SORTS: readonly AlumniSort[] = ['name', 'batch_newest', 'batch_oldest', 'r
 
 export async function GET(request: Request) {
   return handle(async () => {
+    // Anyone may browse public profiles; the viewer decides which records and fields are
+    // returned. Members-only profiles stay hidden from signed-out visitors.
+    const viewer = await getViewer();
     const params = new URL(request.url).searchParams;
     const programme = params.get('programme');
     const sort = params.get('sort');
@@ -30,7 +33,7 @@ export async function GET(request: Request) {
           furtherStudies:
             furtherStudies === 'true' ? true : furtherStudies === 'false' ? false : undefined,
         },
-        ANONYMOUS_VIEWER,
+        viewer,
       ),
     );
   });

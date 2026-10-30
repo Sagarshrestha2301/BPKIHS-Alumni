@@ -11,7 +11,7 @@ export async function PATCH(request: Request, context: Context) {
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
     const input = await parseBody(request, adminGoalInputSchema);
-    const goal = await updateGoal(decodeURIComponent(id), input);
+    const goal = await updateGoal(id, input);
     await writeAudit({
       actorId: session.user.id,
       action: 'update',
@@ -27,7 +27,7 @@ export async function DELETE(request: Request, context: Context) {
   return handle(async () => {
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
-    const goalId = decodeURIComponent(id);
+    const goalId = id;
     const result = await deleteGoal(goalId);
     await writeAudit({
       actorId: session.user.id,

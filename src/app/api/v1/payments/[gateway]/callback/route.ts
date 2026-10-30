@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { appUrl } from '@/server/http/app-url';
 import { completeDonation } from '@/server/payments/complete';
+import { connectipsGateway } from '@/server/payments/connectips';
 import { esewaGateway } from '@/server/payments/esewa';
 import { khaltiGateway } from '@/server/payments/khalti';
 import type { PaymentGateway } from '@/server/payments/types';
@@ -15,6 +16,7 @@ async function handleGateway(gatewayName: string, request: Request): Promise<Nex
   const gateways: Record<string, PaymentGateway | undefined> = {
     esewa: esewaGateway,
     khalti: khaltiGateway,
+    connectips: connectipsGateway,
   };
   const gateway = gateways[gatewayName];
   if (!gateway) {
@@ -23,7 +25,7 @@ async function handleGateway(gatewayName: string, request: Request): Promise<Nex
 
   try {
     const verification = await gateway.verify(new URL(request.url).searchParams);
-    const completed = await completeDonation(verification, gatewayName as 'esewa' | 'khalti');
+    const completed = await completeDonation(verification, gateway.id);
     return thankYou({
       id: completed.donationId,
       status: completed.status,

@@ -14,15 +14,34 @@ describe('NewsletterForm', () => {
     expect(screen.getByLabelText('Email address')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('confirms a valid email after the API call', async () => {
+  it('asks the visitor to confirm by email after the API call', async () => {
     const client = createFakeClient({
-      subscribeNewsletter: async () => ({ ok: true }),
+      subscribeNewsletter: async () => ({ ok: true, confirmationEmailSent: true }),
     });
     render(<NewsletterForm client={client} />);
     fireEvent.change(screen.getByLabelText('Email address'), {
       target: { value: 'name@example.com' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('You are on the list');
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Check your inbox for the confirmation',
+    );
+  });
+
+  it('says so when the confirmation email could not be sent', async () => {
+    const client = createFakeClient({
+      subscribeNewsletter: async () => ({ ok: true, confirmationEmailSent: false }),
+    });
+    render(<NewsletterForm client={client} />);
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'name@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'could not send the confirmation email',
+    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Email address')).toHaveValue('name@example.com');
   });
 });

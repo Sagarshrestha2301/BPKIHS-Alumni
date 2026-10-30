@@ -18,6 +18,12 @@ export const metadata: Metadata = {
   alternates: { canonical: '/events' },
 };
 
+/**
+ * The listing is chosen by `?status` and `?q`, so there is no shell to prerender before the
+ * URL is known. Blocking avoids the development warning without changing the response.
+ */
+export const instant = false;
+
 type SearchParams = Record<string, string | string[] | undefined>;
 
 function first(value: string | string[] | undefined): string | undefined {

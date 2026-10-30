@@ -8,22 +8,24 @@ import { FormField } from '@/components/shared/form-field';
 import { Stepper } from '@/components/shared/stepper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Switch } from '@/components/ui/switch';
 import { donateCheckoutPage } from '@/content/donate';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
+import { useSession } from '@/features/auth/session-provider';
 import { type ApiClient, getApiClient } from '@/lib/api/client';
 import { isApiError } from '@/lib/api/errors';
 import { loginSchema, signupSchema, type TributeInput } from '@/lib/api/schemas';
 import type { DonationGoal } from '@/lib/api/types';
-import { MAX_DONATION_MINOR, MIN_DONATION_MINOR } from '@/lib/constants/domain';
+import {
+  type ImplementedPaymentMethod,
+  MAX_DONATION_MINOR,
+  MIN_DONATION_MINOR,
+} from '@/lib/constants/domain';
 import { formatNpr } from '@/lib/format/money';
 import { cn } from '@/lib/utils';
 
 const inputClass = 'h-11 bg-white';
-
-/** Only gateways with a working adapter are offered. */
-const AVAILABLE_METHODS = ['esewa', 'khalti'] as const;
-type AvailableMethod = (typeof AVAILABLE_METHODS)[number];
 
 const subscribe = () => () => {};
 
@@ -44,10 +46,12 @@ type Props = {
   goal: DonationGoal;
   initialAmountMinor: number;
   tribute?: TributeInput;
+  /** Adapter exists and credentials are configured; decided by the server page. */
+  methods: ImplementedPaymentMethod[];
   client?: ApiClient;
 };
 
-function paymentMethodLabel(method: AvailableMethod): string {
+function paymentMethodLabel(method: ImplementedPaymentMethod): string {
   return donateCheckoutPage.payment.methods[method].label;
 }
 
@@ -90,17 +94,18 @@ function Summary({
   );
 }
 
-function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
+function CheckoutFlow({ goal, initialAmountMinor, tribute, methods, client }: Props) {
   const copy = donateCheckoutPage;
   const router = useRouter();
   const api = client ?? getApiClient();
   const auth = useAuth();
+  const { refresh: refreshSession } = useSession();
   const hydrated = useHydrated();
   const [step, setStep] = useState(0);
   const [amountInput, setAmountInput] = useState(String(initialAmountMinor / 100));
   const [amountError, setAmountError] = useState<string | null>(null);
   const [anonymous, setAnonymous] = useState(false);
-  const [method, setMethod] = useState<AvailableMethod | ''>('');
+  const [method, setMethod] = useState<ImplementedPaymentMethod | ''>('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -135,7 +140,11 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
     }
     setSubmitError(null);
     const session = await auth.signIn(parsed.data);
-    if (session) setStep(2);
+    if (session) {
+      // Signing in here signs the whole page in, so the header has to follow.
+      refreshSession();
+      setStep(2);
+    }
   }
 
   async function signUp(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -153,7 +162,10 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
     }
     setSubmitError(null);
     const session = await auth.signUp(parsed.data);
-    if (session) setStep(2);
+    if (session) {
+      refreshSession();
+      setStep(2);
+    }
   }
 
   async function completeGift(): Promise<void> {
@@ -371,10 +383,9 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                       </FormField>
                       <FormField label={copy.account.passwordLabel} required>
                         {(control) => (
-                          <Input
+                          <PasswordInput
                             {...control}
                             name="password"
-                            type="password"
                             autoComplete="current-password"
                             className={inputClass}
                           />
@@ -428,10 +439,9 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                         hint={copy.account.passwordHint}
                       >
                         {(control) => (
-                          <Input
+                          <PasswordInput
                             {...control}
                             name="password"
-                            type="password"
                             autoComplete="new-password"
                             className={inputClass}
                           />
@@ -475,43 +485,54 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
               </h2>
               <p className="mt-2 text-sm text-neutral-600">{copy.payment.description}</p>
 
-              <fieldset className="mt-6">
-                <legend className="text-primary-900 mb-3 text-base font-semibold">
-                  {copy.payment.national}
-                </legend>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {AVAILABLE_METHODS.map((value) => {
-                    const item = copy.payment.methods[value];
-                    return (
-                      <label
-                        key={value}
-                        className={cn(
-                          'flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-3',
-                          method === value
-                            ? 'border-primary-700 bg-primary-100/50'
-                            : 'border-neutral-300 bg-white',
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name="method"
-                          value={value}
-                          checked={method === value}
-                          onChange={() => {
-                            setMethod(value);
-                            setPaymentError(null);
-                          }}
-                          className="accent-primary-700 mt-1 size-4"
-                        />
-                        <span>
-                          <span className="block font-medium text-neutral-900">{item.label}</span>
-                          <span className="block text-sm text-neutral-600">{item.description}</span>
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
+              {methods.length === 0 ? (
+                <p
+                  role="alert"
+                  className="mt-6 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4 text-sm text-neutral-700"
+                >
+                  {copy.payment.unavailable}
+                </p>
+              ) : (
+                <fieldset className="mt-6">
+                  <legend className="text-primary-900 mb-3 text-base font-semibold">
+                    {copy.payment.national}
+                  </legend>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {methods.map((value) => {
+                      const item = copy.payment.methods[value];
+                      return (
+                        <label
+                          key={value}
+                          className={cn(
+                            'flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-3',
+                            method === value
+                              ? 'border-primary-700 bg-primary-100/50'
+                              : 'border-neutral-300 bg-white',
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name="method"
+                            value={value}
+                            checked={method === value}
+                            onChange={() => {
+                              setMethod(value);
+                              setPaymentError(null);
+                            }}
+                            className="accent-primary-700 mt-1 size-4"
+                          />
+                          <span>
+                            <span className="block font-medium text-neutral-900">{item.label}</span>
+                            <span className="block text-sm text-neutral-600">
+                              {item.description}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
 
               {method ? (
                 <p className="mt-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4 text-sm text-neutral-600">
@@ -543,7 +564,7 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, client }: Props) {
                 <Button
                   type="button"
                   onClick={completeGift}
-                  disabled={!hydrated || submitting}
+                  disabled={!hydrated || submitting || methods.length === 0}
                   className="h-11 px-6 text-base font-semibold"
                 >
                   {submitting ? copy.buttons.paying : copy.buttons.pay}

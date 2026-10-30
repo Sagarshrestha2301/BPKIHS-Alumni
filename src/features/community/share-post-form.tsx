@@ -17,16 +17,18 @@ const inputClass = 'h-11 bg-white';
 const selectClass =
   'border-neutral-500 focus-visible:border-primary-700 h-11 w-full rounded-lg border bg-white px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-primary-700/30';
 
-type FieldName = 'type' | 'title' | 'body' | 'authorName' | 'authorEmail';
+type FieldName = 'type' | 'title' | 'body' | 'imageUrl';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
-export function SharePostForm({ client }: { client?: ApiClient }) {
+type Author = { name: string; email: string };
+
+/** Members-only: the signed-in account is the byline, so there are no name fields to fill in. */
+export function SharePostForm({ client, author }: { client?: ApiClient; author: Author }) {
   const copy = communityPage.share;
   const [type, setType] = useState<MemberPostType>('story');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  const [authorEmail, setAuthorEmail] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -37,20 +39,15 @@ export function SharePostForm({ client }: { client?: ApiClient }) {
       type,
       title,
       body,
-      authorName,
-      authorEmail,
+      imageUrl: imageUrl.trim() || undefined,
+      authorName: author.name,
+      authorEmail: author.email,
     });
     if (!parsed.success) {
       const next: FieldErrors = {};
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
-        if (
-          field === 'type' ||
-          field === 'title' ||
-          field === 'body' ||
-          field === 'authorName' ||
-          field === 'authorEmail'
-        ) {
+        if (field === 'type' || field === 'title' || field === 'body' || field === 'imageUrl') {
           next[field] ??= issue.message;
         }
       }
@@ -125,35 +122,25 @@ export function SharePostForm({ client }: { client?: ApiClient }) {
           )}
         </FormField>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label={copy.fields.authorName} error={errors.authorName} required>
-            {(control) => (
-              <Input
-                {...control}
-                autoComplete="name"
-                value={authorName}
-                onChange={(event) => setAuthorName(event.target.value)}
-                className={inputClass}
-              />
-            )}
-          </FormField>
-          <FormField
-            label={copy.fields.authorEmail}
-            hint={copy.hints.authorEmail}
-            error={errors.authorEmail}
-            required
-          >
-            {(control) => (
-              <Input
-                {...control}
-                type="email"
-                autoComplete="email"
-                value={authorEmail}
-                onChange={(event) => setAuthorEmail(event.target.value)}
-                className={inputClass}
-              />
-            )}
-          </FormField>
+        <FormField label={copy.fields.imageUrl} hint={copy.hints.imageUrl} error={errors.imageUrl}>
+          {(control) => (
+            <Input
+              {...control}
+              type="url"
+              inputMode="url"
+              placeholder="https://…"
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              className={inputClass}
+            />
+          )}
+        </FormField>
+
+        <div className="border-primary-100 bg-primary-100/50 grid gap-1 rounded-lg border px-4 py-3 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-3">
+          <span className="text-primary-900 text-sm font-semibold">{copy.postingAs}</span>
+          <span className="text-sm text-neutral-600">
+            {author.name} · {author.email}
+          </span>
         </div>
 
         {error ? (

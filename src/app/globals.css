@@ -98,6 +98,8 @@
   }
   html {
     @apply font-sans;
+    /* Keep in-page targets below the sticky header, at every breakpoint. */
+    scroll-padding-top: 5rem;
   }
   h1,
   h2,

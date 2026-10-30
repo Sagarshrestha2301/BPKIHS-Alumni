@@ -22,7 +22,7 @@ export function CommunityPostsView({ posts }: { posts: FeedPost[] }) {
       />
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={post} withImage />
         ))}
       </div>
       <div className="mt-8">

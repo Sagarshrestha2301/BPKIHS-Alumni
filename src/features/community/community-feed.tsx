@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { communityPage } from '@/content/community';
+import { useSession } from '@/features/auth/session-provider';
 import { PostCard } from '@/features/community/post-card';
 import { ReportPost } from '@/features/community/report-post';
 import type { ApiClient } from '@/lib/api/client';
@@ -16,6 +17,7 @@ const PAGE_SIZE = FEED_PAGE_SIZE;
 
 export function CommunityFeed({ posts, client }: { posts: FeedPost[]; client?: ApiClient }) {
   const copy = communityPage;
+  const { status } = useSession();
   const [filter, setFilter] = useState<PostType | ''>('');
   const [visible, setVisible] = useState(PAGE_SIZE);
 
@@ -59,9 +61,10 @@ export function CommunityFeed({ posts, client }: { posts: FeedPost[]; client?: A
             <PostCard
               key={post.id}
               post={post}
-              expandable
-              readMoreLabel={copy.readMore}
-              action={<ReportPost postId={post.id} client={client} />}
+              // Reporting is a members-only action; the API enforces it either way.
+              action={
+                status === 'signed_in' ? <ReportPost postId={post.id} client={client} /> : null
+              }
             />
           ))}
         </div>

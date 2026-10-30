@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * The receipt is identified by `?id`, `?status` and the amount in the URL, so the page blocks
+ * until those are known instead of flashing a placeholder confirmation.
+ */
+export const instant = false;
+
 type SearchParams = Record<string, string | string[] | undefined>;
 
 function first(value: string | string[] | undefined): string | undefined {

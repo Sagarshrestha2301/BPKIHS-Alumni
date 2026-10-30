@@ -8,7 +8,6 @@ import { SectionHeading } from '@/components/shared/section-heading';
 import { buttonVariants } from '@/components/ui/button';
 import { aboutPage } from '@/content/about';
 import { site } from '@/content/site';
-import { Timeline } from '@/features/governance/timeline';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 const linkClass = cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-base');
 
 export default function AboutPage() {
-  const { mission, vision, whatWeDo, timeline, institute } = aboutPage;
+  const { mission, vision, whatWeDo, institute } = aboutPage;
 
   return (
     <>
@@ -44,7 +43,6 @@ export default function AboutPage() {
             </article>
           ))}
         </div>
-        <p className="mt-4 text-sm text-neutral-600">{aboutPage.draftNote}</p>
       </Section>
 
       <Section tone="muted" aria-label={whatWeDo.title}>
@@ -59,13 +57,6 @@ export default function AboutPage() {
               <p className="mt-2 text-neutral-600">{item.text}</p>
             </article>
           ))}
-        </div>
-      </Section>
-
-      <Section aria-label={timeline.title}>
-        <SectionHeading eyebrow={timeline.eyebrow} title={timeline.title} />
-        <div className="mt-10">
-          <Timeline items={timeline.items} />
         </div>
       </Section>
 

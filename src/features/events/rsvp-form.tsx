@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from 'react';
 
+import { BotCheck } from '@/components/shared/bot-check';
 import { FormField } from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,8 @@ export function RsvpForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done' | 'waitlisted'>('idle');
   const [message, setMessage] = useState<string | null>(null);
+  const [botToken, setBotToken] = useState('');
+  const [botReset, setBotReset] = useState(0);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -60,7 +63,7 @@ export function RsvpForm({
     setMessage(null);
     setStatus('submitting');
     try {
-      await (client ?? getApiClient()).submitRsvp(eventId, parsed.data);
+      await (client ?? getApiClient()).submitRsvp(eventId, parsed.data, { botToken });
       const waitlisted = capacity !== undefined && rsvpCount + parsed.data.partySize > capacity;
       setStatus(waitlisted ? 'waitlisted' : 'done');
     } catch (error) {
@@ -71,6 +74,8 @@ export function RsvpForm({
       } else {
         setMessage(copy.error);
       }
+      setBotToken('');
+      setBotReset((value) => value + 1);
     }
   }
 
@@ -163,6 +168,10 @@ export function RsvpForm({
           {message}
         </p>
       ) : null}
+
+      <div className="mt-5">
+        <BotCheck onToken={setBotToken} resetKey={botReset} />
+      </div>
 
       <Button
         type="submit"

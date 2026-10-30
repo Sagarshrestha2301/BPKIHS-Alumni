@@ -5,7 +5,12 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { buttonVariants } from '@/components/ui/button';
 import { transparencyPage } from '@/content/donate';
-import { getDonationGoals, getFundsBreakdown } from '@/features/donations/get-donate-data';
+import {
+  getConfirmedGivingTotals,
+  getFundsBreakdown,
+  getRecentDonors,
+} from '@/features/donations/get-donate-data';
+import { formatDate } from '@/lib/format/dates';
 import { formatNpr } from '@/lib/format/money';
 import { cn } from '@/lib/utils';
 
@@ -35,9 +40,13 @@ function donutGradient(shares: readonly number[]): string {
 }
 
 export default async function TransparencyPage() {
-  const [funds, goals] = await Promise.all([getFundsBreakdown(), getDonationGoals()]);
-  const totalRaised = goals.reduce((sum, goal) => sum + goal.raisedMinor, 0);
-  const activeGoals = goals.length;
+  const [funds, giving, donors] = await Promise.all([
+    getFundsBreakdown(),
+    getConfirmedGivingTotals(),
+    getRecentDonors(),
+  ]);
+  const totalRaised = giving.raisedMinor;
+  const activeGoals = giving.activeGoals;
 
   return (
     <>
@@ -65,57 +74,101 @@ export default async function TransparencyPage() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[16rem_1fr] lg:items-start">
-          <div
-            role="img"
-            aria-label="Fund allocation by category, also given as a table"
-            className="mx-auto size-56 rounded-full"
-            style={{ background: donutGradient(funds.map((item) => item.sharePercent)) }}
-          >
-            <div className="flex size-full items-center justify-center">
-              <div className="grid size-32 place-items-center rounded-full bg-white text-center shadow-sm">
-                <span className="text-sm text-neutral-600">Allocated</span>
+        <section aria-labelledby="funds-heading" className="mt-10">
+          <h2 id="funds-heading" className="font-heading text-primary-900 text-2xl font-semibold">
+            {transparencyPage.funds.title}
+          </h2>
+          {funds.filter((item) => item.category !== 'Unallocated').length === 0 ? (
+            <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-100 p-6">
+              <h3 className="text-primary-900 font-semibold">
+                {transparencyPage.funds.emptyTitle}
+              </h3>
+              <p className="mt-2 max-w-2xl text-neutral-600">{transparencyPage.funds.emptyText}</p>
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-8 lg:grid-cols-[16rem_1fr] lg:items-start">
+              <div
+                role="img"
+                aria-label="Fund allocation by category, also given as a table"
+                className="mx-auto size-56 rounded-full"
+                style={{ background: donutGradient(funds.map((item) => item.sharePercent)) }}
+              >
+                <div className="flex size-full items-center justify-center">
+                  <div className="grid size-32 place-items-center rounded-full bg-white text-center shadow-sm">
+                    <span className="text-sm text-neutral-600">Allocated</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-neutral-300 bg-white shadow-sm">
+                <table className="w-full min-w-[32rem] text-left text-sm">
+                  <caption className="sr-only">{transparencyPage.title}</caption>
+                  <thead className="bg-neutral-100 text-neutral-900">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 font-semibold">
+                        {transparencyPage.table.category}
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right font-semibold">
+                        {transparencyPage.table.share}
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right font-semibold">
+                        {transparencyPage.table.amount}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {funds.map((item, index) => (
+                      <tr key={item.category} className="border-t border-neutral-300">
+                        <th scope="row" className="px-4 py-3 font-medium text-neutral-900">
+                          <span
+                            aria-hidden="true"
+                            className="mr-2 inline-block size-3 rounded-full align-middle"
+                            style={{ background: chartColours[index % chartColours.length] }}
+                          />
+                          {item.category}
+                        </th>
+                        <td className="px-4 py-3 text-right tabular-nums">{item.sharePercent}%</td>
+                        <td className="px-4 py-3 text-right tabular-nums">
+                          {formatNpr(item.amountMinor)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </div>
+          )}
+        </section>
 
-          <div className="overflow-x-auto rounded-xl border border-neutral-300 bg-white shadow-sm">
-            <table className="w-full min-w-[32rem] text-left text-sm">
-              <caption className="sr-only">{transparencyPage.title}</caption>
-              <thead className="bg-neutral-100 text-neutral-900">
-                <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">
-                    {transparencyPage.table.category}
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">
-                    {transparencyPage.table.share}
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">
-                    {transparencyPage.table.amount}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {funds.map((item, index) => (
-                  <tr key={item.category} className="border-t border-neutral-300">
-                    <th scope="row" className="px-4 py-3 font-medium text-neutral-900">
-                      <span
-                        aria-hidden="true"
-                        className="mr-2 inline-block size-3 rounded-full align-middle"
-                        style={{ background: chartColours[index % chartColours.length] }}
-                      />
-                      {item.category}
-                    </th>
-                    <td className="px-4 py-3 text-right tabular-nums">{item.sharePercent}%</td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {formatNpr(item.amountMinor)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <section aria-labelledby="recent-gifts" className="mt-12">
+          <h2 id="recent-gifts" className="font-heading text-primary-900 text-2xl font-semibold">
+            {transparencyPage.donors.title}
+          </h2>
+          <p className="mt-2 max-w-3xl text-neutral-600">{transparencyPage.donors.description}</p>
+
+          {donors.items.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-100 p-6 text-neutral-600">
+              {transparencyPage.donors.empty}
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-neutral-300 rounded-xl border border-neutral-300 bg-white shadow-sm">
+              {donors.items.map((donor, index) => (
+                <li
+                  key={`${donor.givenAt}-${index}`}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3"
+                >
+                  <span className="font-medium text-neutral-900">
+                    {donor.name ?? transparencyPage.donors.anonymous}
+                  </span>
+                  <span className="text-sm text-neutral-600">
+                    {donor.goalTitle ?? transparencyPage.donors.generalFund} ·{' '}
+                    <time dateTime={donor.givenAt}>{formatDate(donor.givenAt)}</time>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <p className="mt-6 text-sm text-neutral-600">{transparencyPage.note}</p>
         <div className="mt-6">

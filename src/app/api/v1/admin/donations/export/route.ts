@@ -10,9 +10,8 @@ import { DONATION_STATUSES, listDonationsForExport } from '@/server/services/don
 /**
  * The donation ledger as a CSV file, for reconciliation against the bank statement.
  *
- * Admin-only, rate limited like every admin read, and written to the audit log because an
- * export leaves the building with every donor's amounts in it. An optional `?status=` narrows
- * it to `pending`, `succeeded` or `failed`.
+ * Admin-only and rate limited. The export is audited because it contains the giving ledger.
+ * Optional `status` and `q` parameters keep the download aligned with the on-screen filters.
  */
 const HEADERS = ['reference', 'amount_npr', 'method', 'status', 'goal', 'recorded'] as const;
 
@@ -20,13 +19,15 @@ export async function GET(request: Request) {
   return handle(async () => {
     const session = await requireAdminRead(request);
 
-    const requested = new URL(request.url).searchParams.get('status');
+    const params = new URL(request.url).searchParams;
+    const requested = params.get('status');
     const status = DONATION_STATUSES.find((value) => value === requested);
     if (requested && !status) {
       throw new ApiError('validation', 'status must be pending, succeeded or failed.');
     }
+    const query = params.get('q')?.trim().slice(0, 100);
 
-    const rows = await listDonationsForExport(status ? { status } : {});
+    const rows = await listDonationsForExport({ status, q: query });
     const body = toCsv(
       HEADERS,
       rows.map((row) => [row.id, row.amountNpr, row.method, row.status, row.goal, row.recordedAt]),
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         actorId: session.user.id,
         action: 'donations.export',
         entity: 'donation',
-        detail: { rows: rows.length, status: status ?? 'all' },
+        detail: { rows: rows.length, status: status ?? 'all', filteredByReference: Boolean(query) },
       });
     } catch (error) {
       // An audit failure must not cost the admin the file they asked for.

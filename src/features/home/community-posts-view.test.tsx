@@ -33,6 +33,24 @@ describe('CommunityPostsView', () => {
     expect(screen.getByText('A. Alumnus')).toBeTruthy();
   });
 
+  it('leads with the photo when the author supplied one', () => {
+    const { container } = render(
+      <CommunityPostsView posts={[post('a', { imageUrl: 'https://example.org/photo.jpg' })]} />,
+    );
+    const image = container.querySelector('img');
+    expect(image?.getAttribute('src')).toBe('https://example.org/photo.jpg');
+    // The title sits next to it, so the image is decorative for a screen reader.
+    expect(image?.getAttribute('alt')).toBe('');
+  });
+
+  it('keeps the media height with a type panel when there is no photo', () => {
+    const { container } = render(
+      <CommunityPostsView posts={[post('a', { type: 'achievement' })]} />,
+    );
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('[data-slot="post-media"]')).not.toBeNull();
+  });
+
   it('links to the full community page', () => {
     render(<CommunityPostsView posts={[post('a')]} />);
     const all = screen.getByRole('link', { name: communityPosts.allLabel });

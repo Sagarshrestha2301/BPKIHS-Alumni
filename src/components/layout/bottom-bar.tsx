@@ -17,7 +17,9 @@ const items = [
 
 export function BottomBar() {
   const pathname = usePathname();
-  if (pathname.startsWith('/donate/checkout')) return null;
+  // The checkout funnel and the admin dashboard have their own full-width controls; a fixed
+  // public bar would cover the last action on the page.
+  if (pathname.startsWith('/donate/checkout') || pathname.startsWith('/admin')) return null;
 
   return (
     <nav

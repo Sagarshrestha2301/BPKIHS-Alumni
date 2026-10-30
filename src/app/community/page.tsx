@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
@@ -7,7 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { communityPage } from '@/content/community';
 import { CommunityFeed } from '@/features/community/community-feed';
 import { getCommunityPosts } from '@/features/community/get-community-data';
-import { SharePostForm } from '@/features/community/share-post-form';
+import { ShareGate } from '@/features/community/share-gate';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -32,7 +33,16 @@ export default async function CommunityPage() {
           <div>
             <CommunityFeed posts={posts} />
             <div className="mt-10">
-              <SharePostForm />
+              <Suspense
+                fallback={
+                  <div
+                    aria-hidden="true"
+                    className="h-24 animate-pulse rounded-xl border border-neutral-300 bg-neutral-100"
+                  />
+                }
+              >
+                <ShareGate />
+              </Suspense>
             </div>
           </div>
 

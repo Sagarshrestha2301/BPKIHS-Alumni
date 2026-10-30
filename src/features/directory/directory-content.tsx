@@ -1,34 +1,43 @@
 import { directoryPage } from '@/content/directory';
 import { ActiveFilterChips } from '@/features/directory/active-filter-chips';
+import { buildDirectoryHref } from '@/features/directory/build-directory-href';
 import { DirectoryFilterForm } from '@/features/directory/directory-filter-form';
 import { DirectoryResultsView } from '@/features/directory/directory-results-view';
 import { DirectorySearchForm } from '@/features/directory/directory-search-form';
 import { getActiveFilters } from '@/features/directory/get-active-filters';
 import { getAlumniPage } from '@/features/directory/get-directory-data';
 import { getAlumniFilterOptions } from '@/features/directory/get-filter-options';
+import { GuestNote } from '@/features/directory/guest-note';
 import { MobileFiltersSheet } from '@/features/directory/mobile-filters-sheet';
 import {
   parseDirectoryParams,
   type RawSearchParams,
 } from '@/features/directory/parse-directory-params';
 import { toAlumniListParams } from '@/features/directory/to-alumni-list-params';
+import { getViewer } from '@/server/auth/session';
 
-/** Reads the URL query, fetches that page of alumni, and renders the filters and results. */
+/**
+ * Reads the URL query, fetches that page of alumni, and renders the filters and results.
+ * The session is read here, inside the page's Suspense boundary. Signed-out visitors get the
+ * public view; the API still hides every members-only record and field from them.
+ */
 export async function DirectoryContent({
   searchParams,
 }: {
   searchParams: Promise<RawSearchParams>;
 }) {
   const params = parseDirectoryParams(await searchParams);
+  const viewer = await getViewer();
   const [result, options] = await Promise.all([
-    getAlumniPage(toAlumniListParams(params)),
-    getAlumniFilterOptions(),
+    getAlumniPage(toAlumniListParams(params), viewer),
+    getAlumniFilterOptions(viewer),
   ]);
   const activeCount = getActiveFilters(params).length;
   const copy = directoryPage.filters;
 
   return (
     <>
+      {viewer.isAlumnus ? null : <GuestNote next={buildDirectoryHref(params)} />}
       <DirectorySearchForm q={params.q} sort={params.sort} filters={params} />
 
       <div className="mt-6 lg:hidden">

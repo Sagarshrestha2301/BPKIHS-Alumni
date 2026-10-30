@@ -1,22 +1,24 @@
 export const donatePage = {
   title: 'Give to BPKIHS',
   description:
-    'Support scholarships, learning spaces, rural health camps and student emergency aid through the BPKIHS Alumni Association.',
+    'Support a giving goal approved by the BPKIHS Alumni Association, or contribute to its general fund.',
   intro:
-    'Every gift is tied to a named goal or to the general fund, so you can see what your support makes possible. The Association publishes how funds are used.',
+    'Each goal names the work it is intended to support. You can also give to the general fund. The transparency page reports payments confirmed through this site; it does not include gifts made offline or replace the Association’s audited accounts.',
   transparencyLink: 'See how funds are used',
-  goalsHeading: 'Where your gift can go',
+  goalsHeading: 'Current giving goals',
+  noGoals:
+    'There are no open giving goals at the moment. You can still contribute to the general fund.',
   generalFund: 'Give to the general fund',
   quickAmounts: {
-    title: 'Give in a minute',
-    description: 'Choose an amount and continue to the secure checkout. No account is needed yet.',
+    title: 'Choose an amount',
+    description: 'Choose a suggested amount or enter your own in the secure checkout.',
     amounts: [100_000, 250_000, 500_000, 1_000_000] as const,
     label: 'Give',
   },
   funds: {
     title: 'Where the money goes',
     description:
-      'A simple breakdown of funds raised so far. The full transparency page shows the figures and categories.',
+      'The amounts shown here are the allocation plan applied to confirmed online gifts. They are not a record of expenditure.',
     link: 'Open the transparency page',
   },
   tribute: {
@@ -26,13 +28,13 @@ export const donatePage = {
     link: 'Make a tribute gift',
   },
   paymentNote:
-    'Payments are processed by eSewa or Khalti. Your card and wallet details never reach this site.',
+    'Payment is completed on the provider’s secure page. Enter wallet or card details only there, never on this site.',
   trust: {
     title: 'What you can expect',
     items: [
       'A receipt by email after the provider confirms your payment.',
       'Payment completed on the provider’s secure page; card details never reach this site.',
-      'A contact for any question about a donation.',
+      'Questions about a gift? Contact the Association.',
     ],
     support: 'Contact the Association',
   },
@@ -40,7 +42,9 @@ export const donatePage = {
 
 export const donateCheckoutPage = {
   title: 'Complete your gift',
-  description: 'Choose the amount, sign in for your receipt, then pick a payment method.',
+  description:
+    'Choose an amount, sign in for a receipt and donation record, then select a payment method.',
+
   steps: [
     { id: 'amount', label: 'Amount' },
     { id: 'account', label: 'Your details' },
@@ -59,7 +63,7 @@ export const donateCheckoutPage = {
   account: {
     title: 'Sign in to continue',
     description:
-      'We ask you to sign in only to give, so we can send your receipt. The rest of the site never asks you to log in.',
+      'Sign in or create an account so the Association can send your receipt and keep your donation record.',
     signInTitle: 'Sign in',
     signUpTitle: 'Create an account',
     emailLabel: 'Email address',
@@ -69,7 +73,7 @@ export const donateCheckoutPage = {
     phoneLabel: 'Phone number (optional)',
     signInButton: 'Sign in',
     signUpButton: 'Create account and continue',
-    note: 'Your account is used only for this receipt. The rest of the site stays anonymous.',
+    note: 'You can browse the rest of the site without an account.',
   },
   payment: {
     title: 'Payment method',
@@ -79,7 +83,13 @@ export const donateCheckoutPage = {
     methods: {
       esewa: { label: 'eSewa', description: 'Wallet payment' },
       khalti: { label: 'Khalti', description: 'Wallet payment' },
+      connectips: {
+        label: 'ConnectIPS',
+        description: 'Direct bank payment, arranged through NCHL',
+      },
     },
+    unavailable:
+      'Online payments are temporarily unavailable. Please try again later or contact the Association.',
     redirectNote:
       'You will be redirected to the provider to pay. Card and wallet details are entered there, never on this site.',
   },
@@ -127,17 +137,31 @@ export const thankYouPage = {
 export const transparencyPage = {
   title: 'Fund transparency',
   description:
-    'How the Association allocates the funds it raises, with a table for anyone who prefers figures to charts.',
+    'The published giving goals, payment totals recorded on this site and the Association’s allocation plan.',
   intro:
-    'These figures come from the goals and donations recorded on this site. They show the current allocation and are not an audited account.',
-  totalRaised: 'Raised so far',
+    'Payment totals include gifts confirmed through this site. Goal allocations describe the Association’s published plan, not a record of money already spent. This page is not an audited account; contact the Association for audited statements and offline giving records.',
+  totalRaised: 'Confirmed through this site',
   totalGoals: 'Active goals',
+  funds: {
+    title: 'How the funds are allocated',
+    emptyTitle: 'No allocation plan has been published',
+    emptyText:
+      'The Association has not added fund categories yet. This page will show the allocation plan after it is published.',
+  },
   table: {
     category: 'Category',
     share: 'Share',
     amount: 'Amount',
   },
-  note: 'Figures update as donations are confirmed. Audited statements are published separately by the Association.',
+  donors: {
+    title: 'Recent gifts',
+    description:
+      'Gifts confirmed through this site, newest first. Donors who chose anonymity are listed without a name; amounts are not shown alongside people.',
+    anonymous: 'Anonymous donor',
+    generalFund: 'General fund',
+    empty: 'No confirmed gifts yet. The first one will appear here.',
+  },
+  note: 'Figures update when the payment provider confirms a gift. Offline donations are not included; audited statements are available from the Association.',
 } as const;
 
 export const tributePage = {

@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Reads the session to send a signed-in admin on, so this route blocks instead of prerendering. */
+export const instant = false;
+
 export default async function AdminSignInPage() {
   const session = await getSession();
   if (session?.user.role === 'admin') redirect('/admin');

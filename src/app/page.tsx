@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { hero } from '@/content/home';
 import { site } from '@/content/site';
 import { BoardPreview } from '@/features/home/board-preview';
 import { BoardPreviewSkeleton } from '@/features/home/board-preview-skeleton';
@@ -31,20 +32,22 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: 'en_NP',
     type: 'website',
+    // The branded 1200 × 630 card, not the 335 px seal: a shared home link is the site's
+    // first impression on WhatsApp, Facebook and Slack.
     images: [
       {
-        url: site.logo.src,
-        width: site.logo.width,
-        height: site.logo.height,
-        alt: `${site.name} logo`,
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: `${site.name}: ${hero.title}`,
       },
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: site.name,
     description,
-    images: [site.logo.src],
+    images: ['/og-image.jpg'],
   },
 };
 

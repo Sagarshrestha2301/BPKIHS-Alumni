@@ -7,16 +7,19 @@ import { type FormEvent, useState } from 'react';
 import { FormField } from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { signInPage } from '@/content/account';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
+import { useSession } from '@/features/auth/session-provider';
 import type { ApiClient } from '@/lib/api/contract';
 import { loginSchema } from '@/lib/api/schemas';
 
 const inputClass = 'h-11 bg-white';
 
-function SignInFields() {
+function SignInFields({ next }: { next?: string | null }) {
   const router = useRouter();
   const { signIn, error } = useAuth();
+  const { refresh: refreshSession } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
@@ -41,7 +44,10 @@ function SignInFields() {
     setSubmitting(true);
     const session = await signIn(parsed.data);
     if (session) {
-      router.replace('/account');
+      // The header keeps its own copy of the session; tell it before moving on.
+      refreshSession();
+      // Back to the page that asked for a sign-in, or the account page by default.
+      router.replace(next ?? '/account');
       router.refresh();
       return;
     }
@@ -73,9 +79,8 @@ function SignInFields() {
 
       <FormField label={signInPage.fields.password.label} error={fieldErrors.password} required>
         {(control) => (
-          <Input
+          <PasswordInput
             {...control}
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -104,10 +109,10 @@ function SignInFields() {
   );
 }
 
-export function SignInForm({ client }: { client?: ApiClient }) {
+export function SignInForm({ client, next }: { client?: ApiClient; next?: string | null }) {
   return (
     <AuthProvider client={client}>
-      <SignInFields />
+      <SignInFields next={next} />
     </AuthProvider>
   );
 }

@@ -3,13 +3,17 @@ import Link from 'next/link';
 
 import { EmptyState } from '@/components/shared/empty-state';
 import { adminTicketsPage } from '@/content/admin';
+import { AdminPageHeader } from '@/features/admin/page-header';
 import { TicketStatusControl } from '@/features/admin/ticket-status';
 import { formatDate } from '@/lib/format/dates';
 import { cn } from '@/lib/utils';
 import { requireAdminPage } from '@/server/auth/admin-page';
-import { listTicketsForAdmin, type TicketStatus } from '@/server/services/support';
+import { getTicketCounts, listTicketsForAdmin, type TicketStatus } from '@/server/services/support';
 
 export const metadata: Metadata = { title: adminTicketsPage.title };
+
+/** The session guard reads per-request data, so this page blocks instead of prerendering. */
+export const instant = false;
 
 const STATUSES: readonly TicketStatus[] = ['open', 'in_progress', 'closed'];
 
@@ -22,41 +26,49 @@ export default async function AdminTicketsPage({ searchParams }: { searchParams:
     : undefined;
   await requireAdminPage();
 
-  const tickets = await listTicketsForAdmin(status);
+  const [tickets, counts] = await Promise.all([listTicketsForAdmin(status), getTicketCounts()]);
 
   return (
-    <div>
-      <h1 className="font-heading text-primary-900 text-3xl font-semibold">
-        {adminTicketsPage.title}
-      </h1>
-      <p className="mt-2 text-neutral-600">{adminTicketsPage.description}</p>
+    <div className="space-y-6">
+      <AdminPageHeader title={adminTicketsPage.title} description={adminTicketsPage.description} />
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {[undefined, ...STATUSES].map((value) => {
           const active = value === status;
-          const label = value ? adminTicketsPage.statusLabels[value] : 'All';
+          const label = value
+            ? adminTicketsPage.statusLabels[value]
+            : adminTicketsPage.statusLabels.all;
+          const count = value ? counts[value] : counts.all;
           return (
             <Link
               key={label}
               href={value ? `/admin/tickets?status=${value}` : '/admin/tickets'}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium',
+                'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors',
                 active
                   ? 'border-primary-700 bg-primary-100 text-primary-900'
-                  : 'hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
+                  : 'hover:border-primary-700 hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
               )}
             >
               {label}
+              <span
+                className={cn(
+                  'text-xs font-semibold',
+                  active ? 'text-primary-700' : 'text-neutral-500',
+                )}
+              >
+                {count.toLocaleString('en-US')}
+              </span>
             </Link>
           );
         })}
       </div>
 
       {tickets.length === 0 ? (
-        <EmptyState className="mt-6" title={adminTicketsPage.empty} />
+        <EmptyState title={adminTicketsPage.empty} />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-300 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-neutral-300 bg-white shadow-sm">
           <table className="w-full min-w-[52rem] text-left text-sm">
             <caption className="sr-only">{adminTicketsPage.title}</caption>
             <thead className="bg-neutral-100 text-xs tracking-wide text-neutral-600 uppercase">
@@ -80,7 +92,7 @@ export default async function AdminTicketsPage({ searchParams }: { searchParams:
             </thead>
             <tbody className="divide-y divide-neutral-300">
               {tickets.map((ticket) => (
-                <tr key={ticket.id} className="align-top">
+                <tr key={ticket.id} className="align-top hover:bg-neutral-50">
                   <td className="text-primary-900 px-4 py-3 font-mono text-xs">
                     {ticket.reference}
                   </td>

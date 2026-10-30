@@ -11,7 +11,7 @@ export async function PATCH(request: Request, context: Context) {
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
     const input = await parseBody(request, adminEventInputSchema);
-    const event = await updateEvent(decodeURIComponent(id), input);
+    const event = await updateEvent(id, input);
     await writeAudit({
       actorId: session.user.id,
       action: 'update',
@@ -27,7 +27,7 @@ export async function DELETE(request: Request, context: Context) {
   return handle(async () => {
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
-    const eventId = decodeURIComponent(id);
+    const eventId = id;
     const result = await deleteEvent(eventId);
     await writeAudit({
       actorId: session.user.id,

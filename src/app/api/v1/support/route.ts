@@ -1,4 +1,5 @@
 import { helpdeskSchema } from '@/lib/api/schemas';
+import { requireSession } from '@/server/auth/session';
 import { assertCsrf } from '@/server/http/csrf';
 import { limit } from '@/server/http/rate-limit';
 import { assertSameOrigin, handle, ok, parseBody } from '@/server/http/respond';
@@ -9,7 +10,16 @@ export async function POST(request: Request) {
     assertSameOrigin(request);
     assertCsrf(request);
     limit(request, 'support');
+    // Helpdesk messages are a members-only action, sent from the member's own account.
+    const session = await requireSession();
     const input = await parseBody(request, helpdeskSchema);
-    return ok(await submitSupportTicket(input), 201);
+    return ok(
+      await submitSupportTicket({
+        ...input,
+        name: session.user.name || input.name,
+        email: session.user.email,
+      }),
+      201,
+    );
   });
 }

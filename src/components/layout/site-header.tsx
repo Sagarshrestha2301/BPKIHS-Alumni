@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/button';
-import { mainNav, site, utilityNav } from '@/content/site';
+import { mainNav, signInHref, signInLabel, site, utilityNav } from '@/content/site';
+import { useSession } from '@/features/auth/session-provider';
 import { isActivePath } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,11 @@ import { donateCta, focusRing, navLink, navLinkActive } from './nav-styles';
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const { status, session } = useSession();
+  const signedIn = status === 'signed_in';
+
+  // The dashboard has its own shell: no public banner above it.
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-300 bg-white">
@@ -38,6 +44,19 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {signedIn && session ? (
+            <Link
+              href="/account"
+              aria-current={isActivePath(pathname, '/account') ? 'page' : undefined}
+              className={cn('font-semibold underline-offset-4 hover:underline', focusRing)}
+            >
+              {session.name}
+            </Link>
+          ) : (
+            <Link href={signInHref} className={cn('underline-offset-4 hover:underline', focusRing)}>
+              {signInLabel}
+            </Link>
+          )}
         </Container>
       </div>
       <Container className="flex h-16 items-center justify-between gap-4">
@@ -79,12 +98,15 @@ export function SiteHeader() {
           <Link href="/donate" className={donateCta}>
             Donate
           </Link>
-          <Link
-            href="/register"
-            className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-sm')}
-          >
-            Register
-          </Link>
+          {/* Register is meaningless to someone who already has an account. */}
+          {signedIn ? null : (
+            <Link
+              href="/register"
+              className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-sm')}
+            >
+              Register
+            </Link>
+          )}
         </div>
         <MobileNav />
       </Container>

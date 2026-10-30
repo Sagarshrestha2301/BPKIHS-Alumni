@@ -7,7 +7,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   return handle(async () => {
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
-    const result = await moderatePost(decodeURIComponent(id), 'approve', session.user.id);
+    const result = await moderatePost(id, 'approve', session.user.id);
     await writeAudit({
       actorId: session.user.id,
       action: 'approve',

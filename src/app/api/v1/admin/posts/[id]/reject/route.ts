@@ -14,7 +14,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const session = await requireAdminMutation(request);
     const { id } = await context.params;
     const { reason } = await parseBody(request, rejectSchema);
-    const result = await moderatePost(decodeURIComponent(id), 'reject', session.user.id, reason);
+    const result = await moderatePost(id, 'reject', session.user.id, reason);
     await writeAudit({
       actorId: session.user.id,
       action: 'reject',

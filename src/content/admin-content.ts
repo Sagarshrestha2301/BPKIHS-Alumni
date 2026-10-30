@@ -2,10 +2,12 @@
 
 export const adminContentPage = {
   title: 'Content',
-  description: 'Edit the events, giving goals, board, FAQ and welcome message shown on the site.',
+  description:
+    'Edit the events, giving goals, funds breakdown, board, FAQ and welcome message shown on the site.',
   tabs: {
     events: 'Events',
     goals: 'Giving goals',
+    funds: 'Funds breakdown',
     board: 'Board',
     faq: 'FAQ',
     welcome: 'Welcome',
@@ -19,11 +21,17 @@ export const adminContentPage = {
   cancel: 'Cancel',
   saved: 'Saved.',
   deleted: 'Deleted.',
+  errors: {
+    invalidJson: 'The gallery must be valid JSON.',
+    checkFields: 'Check the highlighted fields.',
+    actionFailed: 'That change did not go through.',
+  },
   choose: 'Choose one',
   none: 'None',
   empty: {
     events: 'No events yet. Add the first one.',
     goals: 'No giving goals yet. Add the first one.',
+    funds: 'No fund categories yet. Add the first one; the shares should add up to 100%.',
     board: 'No board members yet. Add the first one.',
     faq: 'No FAQ entries yet. Add the first one.',
     welcome: 'The welcome message is not published yet.',
@@ -31,9 +39,11 @@ export const adminContentPage = {
   sections: {
     events: 'Upcoming and past events',
     goals: 'Giving goals and their totals',
+    funds: 'How the money raised is allocated on the transparency page',
     board: 'Current and former board members',
     faq: 'Questions shown on the support page',
     welcome: 'The Association welcome message',
+    'staff-posts': 'Staff posts and announcements',
   },
   fields: {
     slug: 'Slug (lower-case words joined by hyphens)',
@@ -64,6 +74,8 @@ export const adminContentPage = {
     vision: 'Vision statement (optional)',
     current: 'Current board member',
     category: 'Category',
+    sharePercent: 'Share of funds (%)',
+    period: 'Period (for example 2025–26)',
     question: 'Question',
     answer: 'Answer',
     author: 'Author',
@@ -80,6 +92,10 @@ export const adminContentPage = {
     upcoming: 'Upcoming',
     past: 'Past',
   } as Record<string, string>,
+  goalStatus: {
+    active: 'Active',
+    inactive: 'Inactive',
+  },
 } as const;
 
 export const adminNewsletterPage = {
@@ -116,7 +132,9 @@ export const adminNewsletterPage = {
     date: 'Date',
   },
   statusLabels: {
+    all: 'All',
     subscribed: 'Subscribed',
+    pending: 'Awaiting confirmation',
     unsubscribed: 'Unsubscribed',
     sending: 'Sending',
     sent: 'Sent',
@@ -134,6 +152,9 @@ export const adminAuditPage = {
   title: 'Audit log',
   description: 'The most recent administrator actions, newest first.',
   empty: 'No admin actions recorded yet.',
+  limitNote: (limit: number) => `Showing the newest ${limit.toLocaleString('en-US')} entries.`,
+  actorUnknown: 'Deleted account',
+  detailEmpty: 'None',
   columns: {
     when: 'When',
     actor: 'Actor',

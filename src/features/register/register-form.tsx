@@ -1,14 +1,18 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
+import { BotCheck } from '@/components/shared/bot-check';
 import { FormField } from '@/components/shared/form-field';
 import { Stepper } from '@/components/shared/stepper';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Textarea } from '@/components/ui/textarea';
+import { photoCopy } from '@/content/photo';
 import { registerPage } from '@/content/register';
 import {
   COUNTRY_OPTIONS,
@@ -28,6 +32,8 @@ import {
   VISIBILITIES,
   type Visibility,
 } from '@/lib/constants/domain';
+import { PHOTO_ACCEPT } from '@/lib/constants/photo';
+import { type PhotoProblem, validatePhotoFile } from '@/lib/photo/validate';
 import { cn } from '@/lib/utils';
 
 const inputClass = 'h-11 bg-white';
@@ -37,6 +43,10 @@ const selectClass =
 type Status = 'idle' | 'submitting' | 'verify' | 'verifying' | 'success';
 
 const CODE_PATTERN = /^\d{4,8}$/;
+
+function photoProblemMessage(problem: PhotoProblem): string {
+  return photoCopy.errors[problem];
+}
 
 function VisibilitySelect({
   label,
@@ -78,12 +88,34 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<Status>('idle');
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [botToken, setBotToken] = useState('');
+  const [botReset, setBotReset] = useState(0);
   const [result, setResult] = useState<RegistrationResult | null>(null);
   const [code, setCode] = useState('');
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoConsent, setPhotoConsent] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoConsentError, setPhotoConsentError] = useState<string | null>(null);
+  const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // The chosen file stays in the browser until the emailed code proves the address, so the
+  // upload itself always happens with an authenticated session.
+  const photoPreview = useMemo(() => {
+    if (!photoFile || typeof URL.createObjectURL !== 'function') return null;
+    return URL.createObjectURL(photoFile);
+  }, [photoFile]);
+
+  useEffect(
+    () => () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    },
+    [photoPreview],
+  );
 
   // A code cannot be resent while the previous one is still fresh, and the button says how long.
   useEffect(() => {
@@ -111,8 +143,39 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
     });
   }
 
+  function onPhotoChange(event: ChangeEvent<HTMLInputElement>): void {
+    const file = event.target.files?.[0] ?? null;
+    setPhotoError(null);
+    setPhotoConsentError(null);
+
+    if (!file) {
+      setPhotoFile(null);
+      return;
+    }
+
+    const problem = validatePhotoFile(file);
+    if (problem) {
+      setPhotoFile(null);
+      setPhotoConsent(false);
+      setPhotoError(photoProblemMessage(problem));
+      event.target.value = '';
+      return;
+    }
+
+    setPhotoFile(file);
+  }
+
+  function clearPhoto(): void {
+    setPhotoFile(null);
+    setPhotoConsent(false);
+    setPhotoError(null);
+    setPhotoConsentError(null);
+  }
+
   function goToStep(next: number): void {
     setErrors({});
+    setPhotoError(null);
+    setPhotoConsentError(null);
     setStep(next);
     window.requestAnimationFrame(() => {
       formRef.current?.scrollIntoView?.({ block: 'start' });
@@ -126,6 +189,13 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (status === 'submitting') return;
+
+    if (step >= 1 && photoFile && !photoConsent) {
+      setPhotoConsentError(photoCopy.errors.consent);
+      if (step !== 1) setStep(1);
+      focusFirstError();
+      return;
+    }
 
     if (step < REGISTER_STEPS.length - 1) {
       const validation = validateStep(step, values);
@@ -149,7 +219,9 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
     setStatus('submitting');
     setSubmitError(null);
     try {
-      const registration = await (client ?? getApiClient()).submitRegistration(validation.data);
+      const registration = await (client ?? getApiClient()).submitRegistration(validation.data, {
+        botToken,
+      });
       setResult(registration);
       setCode('');
       setVerifyError(null);
@@ -159,6 +231,9 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
     } catch (error) {
       setStatus('idle');
       setSubmitError(isApiError(error) ? error.message : copy.error);
+      // A failed submission may have consumed the token; ask the widget for a fresh one.
+      setBotToken('');
+      setBotReset((value) => value + 1);
     }
   }
 
@@ -174,8 +249,24 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
 
     setStatus('verifying');
     setVerifyError(null);
+    setPhotoNotice(null);
+    setPhotoUploaded(false);
     try {
-      await (client ?? getApiClient()).verifyRegistration({ email: result.email, otp });
+      const api = client ?? getApiClient();
+      await api.verifyRegistration({ email: result.email, otp });
+
+      // Verification also signs the member in; only then is the chosen file uploaded. A photo
+      // failure must not undo a completed registration, so it becomes a notice with a retry
+      // path on the account page.
+      if (photoFile) {
+        try {
+          await api.uploadMyPhoto({ file: photoFile, consent: true });
+          setPhotoUploaded(true);
+        } catch {
+          setPhotoNotice(copy.success.photoFailed);
+        }
+      }
+
       setStatus('success');
     } catch (error) {
       setVerifyError(isApiError(error) ? error.message : copy.error);
@@ -273,6 +364,22 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
           {copy.success.title}
         </h2>
         <p className="text-body-l mt-3 max-w-2xl text-neutral-600">{copy.success.body}</p>
+        {photoUploaded ? (
+          <p
+            role="status"
+            className="border-primary-100 bg-primary-100/50 text-primary-900 mt-4 rounded-lg border p-3 text-sm"
+          >
+            {copy.success.photoAdded}
+          </p>
+        ) : null}
+        {photoNotice ? (
+          <p
+            role="status"
+            className="mt-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-3 text-sm text-neutral-700"
+          >
+            {photoNotice}
+          </p>
+        ) : null}
         <p className="mt-6 text-sm text-neutral-600">
           {copy.success.reference}: <span className="font-mono text-neutral-900">{result.id}</span>
         </p>
@@ -485,18 +592,70 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
               <FormField
                 label={copy.fields.photo.label}
                 hint={copy.fields.photo.hint}
+                error={photoError ?? undefined}
                 className="sm:col-span-2"
               >
                 {(control) => (
                   <Input
                     {...control}
                     type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    disabled
+                    accept={PHOTO_ACCEPT}
+                    onChange={onPhotoChange}
                     className="h-11 bg-white file:mr-3"
                   />
                 )}
               </FormField>
+
+              {photoFile ? (
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-neutral-300 bg-neutral-100/60 p-4 sm:col-span-2">
+                  {photoPreview ? (
+                    <Image
+                      src={photoPreview}
+                      alt=""
+                      width={64}
+                      height={64}
+                      unoptimized
+                      className="size-16 rounded-full border border-neutral-300 object-cover"
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-neutral-900">
+                      {photoFile.name}
+                    </p>
+                    <p className="text-sm text-neutral-600">{copy.fields.photo.selected}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearPhoto}
+                    className="h-9"
+                  >
+                    {copy.fields.photo.remove}
+                  </Button>
+                </div>
+              ) : null}
+
+              {photoFile ? (
+                <FormField
+                  label={photoCopy.consentLabel}
+                  hint={photoCopy.consentHint}
+                  error={photoConsentError ?? undefined}
+                  className="sm:col-span-2"
+                  required
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      checked={photoConsent}
+                      onCheckedChange={(checked) => {
+                        setPhotoConsent(checked === true);
+                        setPhotoConsentError(null);
+                      }}
+                    />
+                  )}
+                </FormField>
+              ) : null}
             </div>
           ) : null}
 
@@ -548,9 +707,8 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
                   required
                 >
                   {(control) => (
-                    <Input
+                    <PasswordInput
                       {...control}
-                      type="password"
                       autoComplete="new-password"
                       value={values.password}
                       onChange={(event) => update('password', event.target.value)}
@@ -566,9 +724,8 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
                   required
                 >
                   {(control) => (
-                    <Input
+                    <PasswordInput
                       {...control}
-                      type="password"
                       autoComplete="new-password"
                       value={values.confirmPassword}
                       onChange={(event) => update('confirmPassword', event.target.value)}
@@ -645,6 +802,12 @@ export function RegisterForm({ client }: { client?: ApiClient }) {
           >
             {submitError}
           </p>
+        ) : null}
+
+        {step === REGISTER_STEPS.length - 1 ? (
+          <div className="mt-6">
+            <BotCheck onToken={setBotToken} resetKey={botReset} />
+          </div>
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">

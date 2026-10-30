@@ -23,7 +23,6 @@ export default function HowWeWorkPage() {
       <Section>
         <div className="max-w-3xl">
           <HowWeWorkAccordion />
-          <p className="mt-4 text-sm text-neutral-600">{howWeWork.draftNote}</p>
           <p className="mt-6">
             <Link
               href={howWeWork.faqHref}

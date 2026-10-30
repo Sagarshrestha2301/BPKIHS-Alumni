@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, type KeyboardEvent, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { adminContentPage as copy } from '@/content/admin-content';
@@ -8,6 +8,7 @@ import type {
   AdminBoardMember,
   AdminEvent,
   AdminFaqItem,
+  AdminFundRow,
   AdminGoal,
   AdminWelcomeMessage,
   ContentOverview,
@@ -16,6 +17,7 @@ import {
   adminBoardInputSchema,
   adminEventInputSchema,
   adminFaqInputSchema,
+  adminFundInputSchema,
   adminGoalInputSchema,
   adminWelcomeInputSchema,
 } from '@/lib/api/admin-schemas';
@@ -24,12 +26,13 @@ import { formatDateRange } from '@/lib/format/dates';
 import { formatNpr } from '@/lib/format/money';
 
 import { adminRequest } from '../admin-request';
+import { AdminPageHeader } from '../page-header';
 import { areaClass, controlClass, type FieldDef, RecordEditor } from './record-editor';
 import { paisaToRupees, toDateTimeLocal, toJsonText } from './values';
 
 type Tab = keyof typeof copy.tabs;
 
-const TABS: Tab[] = ['events', 'goals', 'board', 'faq', 'welcome'];
+const TABS: Tab[] = ['events', 'goals', 'funds', 'board', 'faq', 'welcome'];
 
 const eventFields = (goals: AdminGoal[]): FieldDef[] => [
   { name: 'slug', label: copy.fields.slug, required: true },
@@ -92,6 +95,13 @@ const goalFields: FieldDef[] = [
   { name: 'active', label: copy.fields.active, kind: 'checkbox', hint: copy.fields.active },
 ];
 
+const fundFields: FieldDef[] = [
+  { name: 'category', label: copy.fields.category, required: true },
+  { name: 'sharePercent', label: copy.fields.sharePercent, kind: 'number', required: true },
+  { name: 'period', label: copy.fields.period },
+  { name: 'sortOrder', label: copy.fields.sortOrder, kind: 'number' },
+];
+
 const boardFields: FieldDef[] = [
   { name: 'name', label: copy.fields.name, required: true },
   { name: 'role', label: copy.fields.role, required: true },
@@ -117,22 +127,42 @@ function byOrder<T extends { sortOrder: number }>(items: T[]): T[] {
 
 export function ContentManager({ initial }: { initial: ContentOverview }) {
   const [tab, setTab] = useState<Tab>('events');
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const last = TABS.length - 1;
+    let next: number | null = null;
+    if (event.key === 'ArrowRight') next = index === last ? 0 : index + 1;
+    if (event.key === 'ArrowLeft') next = index === 0 ? last : index - 1;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = last;
+    if (next === null) return;
+    event.preventDefault();
+    const target = TABS[next];
+    if (!target) return;
+    setTab(target);
+    tabRefs.current[next]?.focus();
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-primary-900 text-3xl font-semibold">{copy.title}</h1>
-        <p className="mt-2 text-neutral-600">{copy.description}</p>
-      </div>
+      <AdminPageHeader title={copy.title} description={copy.description} />
 
       <div role="tablist" aria-label={copy.title} className="flex flex-wrap gap-2">
-        {TABS.map((value) => (
+        {TABS.map((value, index) => (
           <button
             key={value}
             type="button"
             role="tab"
+            id={`content-tab-${value}`}
             aria-selected={tab === value}
+            aria-controls="content-tabpanel"
+            tabIndex={tab === value ? 0 : -1}
+            ref={(element) => {
+              tabRefs.current[index] = element;
+            }}
             onClick={() => setTab(value)}
+            onKeyDown={(event) => moveTab(event, index)}
             className={
               tab === value
                 ? 'border-primary-700 bg-primary-100 text-primary-900 inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium'
@@ -144,7 +174,12 @@ export function ContentManager({ initial }: { initial: ContentOverview }) {
         ))}
       </div>
 
-      <div role="tabpanel">
+      <div
+        id="content-tabpanel"
+        role="tabpanel"
+        aria-labelledby={`content-tab-${tab}`}
+        tabIndex={0}
+      >
         {tab === 'events' && (
           <RecordEditor<AdminEvent>
             section="events"
@@ -200,7 +235,30 @@ export function ContentManager({ initial }: { initial: ContentOverview }) {
             })}
             display={(goal) => ({
               title: goal.title,
-              detail: `${formatNpr(goal.raisedMinor)} raised of ${formatNpr(goal.targetMinor)} · ${goal.active ? 'Active' : 'Inactive'}`,
+              detail: `${formatNpr(goal.raisedMinor)} raised of ${formatNpr(goal.targetMinor)} · ${goal.active ? copy.goalStatus.active : copy.goalStatus.inactive}`,
+            })}
+          />
+        )}
+
+        {tab === 'funds' && (
+          <RecordEditor<AdminFundRow>
+            section="funds"
+            items={initial.funds}
+            fields={fundFields}
+            schema={adminFundInputSchema}
+            endpoint="/api/v1/admin/content/funds"
+            emptyLabel={copy.empty.funds}
+            newDefaults={{ period: 'current', sortOrder: '0' }}
+            sortItems={byOrder}
+            toDefaults={(row) => ({
+              category: row.category,
+              sharePercent: String(row.sharePercent),
+              period: row.period,
+              sortOrder: String(row.sortOrder),
+            })}
+            display={(row) => ({
+              title: row.category,
+              detail: `${row.sharePercent}% · ${row.period}`,
             })}
           />
         )}
@@ -227,7 +285,7 @@ export function ContentManager({ initial }: { initial: ContentOverview }) {
               isCurrent: member.isCurrent,
             })}
             display={(member) => ({
-              title: `${member.name} — ${member.role}`,
+              title: `${member.name}: ${member.role}`,
               detail: `${member.term}${member.isCurrent ? ' · Current board' : ' · Former board'}`,
             })}
           />
@@ -276,7 +334,7 @@ function WelcomeEditor({ initial }: { initial: AdminWelcomeMessage | null }) {
       photoUrl: String(form.get('photoUrl') ?? '').trim() || undefined,
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Check the highlighted fields.');
+      setError(parsed.error.issues[0]?.message ?? copy.errors.checkFields);
       return;
     }
 
@@ -287,7 +345,7 @@ function WelcomeEditor({ initial }: { initial: AdminWelcomeMessage | null }) {
       await adminRequest('/api/v1/admin/content/welcome', { method: 'PUT', body: parsed.data });
       setNotice(copy.saved);
     } catch (caught) {
-      setError(isApiError(caught) ? caught.message : 'That change did not go through.');
+      setError(isApiError(caught) ? caught.message : copy.errors.actionFailed);
     } finally {
       setPending(false);
     }

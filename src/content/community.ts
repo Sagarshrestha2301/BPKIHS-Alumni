@@ -16,20 +16,29 @@ export const communityPage = {
   loadMore: 'Load more posts',
   empty: 'No posts match this filter yet.',
   readMore: 'Read the full post',
+  post: {
+    back: 'Back to the community feed',
+    byline: 'By',
+    notFoundTitle: 'Post not found',
+  },
   share: {
     title: 'Share an update',
     summary: 'Share an update with the network',
     description:
-      'Stories, achievements, notices and memories are welcome. Posts are reviewed before they appear. You do not need an account.',
+      'Stories, achievements, notices and memories are welcome. Posts are reviewed before they appear.',
+    postingAs: 'Posting as',
     fields: {
       type: 'Type of post',
       title: 'Title',
       body: 'Your update',
+      imageUrl: 'Photo URL (optional)',
       authorName: 'Your name',
       authorEmail: 'Your email',
     },
     hints: {
       body: 'At least 20 characters. Do not include private contact details.',
+      imageUrl:
+        'A photo or event image shown with your post once approved. Use an https:// link or leave it empty.',
       authorEmail: 'Not shown publicly. Used only if we need to check something.',
     },
     button: 'Submit for review',
@@ -52,6 +61,12 @@ export const communityPage = {
     success: 'Thank you. The moderators will review this post.',
     error: 'We could not send the report. Please try again.',
   },
+  signInGate: {
+    title: 'Sign in to share an update',
+    text: 'Sharing an update is for members of the network. Sign in, or create a free account, and your post goes to the moderators for review.',
+    signIn: 'Sign in',
+    register: 'Create an account',
+  },
 } as const;
 
 export const newsletterPage = {
@@ -70,12 +85,34 @@ export const newsletterPage = {
   emailLabel: 'Email address',
   subscribe: 'Subscribe',
   subscribing: 'Subscribing…',
-  success: 'Thank you. You are on the list.',
+  success: 'Check your inbox for the confirmation link. You are not on the list until you open it.',
   error: 'We could not update your subscription. Please try again.',
+  emailFailed:
+    'We could not send the confirmation email just now. Please try again in a moment. Nothing was added to the list.',
   preferencesTitle: 'Manage your subscription',
-  preferencesDescription: 'Enter the same email address to unsubscribe from the digest.',
-  unsubscribe: 'Unsubscribe',
-  unsubscribing: 'Updating…',
-  unsubscribed: 'You have been unsubscribed. You can subscribe again at any time.',
+  preferencesDescription:
+    'Enter the email address you subscribed with. We will send you a link to confirm; nothing changes until you open it.',
+  unsubscribe: 'Send the unsubscribe link',
+  unsubscribing: 'Sending…',
+  unsubscribed:
+    'If that address is on the list, a confirmation link is on its way. Open it to finish unsubscribing.',
+  unsubscribeConfirmed: 'You are unsubscribed. You can subscribe again at any time.',
+  unsubscribeUnknown:
+    'That link has already been used or is not valid. Enter your email above to request a new one.',
+  confirmedDone: 'You are on the list. Look out for the next digest.',
+  confirmedInvalid:
+    'That confirmation link is not valid or has already been used. Enter your email above to request a new one.',
+  confirm: {
+    title: 'Confirm your subscription',
+    description: 'One press and the address joins the newsletter list.',
+    intro:
+      'Press the button to confirm this address. Nothing is sent to it until you do, so a link that a scanner opened on its own changes nothing.',
+    button: 'Confirm subscription',
+    invalid:
+      'That link is not valid or has already been used. Enter your email on the newsletter page to request a new one.',
+    privacy:
+      'Confirming only proves that this inbox asked to join. The address is used for the newsletter and nothing else.',
+    back: 'Back to the newsletter page',
+  },
   privacyNote: 'We use your address only for the newsletter. Read the privacy policy for details.',
 } as const;

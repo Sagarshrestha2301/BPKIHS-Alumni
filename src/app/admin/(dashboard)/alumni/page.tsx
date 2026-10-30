@@ -6,15 +6,19 @@ import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminAlumniPage } from '@/content/admin';
 import { AlumniActions } from '@/features/admin/alumni-actions';
+import { AdminPageHeader } from '@/features/admin/page-header';
 import { StatusBadge } from '@/features/admin/status-badge';
 import { APPROVAL_STATUSES, type ApprovalStatus } from '@/lib/constants/domain';
 import { formatDate } from '@/lib/format/dates';
 import { cn } from '@/lib/utils';
 import { requireAdminPage } from '@/server/auth/admin-page';
 import { config } from '@/server/config';
-import { listAlumniForAdmin } from '@/server/services/alumni';
+import { getAlumniStatusCounts, listAlumniForAdmin } from '@/server/services/alumni';
 
 export const metadata: Metadata = { title: adminAlumniPage.title };
+
+/** The session guard reads per-request data, so this page blocks instead of prerendering. */
+export const instant = false;
 
 const PAGE_SIZE = config.pagination.adminPageSize;
 
@@ -39,24 +43,38 @@ export default async function AdminAlumniPage({ searchParams }: { searchParams: 
 
   await requireAdminPage();
 
-  const result = await listAlumniForAdmin({ status, q, page, pageSize: PAGE_SIZE });
+  const [result, statusCounts] = await Promise.all([
+    listAlumniForAdmin({ status, q, page, pageSize: PAGE_SIZE }),
+    getAlumniStatusCounts(),
+  ]);
   const totalPages = Math.max(1, Math.ceil(result.total / result.pageSize));
-  const filters: { key: ApprovalStatus | undefined; label: string }[] = [
-    { key: undefined, label: adminAlumniPage.statusLabels.all },
+  const filters: { key: ApprovalStatus | undefined; label: string; count: number }[] = [
+    { key: undefined, label: adminAlumniPage.statusLabels.all, count: statusCounts.all },
     ...APPROVAL_STATUSES.map((value) => ({
       key: value,
       label: adminAlumniPage.statusLabels[value],
+      count: statusCounts[value],
     })),
   ];
 
   return (
-    <div>
-      <h1 className="font-heading text-primary-900 text-3xl font-semibold">
-        {adminAlumniPage.title}
-      </h1>
-      <p className="mt-2 text-neutral-600">{adminAlumniPage.description}</p>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title={adminAlumniPage.title}
+        description={adminAlumniPage.description}
+        actions={
+          <Link
+            href="/admin/alumni/import"
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}
+          >
+            {adminAlumniPage.importLink}
+          </Link>
+        }
+      />
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <p className="-mt-3 text-sm text-neutral-600">{adminAlumniPage.importHint}</p>
+
+      <div className="flex flex-wrap items-center gap-2">
         {filters.map((filter) => {
           const active = filter.key === status;
           return (
@@ -65,40 +83,53 @@ export default async function AdminAlumniPage({ searchParams }: { searchParams: 
               href={href({ status: filter.key, q })}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium',
+                'inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors',
                 active
                   ? 'border-primary-700 bg-primary-100 text-primary-900'
-                  : 'hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
+                  : 'hover:border-primary-700 hover:text-primary-900 border-neutral-300 bg-white text-neutral-600',
               )}
             >
               {filter.label}
+              <span
+                className={cn(
+                  'text-xs font-semibold',
+                  active ? 'text-primary-700' : 'text-neutral-500',
+                )}
+              >
+                {filter.count.toLocaleString('en-US')}
+              </span>
             </Link>
           );
         })}
       </div>
 
-      <form action="/admin/alumni" method="get" className="mt-4 flex flex-wrap gap-2">
-        {status ? <input type="hidden" name="status" value={status} /> : null}
-        <label htmlFor="alumni-search" className="sr-only">
-          {adminAlumniPage.searchLabel}
-        </label>
-        <Input
-          id="alumni-search"
-          name="q"
-          type="search"
-          defaultValue={q}
-          placeholder={adminAlumniPage.searchLabel}
-          className="h-10 bg-white sm:max-w-sm"
-        />
-        <button type="submit" className={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>
-          Search
-        </button>
-      </form>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <form action="/admin/alumni" method="get" className="flex flex-wrap gap-2">
+          {status ? <input type="hidden" name="status" value={status} /> : null}
+          <label htmlFor="alumni-search" className="sr-only">
+            {adminAlumniPage.searchLabel}
+          </label>
+          <Input
+            id="alumni-search"
+            name="q"
+            type="search"
+            defaultValue={q}
+            placeholder={adminAlumniPage.searchLabel}
+            className="h-10 bg-white sm:w-80"
+          />
+          <button type="submit" className={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>
+            {adminAlumniPage.search}
+          </button>
+        </form>
+        <p className="text-sm text-neutral-600" role="status">
+          {adminAlumniPage.results(result.total)}
+        </p>
+      </div>
 
       {result.items.length === 0 ? (
-        <EmptyState className="mt-6" title={adminAlumniPage.empty} />
+        <EmptyState title={adminAlumniPage.empty} />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-300 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-neutral-300 bg-white shadow-sm">
           <table className="w-full min-w-[52rem] text-left text-sm">
             <caption className="sr-only">{adminAlumniPage.title}</caption>
             <thead className="bg-neutral-100 text-xs tracking-wide text-neutral-600 uppercase">
@@ -125,7 +156,7 @@ export default async function AdminAlumniPage({ searchParams }: { searchParams: 
             </thead>
             <tbody className="divide-y divide-neutral-300">
               {result.items.map((person) => (
-                <tr key={person.id} className="align-top">
+                <tr key={person.id} className="align-top hover:bg-neutral-50">
                   <td className="px-4 py-3">
                     <p className="text-primary-900 font-medium">{person.fullName}</p>
                     <p className="text-neutral-600">{person.email}</p>
@@ -154,24 +185,24 @@ export default async function AdminAlumniPage({ searchParams }: { searchParams: 
       )}
 
       {totalPages > 1 ? (
-        <nav aria-label="Registrations pages" className="mt-6 flex items-center gap-3">
+        <nav aria-label={adminAlumniPage.paginationLabel} className="flex items-center gap-3">
           {page > 1 ? (
             <Link
               href={href({ status, q, page: page - 1 })}
               className={cn(buttonVariants({ variant: 'outline' }), 'h-9')}
             >
-              Previous
+              {adminAlumniPage.previous}
             </Link>
           ) : null}
           <span className="text-sm text-neutral-600">
-            Page {page} of {totalPages}
+            {adminAlumniPage.pageOf(page, totalPages)}
           </span>
           {page < totalPages ? (
             <Link
               href={href({ status, q, page: page + 1 })}
               className={cn(buttonVariants({ variant: 'outline' }), 'h-9')}
             >
-              Next
+              {adminAlumniPage.next}
             </Link>
           ) : null}
         </nav>

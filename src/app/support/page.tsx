@@ -1,12 +1,14 @@
 import { Clock, Mail, MapPin, Phone } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { buttonVariants } from '@/components/ui/button';
 import { supportPage } from '@/content/support';
-import { HelpdeskForm } from '@/features/support/helpdesk-form';
+import { ContactForm } from '@/features/support/contact-form';
+import { HelpdeskPanel } from '@/features/support/helpdesk-panel';
 import { cn } from '@/lib/utils';
 import { contactDetails } from '@/server/contact';
 
@@ -76,16 +78,48 @@ export default function SupportPage() {
             >
               {supportPage.faqCta}
             </Link>
-          </aside>
+          </aside>{' '}
+          <div className="grid gap-8">
+            <section
+              aria-labelledby="helpdesk-heading"
+              className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8"
+            >
+              <h2
+                id="helpdesk-heading"
+                className="font-heading text-primary-900 text-2xl font-semibold"
+              >
+                {supportPage.helpdeskTitle}
+              </h2>
+              <p className="mt-2 text-sm text-neutral-600">{supportPage.helpdeskDescription}</p>
+              <div className="mt-6">
+                <Suspense
+                  fallback={
+                    <div
+                      aria-hidden="true"
+                      className="h-64 animate-pulse rounded-lg bg-neutral-100"
+                    />
+                  }
+                >
+                  <HelpdeskPanel />
+                </Suspense>
+              </div>{' '}
+            </section>
 
-          <div className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8">
-            <h2 className="font-heading text-primary-900 text-2xl font-semibold">
-              {supportPage.helpdeskTitle}
-            </h2>
-            <p className="mt-2 text-sm text-neutral-600">{supportPage.helpdeskDescription}</p>
-            <div className="mt-6">
-              <HelpdeskForm />
-            </div>
+            <section
+              aria-labelledby="contact-form-heading"
+              className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8"
+            >
+              <h2
+                id="contact-form-heading"
+                className="font-heading text-primary-900 text-2xl font-semibold"
+              >
+                {supportPage.contactForm.title}
+              </h2>
+              <p className="mt-2 text-sm text-neutral-600">{supportPage.contactForm.description}</p>
+              <div className="mt-6">
+                <ContactForm />
+              </div>
+            </section>
           </div>
         </div>
       </Section>

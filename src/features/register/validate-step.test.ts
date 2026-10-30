@@ -97,7 +97,7 @@ describe('validateStep: Account and privacy (step 2)', () => {
     if (result.ok) return;
     expect(result.errors).toEqual({
       email: 'Enter your email address.',
-      password: 'Use at least 12 characters.',
+      password: 'Use at least 8 characters.',
       confirmPassword: 'Repeat your password.',
       consent: 'Please agree to the terms to register.',
     });
@@ -111,7 +111,7 @@ describe('validateStep: Account and privacy (step 2)', () => {
       confirmPassword: 'short',
     });
     expect(short.ok).toBe(false);
-    if (!short.ok) expect(short.errors.password).toBe('Use at least 12 characters.');
+    if (!short.ok) expect(short.errors.password).toBe('Use at least 8 characters.');
 
     const mismatch = validateStep(2, { ...validValues(), confirmPassword: 'something else' });
     expect(mismatch.ok).toBe(false);

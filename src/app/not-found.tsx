@@ -8,7 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = { title: 'Page not found' };
+/** A 404 is answered with a 404 status anyway; the tag says it plainly for any crawler. */
+export const metadata: Metadata = {
+  title: 'Page not found',
+  robots: { index: false, follow: true },
+};
 
 const links = [
   { label: 'Home', href: '/' },
