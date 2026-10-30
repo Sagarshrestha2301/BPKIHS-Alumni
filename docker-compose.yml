@@ -7,8 +7,10 @@ services:
       POSTGRES_USER: bpkihs
       POSTGRES_PASSWORD: bpkihs_dev
       POSTGRES_DB: bpkihs
+    # Loopback only: a development database on port 5433 must not be reachable from the
+    # local network. Production Postgres is never run from this file.
     ports:
-      - '5433:5432'
+      - '127.0.0.1:5433:5432'
     volumes:
       - bpkihs_pgdata:/var/lib/postgresql/data
     healthcheck:

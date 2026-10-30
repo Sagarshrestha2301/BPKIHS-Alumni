@@ -22,7 +22,15 @@
 
 # misc
 .DS_Store
+
+# Private keys and certificate bundles. NCHL issues CREDITOR.pfx for ConnectIPS and the
+# HOWTO tells the operator to convert it to secrets/connectips.key; neither may be committed.
 *.pem
+*.key
+*.pfx
+*.p12
+*.jks
+/secrets/
 
 # debug
 npm-debug.log*
@@ -50,3 +58,6 @@ next-env.d.ts
 
 # Sessions stored by the e2e setup project
 e2e/.auth/
+
+# Uploaded profile photos (local development; production sets an absolute path)
+/.uploads/

@@ -27,7 +27,23 @@ function randomToken(): string {
 }
 
 export function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+  // Better Auth's admin plugin exposes /api/auth/admin/* (set-role, ban, create-user, …).
+  // This application never calls those endpoints: roles change only through the approval
+  // services and the CLI. Denying them in production closes a route around the dashboard's
+  // TOTP gate, which an unenrolled administrator could otherwise use directly.
+  if (
+    process.env.NODE_ENV === 'production' &&
+    request.nextUrl.pathname.startsWith('/api/auth/admin')
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  // A server layout cannot read the pathname directly. Forward the value we already have so
+  // the admin shell can keep /admin/security reachable while TOTP enrolment is pending. The
+  // header is overwritten here, so a client cannot choose it.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', request.nextUrl.pathname);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const forwardedProtocol = request.headers.get('x-forwarded-proto');
   const secure =

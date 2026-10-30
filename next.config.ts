@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 
+import { isPublicImageHost } from './src/lib/images/host';
 import { config } from './src/server/config';
 
 /**
@@ -10,7 +11,9 @@ function imageHosts(): string[] {
   const configured = (process.env.IMAGE_HOSTS ?? 'bpkihs.edu')
     .split(',')
     .map((host) => host.trim().toLowerCase())
-    .filter((host) => /^[a-z0-9.-]+$/.test(host));
+    // The optimiser fetches these from the server, so an internal name here would be an
+    // SSRF gadget. `isPublicImageHost` refuses loopback, IP literals and private suffixes.
+    .filter(isPublicImageHost);
 
   return configured.length > 0 ? configured : ['bpkihs.edu'];
 }
@@ -26,6 +29,7 @@ function paymentOrigins(): string[] {
   const configured = [
     process.env.ESEWA_GATEWAY_URL,
     process.env.KHALTI_BASE_URL,
+    process.env.CONNECTIPS_BASE_URL,
     config.payments.esewaSandboxUrl,
     config.payments.khaltiSandboxBaseUrl,
   ];
@@ -47,6 +51,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  /** `sharp` carries a native binary; it must stay outside the server bundle. */
+  serverExternalPackages: ['sharp'],
   images: {
     remotePatterns: imageHosts().map((hostname) => ({
       protocol: 'https' as const,
@@ -58,19 +64,22 @@ const nextConfig: NextConfig = {
     const development = process.env.NODE_ENV !== 'production';
     // Nonces require dynamic rendering; this site is prerendered with Partial Prerendering.
     // Inline scripts are therefore allowed, while every other source is restricted.
+    // Cloudflare Turnstile needs its script, its iframe and its verification call. Only that
+    // exact origin is added; every other frame and object stays blocked.
+    const botOrigins = 'https://challenges.cloudflare.com';
     const contentSecurityPolicy = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ''}`,
+      `script-src 'self' 'unsafe-inline' ${botOrigins}${development ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      `connect-src 'self'${development ? ' ws: http://localhost:*' : ''}`,
+      `connect-src 'self' ${botOrigins}${development ? ' ws: http://localhost:*' : ''}`,
       "media-src 'self' https:",
       "object-src 'none'",
       "base-uri 'self'",
       `form-action 'self' ${paymentOrigins().join(' ')}`,
       "frame-ancestors 'none'",
-      "frame-src 'none'",
+      `frame-src ${botOrigins}`,
       "manifest-src 'self'",
       ...(development ? [] : ['upgrade-insecure-requests']),
     ].join('; ');
