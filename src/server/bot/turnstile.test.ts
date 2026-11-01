@@ -26,10 +26,10 @@ describe('bot protection', () => {
     await expect(assertHuman(request())).resolves.toBeUndefined();
   });
 
-  it('refuses a submission in production when no secret is configured', async () => {
+  it('skips the check in production when no secret is configured', async () => {
     vi.stubEnv('TURNSTILE_SECRET_KEY', '');
     vi.stubEnv('NODE_ENV', 'production');
-    await expect(assertHuman(request())).rejects.toThrow('Human verification is not configured');
+    await expect(assertHuman(request())).resolves.toBeUndefined();
   });
 
   it('requires a token once a secret is configured', async () => {

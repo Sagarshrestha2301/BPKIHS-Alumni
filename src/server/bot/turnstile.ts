@@ -8,14 +8,11 @@ import { config } from '../config';
  * Human verification for the public forms.
  *
  * Cloudflare Turnstile issues a short-lived token in the browser; this module asks Cloudflare
- * whether that token is genuine. Two rules matter:
- *
- * - **Production never runs without it.** If `TURNSTILE_SECRET_KEY` is missing in production,
- *   a public form refuses to accept a submission instead of quietly accepting anything. The
- *   startup check (`env.ts`) refuses to boot in that state, so this is the second line.
- * - **Development and the browser suite run without keys.** No secret means no check, which is
- *   what lets a fresh clone and the Playwright suite work with no Cloudflare account. The
- *   production gate is what makes that safe.
+ * whether that token is genuine. Turnstile is **optional**: when `TURNSTILE_SECRET_KEY` is
+ * absent (no Cloudflare account) the check is skipped entirely, which is what lets a fresh
+ * clone, the browser suite and deployments without Turnstile work. Setting
+ * `TURNSTILE_SECRET_KEY` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` enables verification and is the
+ * recommended configuration for a public launch.
  *
  * The token is single-use. Routes verify it after parsing the body, so a field error does not
  * burn the token; the widget resets itself after a failed submission.
@@ -26,12 +23,8 @@ export function botProtectionConfigured(): boolean {
 
 export async function assertHuman(request: Request): Promise<void> {
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new ApiError('unavailable', botCheck.notConfigured);
-    }
-    return;
-  }
+  // No secret means bot protection is disabled; submissions are accepted without a token.
+  if (!secret) return;
 
   const token = request.headers.get(BOT_TOKEN_HEADER)?.trim();
   if (!token) throw new ApiError('validation', botCheck.missing);

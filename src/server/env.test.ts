@@ -65,13 +65,12 @@ describe('productionEnvProblems', () => {
     ).toContainEqual(expect.stringContaining('example value'));
   });
 
-  it('requires bot protection keys', () => {
-    expect(productionEnvProblems(validEnv({ TURNSTILE_SECRET_KEY: undefined }))).toContainEqual(
-      expect.stringContaining('TURNSTILE_SECRET_KEY'),
-    );
+  it('accepts production without bot protection keys (Turnstile is optional)', () => {
     expect(
-      productionEnvProblems(validEnv({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: undefined })),
-    ).toContainEqual(expect.stringContaining('NEXT_PUBLIC_TURNSTILE_SITE_KEY'));
+      productionEnvProblems(
+        validEnv({ TURNSTILE_SECRET_KEY: undefined, NEXT_PUBLIC_TURNSTILE_SITE_KEY: undefined }),
+      ),
+    ).toEqual([]);
   });
 
   it('requires a gateway and its live URL', () => {

@@ -159,16 +159,9 @@ export function productionEnvProblems(
     problems.push('KHALTI_BASE_URL must be an HTTPS URL outside localhost.');
   }
 
-  // Public forms are scriptable without this, so production refuses to start without it.
-  if (!value('TURNSTILE_SECRET_KEY')) {
-    problems.push('TURNSTILE_SECRET_KEY is required to protect the public forms from bots.');
-  }
-  if (!value('NEXT_PUBLIC_TURNSTILE_SITE_KEY')) {
-    problems.push(
-      'NEXT_PUBLIC_TURNSTILE_SITE_KEY is required at build time (the Turnstile widget cannot render without it).',
-    );
-  }
-
+  // Bot protection (Cloudflare Turnstile) is optional: when its keys are absent the
+  // public forms skip the human check (see src/server/bot/turnstile.ts). Set both
+  // keys to turn it on.
   if (value('EMAIL_TRANSPORT') !== 'resend') {
     problems.push('EMAIL_TRANSPORT must be "resend" in production.');
   }
