@@ -61,3 +61,11 @@ e2e/.auth/
 
 # Uploaded profile photos (local development; production sets an absolute path)
 /.uploads/
+.neon
+
+# Local scratch 
+/dev-server.log
+/dev-server.err
+/dev-server.pid
+.agents/
+skills-lock.json

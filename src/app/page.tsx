@@ -10,6 +10,8 @@ import { CommunityPostsSkeleton } from '@/features/home/community-posts-skeleton
 import { FeaturedGoals } from '@/features/home/featured-goals';
 import { FeaturedGoalsSkeleton } from '@/features/home/featured-goals-skeleton';
 import { Hero } from '@/features/home/hero';
+import { NoticeBoard } from '@/features/home/notice-board';
+import { NoticeBoardSkeleton } from '@/features/home/notice-board-skeleton';
 import { StatsBand } from '@/features/home/stats-band';
 import { StatsBandSkeleton } from '@/features/home/stats-band-skeleton';
 import { ThreeDoors } from '@/features/home/three-doors';
@@ -55,6 +57,9 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <Suspense fallback={<NoticeBoardSkeleton />}>
+        <NoticeBoard />
+      </Suspense>
       <Suspense fallback={<StatsBandSkeleton />}>
         <StatsBand />
       </Suspense>

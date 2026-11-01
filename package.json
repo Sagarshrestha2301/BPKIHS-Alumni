@@ -21,6 +21,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:prod": "tsx src/server/db/migrate.ts",
     "db:admin": "tsx src/server/db/create-admin.ts",
+    "db:seed-alumni": "tsx src/server/db/seed-alumni.ts",
+    "db:seed-content": "tsx src/server/db/seed-content.ts",
     "db:fixtures": "tsx e2e/helpers/seed-cli.ts",
     "db:backup": "bash scripts/backup-db.sh",
     "newsletter:digest": "tsx scripts/send-newsletter-digest.ts",
@@ -40,7 +42,11 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@aws-sdk/s3-request-presigner": "^3.1161.0",
     "@base-ui/react": "^1.9.0",
+    "@neon/config": "^1.10.0",
+    "@neon/env": "^1.6.8",
     "better-auth": "^1.7.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
