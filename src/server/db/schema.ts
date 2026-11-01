@@ -29,7 +29,6 @@ import {
   EVENT_MODES,
   EVENT_STATUSES,
   HELPDESK_TOPICS,
-  MEMBER_POST_TYPES,
   NEWSLETTER_INTERESTS,
   PAYMENT_METHODS,
   POST_TYPES,
@@ -54,7 +53,13 @@ export const donationStatusEnum = pgEnum('donation_status', ['pending', 'succeed
 export const eventModeEnum = pgEnum('event_mode', [...EVENT_MODES]);
 export const eventStatusEnum = pgEnum('event_status', [...EVENT_STATUSES]);
 export const postTypeEnum = pgEnum('post_type', [...POST_TYPES]);
-export const memberPostTypeEnum = pgEnum('member_post_type', [...MEMBER_POST_TYPES]);
+
+/* The member_post_type SQL enum still contains 'notice', which migration 0000 created,
+   because Postgres cannot drop an enum value. It stays a declaration only: no column uses
+   it, and new member submissions are validated against MEMBER_POST_TYPES instead, which
+   no longer lets members submit notices (notices are issued by the office only). */
+const DB_LEGACY_MEMBER_POST_TYPES = ['story', 'achievement', 'notice', 'in_memoriam'] as const;
+export const memberPostTypeEnum = pgEnum('member_post_type', [...DB_LEGACY_MEMBER_POST_TYPES]);
 export const helpdeskTopicEnum = pgEnum('helpdesk_topic', [...HELPDESK_TOPICS]);
 export const newsletterInterestEnum = pgEnum('newsletter_interest', [...NEWSLETTER_INTERESTS]);
 export const reportReasonEnum = pgEnum('report_reason', [...REPORT_REASONS]);

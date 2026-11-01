@@ -72,8 +72,8 @@ export const POST_TYPES = [
 ] as const;
 export type PostType = (typeof POST_TYPES)[number];
 
-/** Post types a member may submit. News, event and announcement are staff-only. */
-export const MEMBER_POST_TYPES = ['story', 'achievement', 'notice', 'in_memoriam'] as const;
+/** Post types a member may submit from the community form. News, events and notices are issued by the office only, so they never appear in a member's share form. */
+export const MEMBER_POST_TYPES = ['story', 'achievement', 'in_memoriam'] as const;
 export type MemberPostType = (typeof MEMBER_POST_TYPES)[number];
 
 export const HELPDESK_TOPICS = [

@@ -1,7 +1,7 @@
 export const communityPage = {
   title: 'Community',
   description:
-    'News, stories and notices from BPKIHS alumni. Members can share an update; every post is reviewed before it appears.',
+    'News, stories and notices from the community. Members share stories, achievements and memories; every post is reviewed before it appears.',
   filtersLabel: 'Filter posts',
   filters: [
     { value: '', label: 'All' },
@@ -25,7 +25,7 @@ export const communityPage = {
     title: 'Share an update',
     summary: 'Share an update with the network',
     description:
-      'Stories, achievements, notices and memories are welcome. Posts are reviewed before they appear.',
+      'Stories, achievements and memories are welcome. Notices and news come from the Association itself; member posts are reviewed before they appear.',
     postingAs: 'Posting as',
     fields: {
       type: 'Type of post',
