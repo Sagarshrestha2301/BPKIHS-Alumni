@@ -69,3 +69,5 @@ e2e/.auth/
 /dev-server.pid
 .agents/
 skills-lock.json
+
+.vercel
