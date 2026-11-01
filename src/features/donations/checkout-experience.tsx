@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Switch } from '@/components/ui/switch';
-import { donateCheckoutPage } from '@/content/donate';
+import { donateCheckoutPage, donatePage } from '@/content/donate';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { useSession } from '@/features/auth/session-provider';
 import { type ApiClient, getApiClient } from '@/lib/api/client';
@@ -68,28 +68,46 @@ function Summary({
   return (
     <aside
       aria-label={copy.title}
-      className="h-fit rounded-xl border border-neutral-300 bg-white p-6 shadow-sm lg:sticky lg:top-24"
+      className="shadow-card h-fit rounded-2xl border border-neutral-300/80 bg-white p-6 transition-all duration-200 lg:sticky lg:top-24"
     >
-      <h2 className="font-heading text-primary-900 text-xl font-semibold">{copy.title}</h2>
-      <dl className="mt-4 grid gap-3 text-sm">
+      <div className="flex items-center justify-between border-b border-neutral-200/60 pb-3">
+        <h2 className="font-heading text-primary-900 text-xl font-bold tracking-tight">
+          {copy.title}
+        </h2>
+        <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-0.5 text-xs font-semibold">
+          Step {step + 1} of 3
+        </span>
+      </div>
+      <dl className="mt-4 grid gap-3.5 text-sm">
         <div className="flex justify-between gap-4">
           <dt className="text-neutral-600">{copy.goal}</dt>
           <dd className="text-right font-medium text-neutral-900">{goal.title}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-neutral-600">{copy.amount}</dt>
-          <dd className="font-medium text-neutral-900">{formatNpr(amountMinor)}</dd>
+          <dd className="font-semibold text-neutral-900">{formatNpr(amountMinor)}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-neutral-600">{copy.fee}</dt>
-          <dd className="text-right text-neutral-600">{copy.feeValue}</dd>
+          <dd className="text-right text-xs text-neutral-500">{copy.feeValue}</dd>
         </div>
-        <div className="flex justify-between gap-4 border-t border-neutral-300 pt-3 text-base">
+        <div className="flex justify-between gap-4 border-t border-neutral-200/80 pt-3.5 text-base">
           <dt className="font-semibold text-neutral-900">{copy.total}</dt>
-          <dd className="text-primary-900 font-semibold">{formatNpr(amountMinor)}</dd>
+          <dd className="font-heading text-primary-900 text-xl font-bold">
+            {formatNpr(amountMinor)}
+          </dd>
         </div>
       </dl>
-      {step > 0 ? <p className="mt-4 text-xs text-neutral-600">Step {step + 1} of 3</p> : null}
+
+      <div className="mt-6 rounded-xl border border-neutral-200/70 bg-neutral-50/80 p-3.5 text-xs text-neutral-600">
+        <div className="flex items-center gap-2 font-medium text-neutral-800">
+          <span className="bg-success-600 size-2 rounded-full" aria-hidden="true" />
+          <span>Institutional Trust Guarantee</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-500">
+          Direct to BPKIHS Alumni Trust. 100% transparent with verified ledger accounting.
+        </p>
+      </div>
     </aside>
   );
 }
@@ -267,20 +285,28 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, methods, client }: Pr
                   )}
                 </FormField>
 
-                <div className="flex flex-wrap gap-2">
-                  {[1000, 2500, 5000, 10000, 25000].map((rupees) => (
-                    <button
-                      key={rupees}
-                      type="button"
-                      onClick={() => {
-                        setAmountInput(String(rupees));
-                        setAmountError(null);
-                      }}
-                      className="hover:border-primary-700 hover:bg-primary-100 rounded-full border border-neutral-500 px-4 py-2 text-sm font-medium"
-                    >
-                      {formatNpr(rupees * 100)}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2.5">
+                  {[1000, 2500, 5000, 10000, 25000].map((rupees) => {
+                    const isSelected = Number(amountInput) === rupees;
+                    return (
+                      <button
+                        key={rupees}
+                        type="button"
+                        onClick={() => {
+                          setAmountInput(String(rupees));
+                          setAmountError(null);
+                        }}
+                        className={cn(
+                          'btn-press cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold shadow-xs transition-all duration-180',
+                          isSelected
+                            ? 'bg-accent-600 border-accent-600 ring-accent-600/25 text-white shadow-sm ring-2'
+                            : 'hover:border-accent-600/60 hover:bg-accent-100/40 border-neutral-300 bg-white text-neutral-800',
+                        )}
+                      >
+                        {formatNpr(rupees * 100)}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <label className="flex min-h-11 items-center gap-3">
@@ -497,24 +523,25 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, methods, client }: Pr
                   <legend className="text-primary-900 mb-3 text-base font-semibold">
                     {copy.payment.national}
                   </legend>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid gap-2.5 sm:grid-cols-2">
                     {methods.map((value) => {
                       const item = copy.payment.methods[value];
+                      const isSelected = method === value;
                       return (
                         <label
                           key={value}
                           className={cn(
-                            'flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-3',
-                            method === value
-                              ? 'border-primary-700 bg-primary-100/50'
-                              : 'border-neutral-300 bg-white',
+                            'btn-press flex min-h-12 cursor-pointer items-start gap-3.5 rounded-xl border p-4 shadow-xs transition-all duration-180',
+                            isSelected
+                              ? 'border-primary-700 bg-primary-100/50 ring-primary-700/15 border-2 shadow-sm ring-2'
+                              : 'border-neutral-300 bg-white hover:border-neutral-400 hover:bg-neutral-50/70',
                           )}
                         >
                           <input
                             type="radio"
                             name="method"
                             value={value}
-                            checked={method === value}
+                            checked={isSelected}
                             onChange={() => {
                               setMethod(value);
                               setPaymentError(null);
@@ -522,8 +549,10 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, methods, client }: Pr
                             className="accent-primary-700 mt-1 size-4"
                           />
                           <span>
-                            <span className="block font-medium text-neutral-900">{item.label}</span>
-                            <span className="block text-sm text-neutral-600">
+                            <span className="block font-semibold text-neutral-900">
+                              {item.label}
+                            </span>
+                            <span className="mt-0.5 block text-xs leading-relaxed text-neutral-600">
                               {item.description}
                             </span>
                           </span>
@@ -579,7 +608,7 @@ function CheckoutFlow({ goal, initialAmountMinor, tribute, methods, client }: Pr
 
       <p className="mt-6 text-center text-sm text-neutral-600">
         <Link href="/donate" className="text-primary-700 underline">
-          Back to all giving goals
+          {donatePage.goalDetail.backToGoals}
         </Link>
       </p>
     </div>

@@ -42,6 +42,28 @@ export async function getLatestPosts() {
   return page.items.filter((post) => homePostTypes.includes(post.type)).slice(0, 3);
 }
 
+/**
+ * The newest approved staff posts (news, notice, announcement, event), newest first.
+ * Each type is asked for separately: the feed is dominated by member stories over time,
+ * so one generic fetch would push old notices out of the window. One hour keeps a fresh
+ * notice current. These are the Association's own words (staff publish them; members
+ * cannot), so they are safe to put in front of every visitor, which is what the panel
+ * on the landing page is for.
+ */
+export async function getNotices() {
+  'use cache';
+  cacheLife('hours');
+  const [news, notices, announcements, events] = await Promise.all([
+    getServerApiClient().listFeed({ type: 'news', pageSize: 3 }),
+    getServerApiClient().listFeed({ type: 'notice', pageSize: 3 }),
+    getServerApiClient().listFeed({ type: 'announcement', pageSize: 3 }),
+    getServerApiClient().listFeed({ type: 'event', pageSize: 3 }),
+  ]);
+  return [...news.items, ...notices.items, ...announcements.items, ...events.items]
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+    .slice(0, 8);
+}
+
 /** The president and three more members of the current board. */
 export async function getBoardPreview() {
   'use cache';

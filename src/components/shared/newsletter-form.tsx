@@ -81,9 +81,13 @@ export function NewsletterForm({ client }: { client?: ApiClient } = {}) {
           onFocus={() => setBotActive(true)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'newsletter-error' : undefined}
-          className="h-11 bg-white sm:max-w-sm"
+          className="focus-visible:border-primary-700 h-11 border-neutral-300/90 bg-white text-sm shadow-xs sm:max-w-sm"
         />
-        <Button type="submit" disabled={submitting} className="h-11 px-5">
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="btn-press h-11 px-6 font-semibold shadow-xs"
+        >
           {submitting ? 'Subscribing…' : 'Subscribe'}
         </Button>
       </div>

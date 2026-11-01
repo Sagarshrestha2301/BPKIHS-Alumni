@@ -119,6 +119,9 @@ export const accountPage = {
     wrongCurrent: 'That is not your current password.',
     mismatch: 'The two passwords do not match.',
     error: 'We could not change your password. Check the fields and try again.',
+    /** E2 breach lookup refusal, shown on sign-up, change and reset alike. */
+    breached:
+      'This password has appeared in public data breaches and cannot be used. Choose something unique to this site.',
   },
   directory: 'Browse the directory',
 } as const;

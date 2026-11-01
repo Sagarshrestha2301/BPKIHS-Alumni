@@ -244,6 +244,20 @@ export const alumni = pgTable(
 /* Donations                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Narrative progress updates the Association publishes on a giving goal's detail page, so
+ * donors can follow the work between the numbers. Rows are flat text on purpose: no title
+ * hierarchy, just dated entries the office writes as the work proceeds.
+ */
+export const donationGoalUpdates = pgTable('donation_goal_updates', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id')
+    .notNull()
+    .references(() => donationGoals.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const donationGoals = pgTable('donation_goals', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),

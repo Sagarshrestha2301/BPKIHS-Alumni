@@ -21,9 +21,12 @@ export function CommunityPostsView({ posts }: { posts: FeedPost[] }) {
         description={communityPosts.description}
       />
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} withImage />
-        ))}
+        {posts.map((post, index) => {
+          const imageUrl = post.imageUrl ?? communityPosts.fallbackImageUrls[index];
+          return (
+            <PostCard key={post.id} post={imageUrl ? { ...post, imageUrl } : post} withImage />
+          );
+        })}
       </div>
       <div className="mt-8">
         <Link

@@ -133,7 +133,6 @@ name, so the page cannot show one. No per-person amount is published.
 | POST   | `/registrations`         | public | Registration: account + `pending` profile, emails a code |
 | POST   | `/registrations/resend`  | public | New email code for an unconfirmed account      |
 | POST   | `/support`               | public | Helpdesk ticket (members, after sign-in)      |
-| POST   | `/contact`               | public | General and institutional enquiry, no account; 5 per minute per IP |
 
 ### Account
 
@@ -342,6 +341,11 @@ three roles: `donor` (default), `alumni` and `admin`.
   Delivery uses `sendEmailSafely()`, so a provider failure never changes the decision.
 - Sessions live 24 hours absolutely, refresh on activity and expire after 30 idle minutes for
   admins. Passwords are at least 8 characters.
+- A password being **chosen** (sign-up, change-password, the reset link) is checked against the
+  Have I Been Pwned range API before Better Auth sees it: `src/app/api/auth/[...all]/route.ts`
+  calls `guardPasswordPost()`, which hashes locally and sends only a five-character hash prefix.
+  One published appearance rejects with `PASSWORD_BREACHED`; a lookup failure, the hourly
+  outbound budget or a timeout all fail open, and sign-in is never checked (tracker E2).
 - Cookie-authenticated writes pass `assertSameOrigin(request)` and a double-submit CSRF check, so
   a cross-site form post can neither spend a donor's session nor act as an admin. Better Auth
   also rate-limits sign-in and sign-up.

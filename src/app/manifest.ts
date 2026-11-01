@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { site } from '@/content/site';
-import { SITE_URL } from '@/lib/constants/site';
+import { NAVY, SITE_URL, WHITE } from '@/lib/constants/site';
 
 /**
  * The installable web-app manifest, so "Add to Home Screen" gets the seal, the name and the
@@ -17,8 +17,9 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     scope: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#0b2a4a',
+    /* Tokens stay in code, not literals: NAVY is the same value `layout.tsx` uses for themeColor. */
+    background_color: WHITE,
+    theme_color: NAVY,
     lang: 'en',
     icons: [
       { src: `${SITE_URL}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },

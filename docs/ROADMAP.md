@@ -154,9 +154,9 @@ content (there is no content editor yet), legal review and the accessibility aud
 
 **Still open:** the manual accessibility pass on real devices, the ConnectIPS sandbox run (adapter
 built; NCHL pack outstanding), the Fonepay adapter (awaiting its current document),
-breached-password lookup, installing the backup/monitor/digest
-schedules on the host, persistent photo storage on the chosen host, and everything in
-`TRACKER.md` section A (which needs the Association).
+installing the backup/monitor/digest schedules on the host, persistent photo storage on the
+chosen host, and everything in `TRACKER.md` section A (which needs the Association).
+The breached-password lookup moved off this list on 31 Oct 2026, tracker E2.
 
 ---
 
@@ -249,6 +249,9 @@ schedules on the host, persistent photo storage on the chosen host, and everythi
 - [x] `/donate` goals with progress bars, quick amounts and general fund
 - [x] NPR-only display (decision D30; no USD toggle)
 - [x] `/donate/checkout`: amount → Better Auth sign-in gate → eSewa or Khalti
+- [x] Per-goal detail page `/donate/goals/[id]` with progress, deadline and privacy-safe gifts
+      toward that goal, linked from every goal card; checkout shows the Association's PAN and
+      registration when configured (30 Oct 2026)
 - [x] Sticky summary, pending, failure and retry states
 - [x] `/donate/thank-you` with pending and failed states
 - [x] `/donate/transparency` with a donut and table
@@ -285,9 +288,9 @@ schedules on the host, persistent photo storage on the chosen host, and everythi
 ## Phase 8 : Support and Legal
 
 - [x] `/support` contact cards and helpdesk form (topics: account, profile verification,
-      donation receipt, general)
-- [x] Separate no-account contact form for general and institutional enquiries, posted to
-      `/api/v1/contact` (26 Oct 2026)
+      donation receipt, general). The helpdesk serves signed-out visitors (account is asked only
+      when they press Send), so the separate no-account contact form and `POST /api/v1/contact`
+      built on 26 Oct 2026 were removed again on 30 Oct 2026 rather than kept in duplicate.
 - [x] `/support/faq` with search, categories and accordion
 - [x] `/legal/privacy`, `/legal/terms`, `/legal/accessibility` (draft copy, TOC, review notice)
 - [x] 404, error and loading pages

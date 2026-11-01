@@ -15,10 +15,34 @@ const TONES: Record<string, string> = {
   reviewed: 'border-primary-700/30 bg-primary-100 text-primary-700',
 };
 
+const DOTS: Record<string, string> = {
+  pending: 'bg-warning-600',
+  approved: 'bg-success-600',
+  succeeded: 'bg-success-600',
+  closed: 'bg-neutral-500',
+  dismissed: 'bg-neutral-500',
+  rejected: 'bg-danger-600',
+  failed: 'bg-danger-600',
+  open: 'bg-accent-600',
+  in_progress: 'bg-primary-700',
+  reviewed: 'bg-primary-700',
+};
+
 /** Status is never shown by colour alone: the label is always there. */
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   return (
-    <Badge variant="outline" className={cn(TONES[status] ?? TONES.closed, className)}>
+    <Badge
+      variant="outline"
+      className={cn(
+        'inline-flex items-center gap-1.5 font-medium shadow-2xs',
+        TONES[status] ?? TONES.closed,
+        className,
+      )}
+    >
+      <span
+        className={cn('size-1.5 shrink-0 rounded-full', DOTS[status] ?? 'bg-neutral-500')}
+        aria-hidden="true"
+      />
       {adminStatusLabels[status] ?? status}
     </Badge>
   );

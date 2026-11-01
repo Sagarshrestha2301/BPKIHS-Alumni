@@ -76,6 +76,12 @@ test('community section lists three posts', async ({ page }) => {
   await expect(posts.getByRole('heading', { level: 3 })).toHaveCount(3);
 });
 
+test('community section includes the selected alumni-news images', async ({ page }) => {
+  await page.goto('/');
+  const posts = page.getByRole('region', { name: 'What classmates are up to' });
+  await expect(posts.locator('img[src*="images.unsplash.com"]')).toHaveCount(2);
+});
+
 test('board preview shows members and links to the full board', async ({ page }) => {
   await page.goto('/');
   const board = page.getByRole('region', { name: 'Meet the board' });

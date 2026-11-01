@@ -50,7 +50,7 @@ export default async function EventsPage({
 
       <Section>
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <nav aria-label="Event views" className="flex gap-2">
+          <nav aria-label="Event views" className="flex gap-1 rounded-xl bg-neutral-100 p-1.5">
             {(
               [
                 ['upcoming', eventsPage.tabs.upcoming],
@@ -62,8 +62,10 @@ export default async function EventsPage({
                 href={`/events?status=${value}`}
                 aria-current={status === value ? 'page' : undefined}
                 className={cn(
-                  buttonVariants({ variant: status === value ? 'default' : 'outline' }),
-                  'h-11 px-5 text-base',
+                  'h-9 px-4 py-1.5 text-sm transition-all',
+                  status === value
+                    ? 'text-primary-900 rounded-lg bg-white font-semibold shadow-sm'
+                    : 'rounded-lg font-medium text-neutral-600 hover:text-neutral-900',
                 )}
               >
                 {label}
@@ -71,22 +73,24 @@ export default async function EventsPage({
             ))}
           </nav>
 
-          <form action="/events" method="get" className="flex gap-2">
+          <form action="/events" method="get">
             <input type="hidden" name="status" value={status} />
-            <label htmlFor="event-search" className="sr-only">
-              {eventsPage.searchLabel}
-            </label>
-            <Input
-              id="event-search"
-              name="q"
-              type="search"
-              defaultValue={q ?? ''}
-              placeholder={eventsPage.searchPlaceholder}
-              className="h-11 w-full bg-white md:w-64"
-            />
-            <Button type="submit" className="h-11 px-4">
-              {eventsPage.searchButton}
-            </Button>
+            <div className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-xs">
+              <label htmlFor="event-search" className="sr-only">
+                {eventsPage.searchLabel}
+              </label>
+              <Input
+                id="event-search"
+                name="q"
+                type="search"
+                defaultValue={q ?? ''}
+                placeholder={eventsPage.searchPlaceholder}
+                className="h-9 w-full border-0 bg-white shadow-none focus-visible:ring-0 md:w-64"
+              />
+              <Button type="submit" className="h-9 px-4">
+                {eventsPage.searchButton}
+              </Button>
+            </div>
           </form>
         </div>
 

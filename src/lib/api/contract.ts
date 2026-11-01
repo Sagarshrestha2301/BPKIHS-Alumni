@@ -5,7 +5,6 @@
  */
 import type {
   ChangePasswordInput,
-  ContactMessageInput,
   DonationInput,
   ForgotPasswordInput,
   HelpdeskInput,
@@ -82,8 +81,12 @@ export interface ApiClient {
   getGoal(id: string): Promise<DonationGoal>;
   createDonation(input: DonationInput): Promise<DonationResult>;
   getFundsBreakdown(): Promise<FundsBreakdownItem[]>;
-  /** Confirmed gifts, newest first. Anonymous donors carry no name. */
-  listPublicDonors(params?: { page?: number; pageSize?: number }): Promise<Paginated<PublicDonor>>;
+  /** Confirmed gifts, newest first; `goalId` narrows to one goal. Anonymous donors carry no name. */
+  listPublicDonors(params?: {
+    page?: number;
+    pageSize?: number;
+    goalId?: string;
+  }): Promise<Paginated<PublicDonor>>;
 
   /* governance */
   listBoard(params: { current: boolean }): Promise<BoardMember[]>;
@@ -107,8 +110,6 @@ export interface ApiClient {
   /* support */
   listFaq(): Promise<FaqItem[]>;
   submitSupportTicket(input: HelpdeskInput): Promise<TicketResult>;
-  /** Public contact form; no account needed. */
-  submitContactMessage(input: ContactMessageInput, options?: RequestOptions): Promise<TicketResult>;
 
   /* account */
   updateMyProfile(input: ProfileUpdateInput): Promise<Alumnus>;
@@ -158,7 +159,6 @@ const METHODS: { [K in keyof ApiClient]: true } = {
   updateNewsletterPrefs: true,
   listFaq: true,
   submitSupportTicket: true,
-  submitContactMessage: true,
   updateMyProfile: true,
   uploadMyPhoto: true,
   removeMyPhoto: true,

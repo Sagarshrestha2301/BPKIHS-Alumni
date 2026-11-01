@@ -245,23 +245,6 @@ export const helpdeskSchema = z.object({
 });
 export type HelpdeskInput = z.infer<typeof helpdeskSchema>;
 
-/**
- * The public contact form for institutional enquiries. It needs no account: a hospital,
- * vendor or donor can write to the Association without joining the directory.
- */
-export const contactMessageSchema = z.object({
-  name: requiredText('Enter your name.', 100),
-  email: emailField,
-  organisation: optionalText(120),
-  subject: requiredText('Enter a short subject.', 120),
-  message: z
-    .string()
-    .trim()
-    .min(20, 'Please give us a little more detail (at least 20 characters).')
-    .max(2000, TOO_LONG),
-});
-export type ContactMessageInput = z.infer<typeof contactMessageSchema>;
-
 /* ---------- newsletter ---------- */
 
 export const newsletterSubscribeSchema = z.object({

@@ -8,20 +8,13 @@ const DRAFT_KEY = 'bpkihs.support.draft';
 /**
  * The helpdesk is open to everyone while it is being written. A visitor is asked for an
  * account only when they press Send, and the message is kept for the trip through sign-in.
- * The page also carries a separate no-account contact form for institutional enquiries, so
- * every locator here is scoped to the helpdesk region.
+ * Every locator here is scoped to the helpdesk region.
  */
 test.describe('support, signed out', () => {
   test.use({ storageState: SIGNED_OUT });
 
   function helpdesk(page: import('@playwright/test').Page) {
     return page.getByRole('main').getByRole('region', { name: 'Send a message' });
-  }
-
-  function contactForm(page: import('@playwright/test').Page) {
-    return page
-      .getByRole('main')
-      .getByRole('region', { name: 'General and institutional enquiries' });
   }
 
   test('lets a visitor write a message without signing in first', async ({ page }) => {
@@ -31,17 +24,6 @@ test.describe('support, signed out', () => {
     await expect(helpdesk(page).getByLabel('Email address')).toBeVisible();
     await expect(helpdesk(page).getByLabel('Subject')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Sign in to send a message' })).toHaveCount(0);
-  });
-
-  test('shows a separate no-account form for institutions', async ({ page }) => {
-    await page.goto('/support');
-
-    const form = contactForm(page);
-    await expect(form).toBeVisible();
-    await expect(form.getByLabel('Organisation (optional)')).toBeVisible();
-    await expect(form.getByRole('button', { name: 'Send enquiry' })).toBeVisible();
-    // The general form never asks for an account.
-    await expect(form.getByText('Sign in', { exact: true })).toHaveCount(0);
   });
 
   test('asks for sign-in only once a complete message is submitted', async ({ page }) => {

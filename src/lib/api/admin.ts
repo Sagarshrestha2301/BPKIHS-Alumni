@@ -83,9 +83,17 @@ export interface AdminNewsletterPage {
   campaigns: NewsletterCampaign[];
 }
 
+export interface AdminGoalUpdate {
+  id: string;
+  goalId: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface ContentOverview {
   events: AdminEvent[];
   goals: AdminGoal[];
+  updates: AdminGoalUpdate[];
   board: AdminBoardMember[];
   faq: AdminFaqItem[];
   welcome: AdminWelcomeMessage | null;

@@ -13,7 +13,8 @@ type DirectoryFilterFormProps = {
   idPrefix: string;
 };
 
-const selectClass = 'h-11 w-full rounded-lg border border-neutral-500 bg-white px-3 text-base';
+const selectClass =
+  'h-11 w-full rounded-lg border border-neutral-300/90 bg-white px-3 text-base shadow-xs focus-visible:border-primary-700 focus-visible:ring-4 focus-visible:ring-primary-700/15 outline-none transition-all duration-180 ease-out';
 
 /** The menu does not list a value from the URL unless we add it, so it is never lost silently. */
 function withCurrent<T extends string | number>(list: T[], current: T | undefined): T[] {

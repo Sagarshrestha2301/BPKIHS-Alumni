@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { eventDetailPage } from '@/content/events';
 import { site } from '@/content/site';
+import { getCachedNow, getGoalGiftStats } from '@/features/donations/get-donate-data';
 import { GoalCard } from '@/features/donations/goal-card';
 import { EVENT_MODE_LABELS } from '@/features/events/event-card';
 import { getEventBySlug, getEventGoal } from '@/features/events/get-events-data';
@@ -70,7 +71,11 @@ export default async function EventDetailPage({ params }: { params: Params }) {
   const event = await getEventBySlug(slug).catch(() => null);
   if (!event) notFound();
 
-  const goal = await getEventGoal(event.goalId);
+  const [goal, giftStats, now] = await Promise.all([
+    getEventGoal(event.goalId),
+    getGoalGiftStats(),
+    getCachedNow(),
+  ]);
   const percent =
     event.capacity === undefined
       ? null
@@ -102,30 +107,35 @@ export default async function EventDetailPage({ params }: { params: Params }) {
       <Section>
         <div className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
           <div className="space-y-8">
-            <div className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm">
+            <div className="shadow-card rounded-2xl border border-neutral-300/80 bg-white p-7 md:p-8">
               <dl className="grid gap-4 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-neutral-600">{eventDetailPage.date}</dt>
-                  <dd className="mt-1 font-medium text-neutral-900">
+                  <dd className="mt-1 font-semibold text-neutral-900">
                     {formatDateRange(event.startsAt, event.endsAt)}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-600">{eventDetailPage.venue}</dt>
-                  <dd className="mt-1 flex items-start gap-1.5 font-medium text-neutral-900">
-                    <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                  <dd className="mt-1 flex items-start gap-1.5 font-semibold text-neutral-900">
+                    <MapPin
+                      aria-hidden="true"
+                      className="text-primary-700 mt-0.5 size-4 shrink-0"
+                    />
                     {event.venue}, {event.city}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-600">{eventDetailPage.mode}</dt>
                   <dd className="mt-1">
-                    <Badge variant="secondary">{EVENT_MODE_LABELS[event.mode]}</Badge>
+                    <Badge variant="secondary" className="font-medium">
+                      {EVENT_MODE_LABELS[event.mode]}
+                    </Badge>
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-600">{eventDetailPage.capacityLabel}</dt>
-                  <dd className="mt-1 font-medium text-neutral-900">
+                  <dd className="mt-1 font-semibold text-neutral-900">
                     {event.capacity === undefined
                       ? eventDetailPage.unlimited
                       : `${event.rsvpCount} of ${event.capacity} ${eventDetailPage.places}`}
@@ -134,7 +144,11 @@ export default async function EventDetailPage({ params }: { params: Params }) {
               </dl>
 
               {percent !== null ? (
-                <div className="mt-5">
+                <div className="mt-6 border-t border-neutral-200/70 pt-5">
+                  <div className="mb-2 flex items-center justify-between text-xs font-medium text-neutral-600">
+                    <span>Capacity filled</span>
+                    <span className="text-primary-900 font-semibold">{percent}%</span>
+                  </div>
                   <div
                     role="progressbar"
                     aria-label={eventDetailPage.capacityLabel}
@@ -142,35 +156,41 @@ export default async function EventDetailPage({ params }: { params: Params }) {
                     aria-valuemax={100}
                     aria-valuenow={percent}
                     aria-valuetext={`${percent}% full`}
-                    className="bg-primary-100 h-2.5 w-full overflow-hidden rounded-full"
+                    className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-200/80 shadow-inner"
                   >
                     <div
-                      className="bg-primary-700 h-full rounded-full"
+                      className="from-primary-700 to-primary-500 h-full rounded-full bg-linear-to-r transition-[width] duration-500 ease-out"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
                   {full ? (
-                    <p className="text-danger-600 mt-2 text-sm font-medium">
+                    <p className="text-danger-600 mt-2 text-xs font-semibold">
                       {eventDetailPage.full}
                     </p>
                   ) : null}
                 </div>
               ) : null}
 
-              <p className="mt-5 text-base leading-relaxed text-neutral-600">{event.description}</p>
+              <p className="mt-6 text-base leading-relaxed text-neutral-700">{event.description}</p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-7 flex flex-wrap gap-3 border-t border-neutral-200/60 pt-5">
                 <a
                   href={calendarHref(event)}
                   download={`${event.slug}.ics`}
-                  className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-base')}
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'btn-press h-11 px-5 text-base font-medium',
+                  )}
                 >
                   <CalendarPlus aria-hidden="true" />
                   {eventDetailPage.calendar}
                 </a>
                 <Link
                   href="/events"
-                  className={cn(buttonVariants({ variant: 'ghost' }), 'h-11 px-5 text-base')}
+                  className={cn(
+                    buttonVariants({ variant: 'ghost' }),
+                    'btn-press h-11 px-5 text-base',
+                  )}
                 >
                   {eventDetailPage.back}
                 </Link>
@@ -183,7 +203,8 @@ export default async function EventDetailPage({ params }: { params: Params }) {
                   {eventDetailPage.linkedGoalTitle}
                 </h2>
                 <div className="mt-4 max-w-md">
-                  <GoalCard goal={goal} />
+                  {/* The event's own goal, with its live gift count from the same cached read. */}
+                  <GoalCard goal={goal} stats={giftStats[goal.id]} now={now} />
                 </div>
               </div>
             ) : null}

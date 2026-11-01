@@ -10,6 +10,7 @@ import type {
   AdminFaqItem,
   AdminFundRow,
   AdminGoal,
+  AdminGoalUpdate,
   AdminWelcomeMessage,
   ContentOverview,
 } from '@/lib/api/admin';
@@ -19,10 +20,11 @@ import {
   adminFaqInputSchema,
   adminFundInputSchema,
   adminGoalInputSchema,
+  adminGoalUpdateInputSchema,
   adminWelcomeInputSchema,
 } from '@/lib/api/admin-schemas';
 import { isApiError } from '@/lib/api/errors';
-import { formatDateRange } from '@/lib/format/dates';
+import { formatDate, formatDateRange } from '@/lib/format/dates';
 import { formatNpr } from '@/lib/format/money';
 
 import { adminRequest } from '../admin-request';
@@ -32,7 +34,7 @@ import { paisaToRupees, toDateTimeLocal, toJsonText } from './values';
 
 type Tab = keyof typeof copy.tabs;
 
-const TABS: Tab[] = ['events', 'goals', 'funds', 'board', 'faq', 'welcome'];
+const TABS: Tab[] = ['events', 'goals', 'updates', 'funds', 'board', 'faq', 'welcome'];
 
 const eventFields = (goals: AdminGoal[]): FieldDef[] => [
   { name: 'slug', label: copy.fields.slug, required: true },
@@ -93,6 +95,23 @@ const goalFields: FieldDef[] = [
   { name: 'imageUrl', label: copy.fields.imageUrl },
   { name: 'sortOrder', label: copy.fields.sortOrder, kind: 'number' },
   { name: 'active', label: copy.fields.active, kind: 'checkbox', hint: copy.fields.active },
+];
+
+const updateFields = (goals: AdminGoal[]): FieldDef[] => [
+  {
+    name: 'goalId',
+    label: copy.fields.updateGoal,
+    kind: 'select',
+    options: goals.map((goal) => ({ value: goal.id, label: goal.title })),
+    required: true,
+  },
+  {
+    name: 'body',
+    label: copy.fields.updateBody,
+    kind: 'textarea',
+    full: true,
+    required: true,
+  },
 ];
 
 const fundFields: FieldDef[] = [
@@ -237,6 +256,31 @@ export function ContentManager({ initial }: { initial: ContentOverview }) {
               title: goal.title,
               detail: `${formatNpr(goal.raisedMinor)} raised of ${formatNpr(goal.targetMinor)} · ${goal.active ? copy.goalStatus.active : copy.goalStatus.inactive}`,
             })}
+          />
+        )}
+
+        {tab === 'updates' && (
+          <RecordEditor<AdminGoalUpdate>
+            section="updates"
+            items={initial.updates}
+            fields={updateFields(initial.goals)}
+            schema={adminGoalUpdateInputSchema}
+            endpoint="/api/v1/admin/content/updates"
+            emptyLabel={copy.empty.updates}
+            newDefaults={{ goalId: '' }}
+            // Newest first, matching the order donors see on the goal's own page.
+            sortItems={(items) => [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))}
+            toDefaults={(update) => ({
+              goalId: update.goalId,
+              body: update.body,
+            })}
+            display={(update) => {
+              const goal = initial.goals.find((item) => item.id === update.goalId);
+              return {
+                title: goal?.title ?? update.goalId,
+                detail: `${formatDate(update.createdAt)} · ${update.body.slice(0, 60)}`,
+              };
+            }}
           />
         )}
 

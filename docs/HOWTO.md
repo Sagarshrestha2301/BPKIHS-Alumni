@@ -120,7 +120,7 @@ The database is empty by design. Public pages show empty states until you add co
 | Registrations | `/admin/alumni`    | Approve or reject alumni registrations; search and filter     |
 | Posts         | `/admin/posts`     | Publish or reject community submissions; write staff news and announcements |
 | Reports       | `/admin/reports`   | Review or dismiss reports on published posts                 |
-| Support       | `/admin/tickets`   | Read helpdesk messages and contact-form enquiries, change ticket status |
+| Support       | `/admin/tickets`   | Read helpdesk messages, change ticket status |
 | Donations     | `/admin/donations` | Donation ledger with amount, method, goal, tribute and status |
 | Payments      | `/admin/payments`  | Which gateways are configured and offered, and the last ConnectIPS acceptance run |
 | Content       | `/admin/content`   | Events, giving goals, funds breakdown, board, FAQ and welcome message |
@@ -504,6 +504,13 @@ the profile page, and the directory search includes them.
 
 Privacy is enforced on the server, not by hiding markup: a field the member marks `hidden` or
 `alumni_only` is removed before a public response leaves the service.
+
+**Passwords are screened for breaches.** New passwords (sign-up, change, reset) are refused with
+"This password has appeared in public data breaches" when they already exist in published leak
+data. This uses a third-party lookup over a privacy-safe shape (the password is hashed first and
+only a short hash fragment leaves the server), it never blocks a sign-in, and it fails open
+when the network cannot answer. Values live in `PASSWORD_BREACH_*` variables; see
+`docs/SECURITY.md` section 2.
 
 ### 7.5 Profile photos
 

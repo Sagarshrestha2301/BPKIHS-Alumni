@@ -51,7 +51,18 @@ Everything from the browser is untrusted, including headers, cookies, form field
   someone else's record. The resend endpoint replies identically for known and unknown addresses.
 - Passwords: minimum **8 characters** (`PASSWORD_MIN_LENGTH`), maximum 128, hashed by Better
   Auth. The floor is the familiar one, so it is not a strength guarantee: two-factor is mandatory
-  for administrators in production and a breached-password check is still an open item.
+  for administrators in production and the breach check below is the second line.
+- **Breached-password check** (tracker E2, since 31 Oct 2026). When a password is *chosen*, at
+  `/api/auth/sign-up/email`, `/api/auth/change-password` and `/api/auth/reset-password`, the
+  auth route handler hashes it with SHA-1 and sends only the five-character hash prefix to the
+  [Have I Been Pwned range API](https://haveibeenpwned.com/API/v3#SearchingPwnedPasswordsByRange);
+  the k-anonymity shape means the password itself never leaves the server, and the decision
+  happens against numbers kept in memory. One or more published appearances rejects the password
+  with a `PASSWORD_BREACHED` error and wording pointing at choosing something unique. Sign-in is
+  deliberately not checked, so the rejection cannot confirm a guess about an existing account.
+  The call fails open when the service is unreachable, is capped by an hourly outbound budget
+  (`PASSWORD_BREACH_LOOKUPS_PER_HOUR`) and has a timeout, so an HIBP outage or a script cannot
+  block sign-up or cost bandwidth. Off entirely with `PASSWORD_BREACH_LOOKUP=false`.
 - Two-factor: TOTP through Better Auth's two-factor plugin, managed at `/admin/security`. It is
   **required for administrators in production**: `requireAdmin()` returns 403 and
   `requireAdminPage()` redirects to the security page until the account has enrolled. That page
@@ -80,8 +91,8 @@ Everything from the browser is untrusted, including headers, cookies, form field
   every session at once.
 - Account deletion and impersonation are disabled.
 
-**Residual:** no WebAuthn/passkeys and no breached-password lookup (HIBP). TOTP is available but
-optional, so an administrator who has not enrolled is still protected by the password and the
+**Residual:** no WebAuthn/passkeys. TOTP is available but optional for non-administrators, so an
+administrator who has not enrolled is still protected by the password, the breach check and the
 idle timeout alone. Make enrolment part of onboarding.
 
 ---

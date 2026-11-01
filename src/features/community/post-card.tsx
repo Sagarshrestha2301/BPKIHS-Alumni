@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Award,
   Bell,
   BookOpen,
@@ -61,46 +62,66 @@ export function PostCard({
   const TypeIcon = POST_TYPE_ICONS[post.type];
 
   return (
-    <Card id={post.id} className="h-full">
+    /* 'group' drives the photo zoom and the arrow nudge; lift comes from card-lift. */
+    <Card
+      id={post.id}
+      className="group card-lift hover:border-primary-700/40 h-full border-neutral-300/80 shadow-xs transition-all duration-180"
+    >
       {image ? (
-        <Image
-          src={image}
-          alt=""
-          width={1200}
-          height={675}
-          unoptimized
-          className="aspect-video h-auto w-full object-cover"
-        />
+        // The wrapper clips the zoomed photo to the card's top corners with subtle vignette.
+        <div className="relative overflow-hidden rounded-t-xl bg-neutral-900">
+          <Image
+            src={image}
+            alt=""
+            width={1200}
+            height={675}
+            unoptimized
+            className="aspect-video h-auto w-full object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.03]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-transparent"
+          />
+        </div>
       ) : withImage ? (
         // A post without a photo keeps the same media height, so a mixed row still lines up.
         <div
           data-slot="post-media"
           aria-hidden="true"
-          className="bg-primary-100 text-primary-700/45 -mt-(--card-spacing) flex aspect-video items-center justify-center rounded-t-xl"
+          className="bg-primary-100/70 text-primary-700/60 group-hover:bg-primary-100 -mt-(--card-spacing) flex aspect-video items-center justify-center rounded-t-xl transition-colors duration-180"
         >
-          <TypeIcon className="size-9" strokeWidth={1.5} />
+          <TypeIcon
+            className="size-10 transition-transform duration-200 group-hover:scale-105"
+            strokeWidth={1.5}
+          />
         </div>
       ) : null}
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{POST_TYPE_LABELS[post.type]}</Badge>
-          <time dateTime={post.publishedAt} className="text-sm text-neutral-600">
+          <Badge variant="secondary" className="font-medium">
+            {POST_TYPE_LABELS[post.type]}
+          </Badge>
+          <time dateTime={post.publishedAt} className="text-xs font-medium text-neutral-600">
             {formatDate(post.publishedAt)}
           </time>
         </div>
-        <h3 className="font-heading text-primary-900 mt-2 text-xl leading-snug font-semibold">
+        <h3 className="font-heading text-primary-900 mt-2 text-xl leading-snug font-semibold tracking-tight">
           <Link href={href} className="hover:underline">
             {post.title}
           </Link>
         </h3>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
-        <p className="line-clamp-4 text-base text-neutral-600">{post.excerpt}</p>
+        <p className="line-clamp-4 text-base leading-relaxed text-neutral-600">{post.excerpt}</p>
         <Link
           href={href}
-          className="text-primary-700 mt-3 inline-flex min-h-6 items-center self-start text-sm font-medium underline underline-offset-4"
+          className="group/link text-primary-700 hover:text-primary-900 mt-3 inline-flex min-h-6 items-center self-start text-sm font-semibold underline underline-offset-4"
         >
           {communityPage.readMore}
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform duration-180 motion-safe:group-hover/link:translate-x-1"
+          />
         </Link>
         <p className="mt-auto pt-4 text-sm font-medium text-neutral-900">{post.author}</p>
         {action ? <div className="pt-2">{action}</div> : null}

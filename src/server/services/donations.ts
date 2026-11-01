@@ -1,13 +1,14 @@
-import { and, asc, desc, eq, gte, ilike, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, isNotNull, or, sql } from 'drizzle-orm';
 
-import type { AdminFundRow, AdminGoal } from '@/lib/api/admin';
-import type { AdminFundInput, AdminGoalInput } from '@/lib/api/admin-schemas';
+import type { AdminFundRow, AdminGoal, AdminGoalUpdate } from '@/lib/api/admin';
+import type { AdminFundInput, AdminGoalInput, AdminGoalUpdateInput } from '@/lib/api/admin-schemas';
 import { ApiError } from '@/lib/api/errors';
 import type { DonationInput } from '@/lib/api/schemas';
 import type {
   DonationGoal,
   DonationResult,
   FundsBreakdownItem,
+  GoalUpdate,
   Paginated,
   PublicDonor,
 } from '@/lib/api/types';
@@ -16,7 +17,7 @@ import { DONATION_PAGE_SIZE } from '@/lib/constants/pagination';
 
 import { config } from '../config';
 import { db } from '../db/client';
-import { donationGoals, donations, fundsBreakdown, user } from '../db/schema';
+import { donationGoals, donationGoalUpdates, donations, fundsBreakdown, user } from '../db/schema';
 import { gatewayFor, paymentMode, startPayment } from '../payments';
 import { type AdminGivingMonth, buildGivingMonths } from './donation-summary';
 
@@ -78,6 +79,63 @@ export async function getFundsBreakdown(): Promise<FundsBreakdownItem[]> {
   return items;
 }
 
+/* ------------------------------------------------------------------ */
+/* Per-goal giving stats (goal cards and the goal detail page)          */
+/* ------------------------------------------------------------------ */
+
+export interface GoalGiftStat {
+  goalId: string;
+  /** Confirmed gifts recorded toward this goal. */
+  gifts: number;
+  /** The most recent confirmed gift, or null while none exist yet. */
+  latestGiftAt: string | null;
+}
+
+export interface GivingStats {
+  /** One entry per goal that has at least one confirmed gift, unsorted. */
+  perGoal: GoalGiftStat[];
+  /** Confirmed gifts across the site, general fund included. */
+  gifts: number;
+  /** Confirmed amount across the site, in paisa. */
+  amountMinor: number;
+}
+
+/**
+ * Ledger aggregates for the goal pages: counts and dates only. No donor rows are selected, so
+ * the privacy rules of `listPublicDonors` (no amounts beside people, anonymous gifts stay
+ * nameless) are untouched by this read.
+ */
+export async function getGivingStats(): Promise<GivingStats> {
+  const [perGoal, totals] = await Promise.all([
+    db
+      .select({
+        goalId: donations.goalId,
+        gifts: sql<number>`count(*)::int`,
+        latestGiftAt: sql<Date | null>`max(${donations.createdAt})`,
+      })
+      .from(donations)
+      .where(and(eq(donations.status, 'succeeded'), isNotNull(donations.goalId)))
+      .groupBy(donations.goalId),
+    db
+      .select({
+        gifts: sql<number>`count(*)::int`,
+        amountMinor: sql<string>`coalesce(sum(${donations.amountMinor}), 0)::text`,
+      })
+      .from(donations)
+      .where(eq(donations.status, 'succeeded')),
+  ]);
+
+  return {
+    perGoal: perGoal.map((row) => ({
+      goalId: row.goalId as string,
+      gifts: Number(row.gifts),
+      latestGiftAt: row.latestGiftAt ? new Date(row.latestGiftAt).toISOString() : null,
+    })),
+    gifts: Number(totals[0]?.gifts ?? 0),
+    amountMinor: Number(totals[0]?.amountMinor ?? 0),
+  };
+}
+
 /**
  * Confirmed gifts for the public transparency page.
  *
@@ -86,7 +144,11 @@ export async function getFundsBreakdown(): Promise<FundsBreakdownItem[]> {
  * selected at all.
  */
 export async function listPublicDonors(
-  params: { page?: number; pageSize?: number } = {},
+  params: {
+    page?: number;
+    pageSize?: number;
+    /** Only gifts toward this goal. */ goalId?: string;
+  } = {},
 ): Promise<Paginated<PublicDonor>> {
   const page = Math.max(1, params.page ?? 1);
   const pageSize = Math.min(
@@ -105,14 +167,24 @@ export async function listPublicDonors(
       .from(donations)
       .leftJoin(user, eq(donations.userId, user.id))
       .leftJoin(donationGoals, eq(donations.goalId, donationGoals.id))
-      .where(eq(donations.status, 'succeeded'))
+      .where(
+        and(
+          eq(donations.status, 'succeeded'),
+          params.goalId ? eq(donations.goalId, params.goalId) : undefined,
+        ),
+      )
       .orderBy(desc(donations.createdAt), desc(donations.id))
       .limit(pageSize)
       .offset((page - 1) * pageSize),
     db
       .select({ value: sql<number>`count(*)::int` })
       .from(donations)
-      .where(eq(donations.status, 'succeeded')),
+      .where(
+        and(
+          eq(donations.status, 'succeeded'),
+          params.goalId ? eq(donations.goalId, params.goalId) : undefined,
+        ),
+      ),
   ]);
 
   return {
@@ -255,6 +327,78 @@ export async function updateGoal(id: string, input: AdminGoalInput): Promise<Adm
     .returning();
   if (!row) throw new ApiError('not_found', 'That giving goal was not found.');
   return toAdminGoal(row);
+}
+
+type GoalUpdateRow = typeof donationGoalUpdates.$inferSelect;
+
+function toGoalUpdate(row: GoalUpdateRow): GoalUpdate {
+  return {
+    id: row.id,
+    goalId: row.goalId,
+    body: row.body,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+/** Narrative updates for one goal, newest first; capped so a busy goal cannot grow forever. */
+export async function listGoalUpdates(goalId: string, limit = 20): Promise<GoalUpdate[]> {
+  const rows = await db
+    .select()
+    .from(donationGoalUpdates)
+    .where(eq(donationGoalUpdates.goalId, goalId))
+    .orderBy(desc(donationGoalUpdates.createdAt))
+    .limit(limit);
+  return rows.map(toGoalUpdate);
+}
+
+export async function listGoalUpdatesForAdmin(): Promise<AdminGoalUpdate[]> {
+  const rows = await db
+    .select()
+    .from(donationGoalUpdates)
+    .orderBy(desc(donationGoalUpdates.createdAt));
+  return rows.map(toGoalUpdate);
+}
+
+/** Posts an update. The goal must exist: a free-floating update is a data-integrity bug. */
+export async function createGoalUpdate(input: AdminGoalUpdateInput): Promise<AdminGoalUpdate> {
+  const goal = await db
+    .select({ id: donationGoals.id })
+    .from(donationGoals)
+    .where(eq(donationGoals.id, input.goalId));
+  if (!goal[0]) throw new ApiError('not_found', 'Choose a goal that exists.');
+
+  const [row] = await db
+    .insert(donationGoalUpdates)
+    .values({
+      id: `update-${crypto.randomUUID()}`,
+      goalId: input.goalId,
+      body: input.body,
+    })
+    .returning();
+  if (!row) throw new ApiError('server', 'The update could not be saved.');
+  return toGoalUpdate(row);
+}
+
+export async function updateGoalUpdate(
+  id: string,
+  input: AdminGoalUpdateInput,
+): Promise<AdminGoalUpdate> {
+  const [row] = await db
+    .update(donationGoalUpdates)
+    .set({ body: input.body })
+    .where(eq(donationGoalUpdates.id, id))
+    .returning();
+  if (!row) throw new ApiError('not_found', 'That update was not found.');
+  return toGoalUpdate(row);
+}
+
+export async function deleteGoalUpdate(id: string): Promise<{ ok: true }> {
+  const [row] = await db
+    .delete(donationGoalUpdates)
+    .where(eq(donationGoalUpdates.id, id))
+    .returning({ id: donationGoalUpdates.id });
+  if (!row) throw new ApiError('not_found', 'That update was not found.');
+  return { ok: true };
 }
 
 export async function deleteGoal(id: string): Promise<{ ok: true }> {

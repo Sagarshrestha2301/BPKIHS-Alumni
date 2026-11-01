@@ -2,7 +2,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 
 import { emailCopy } from '@/content/email';
 import { ApiError } from '@/lib/api/errors';
-import type { ContactMessageInput, HelpdeskInput } from '@/lib/api/schemas';
+import type { HelpdeskInput } from '@/lib/api/schemas';
 import type { TicketResult } from '@/lib/api/types';
 
 import { config } from '../config';
@@ -53,42 +53,6 @@ export async function submitSupportTicket(input: HelpdeskInput): Promise<TicketR
     topic: input.topic,
     subject: input.subject,
     message: input.message,
-  });
-
-  await sendEmailSafely({
-    to: input.email,
-    ...emailCopy.supportReceived({
-      name: input.name,
-      subject: input.subject,
-      reference: ref,
-      message: input.message,
-      replyWindowDays: config.support.replyWindowDays,
-    }),
-  });
-
-  return { ticketId };
-}
-
-/**
- * The public contact form. It uses the same ticket queue as the member helpdesk so the
- * office has one place to answer, but it never needs an account. The organisation is kept
- * in the message body because the queue has no separate field for it.
- */
-export async function submitContactMessage(input: ContactMessageInput): Promise<TicketResult> {
-  const ticketId = crypto.randomUUID();
-  const ref = reference();
-  const message = input.organisation
-    ? `Organisation: ${input.organisation}\n\n${input.message}`
-    : input.message;
-
-  await db.insert(supportTickets).values({
-    id: ticketId,
-    reference: ref,
-    name: input.name,
-    email: input.email,
-    topic: 'general',
-    subject: input.subject,
-    message,
   });
 
   await sendEmailSafely({

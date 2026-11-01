@@ -110,6 +110,17 @@ export interface FundsBreakdownItem {
 }
 
 /**
+ * One dated progress update the Association publishes on a goal's own page. Public text
+ * only: the editor's id and the actor are admin data, never shown next to the narrative.
+ */
+export interface GoalUpdate {
+  id: string;
+  goalId: string;
+  body: string;
+  createdAt: string;
+}
+
+/**
  * One confirmed gift on the public transparency page.
  *
  * This shape is deliberately small: no donor id, no email and no amount. `name` is omitted at

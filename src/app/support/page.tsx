@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { buttonVariants } from '@/components/ui/button';
 import { supportPage } from '@/content/support';
-import { ContactForm } from '@/features/support/contact-form';
 import { HelpdeskPanel } from '@/features/support/helpdesk-panel';
 import { cn } from '@/lib/utils';
 import { contactDetails } from '@/server/contact';
@@ -39,7 +38,7 @@ export default function SupportPage() {
       <Section>
         <div className="grid gap-8 lg:grid-cols-[20rem_1fr] lg:items-start">
           <aside>
-            <h2 className="font-heading text-primary-900 text-2xl font-semibold">
+            <h2 className="font-heading text-primary-900 text-2xl font-bold tracking-tight">
               {supportPage.contactTitle}
             </h2>
             <p className="mt-2 text-sm text-neutral-600">{supportPage.contactNote}</p>
@@ -58,10 +57,17 @@ export default function SupportPage() {
                 return (
                   <li
                     key={contact.key}
-                    className="rounded-xl border border-neutral-300 bg-white p-4 shadow-sm"
+                    /* Only the linked tiles respond to hover: a lift must promise a click. */
+                    className={cn(
+                      'rounded-xl border border-neutral-300 bg-white p-4 shadow-xs',
+                      contact.href && 'group card-lift hover:border-primary-300',
+                    )}
                   >
                     {contact.href ? (
-                      <a href={contact.href} className="block">
+                      <a
+                        href={contact.href}
+                        className="focus-visible:ring-ring/50 block rounded-xl outline-none focus-visible:ring-3"
+                      >
                         {content}
                       </a>
                     ) : (
@@ -78,49 +84,31 @@ export default function SupportPage() {
             >
               {supportPage.faqCta}
             </Link>
-          </aside>{' '}
-          <div className="grid gap-8">
-            <section
-              aria-labelledby="helpdesk-heading"
-              className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8"
+          </aside>
+          <section
+            aria-labelledby="helpdesk-heading"
+            className="shadow-card rounded-xl border border-neutral-200 bg-white p-6 md:p-8"
+          >
+            <h2
+              id="helpdesk-heading"
+              className="font-heading text-primary-900 text-2xl font-semibold"
             >
-              <h2
-                id="helpdesk-heading"
-                className="font-heading text-primary-900 text-2xl font-semibold"
+              {supportPage.helpdeskTitle}
+            </h2>
+            <p className="mt-2 text-sm text-neutral-600">{supportPage.helpdeskDescription}</p>
+            <div className="mt-6">
+              <Suspense
+                fallback={
+                  <div
+                    aria-hidden="true"
+                    className="h-64 animate-pulse rounded-lg bg-neutral-100"
+                  />
+                }
               >
-                {supportPage.helpdeskTitle}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600">{supportPage.helpdeskDescription}</p>
-              <div className="mt-6">
-                <Suspense
-                  fallback={
-                    <div
-                      aria-hidden="true"
-                      className="h-64 animate-pulse rounded-lg bg-neutral-100"
-                    />
-                  }
-                >
-                  <HelpdeskPanel />
-                </Suspense>
-              </div>{' '}
-            </section>
-
-            <section
-              aria-labelledby="contact-form-heading"
-              className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8"
-            >
-              <h2
-                id="contact-form-heading"
-                className="font-heading text-primary-900 text-2xl font-semibold"
-              >
-                {supportPage.contactForm.title}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600">{supportPage.contactForm.description}</p>
-              <div className="mt-6">
-                <ContactForm />
-              </div>
-            </section>
-          </div>
+                <HelpdeskPanel />
+              </Suspense>
+            </div>
+          </section>
         </div>
       </Section>
     </>

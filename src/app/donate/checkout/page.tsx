@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
-import { donateCheckoutPage } from '@/content/donate';
+import { donateCheckoutPage, donatePage } from '@/content/donate';
 import { CheckoutExperience } from '@/features/donations/checkout-experience';
 import { getGoalById } from '@/features/donations/get-donate-data';
 import type { TributeInput } from '@/lib/api/schemas';
@@ -13,7 +13,25 @@ import {
   RECIPIENT_KINDS,
   TRIBUTE_TYPES,
 } from '@/lib/constants/domain';
+import { receiptDetails } from '@/server/giving-details';
 import { availablePaymentMethods } from '@/server/payments';
+
+/** PAN and registration, quiet under the checkout card; nothing renders when unconfigured. */
+function LegalNote({ details }: { details: { key: string; value: string }[] }) {
+  if (details.length === 0) return null;
+  return (
+    <div className="mx-auto mt-6 max-w-5xl">
+      <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-neutral-200 pt-4 text-sm text-neutral-600">
+        {details.map((detail) => (
+          <div key={detail.key} className="flex items-baseline gap-2">
+            <dt>{donatePage.legal[detail.key === 'pan' ? 'pan' : 'registration']}</dt>
+            <dd className="font-medium text-neutral-900">{detail.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
 
 export const metadata: Metadata = {
   title: donateCheckoutPage.title,
@@ -88,6 +106,7 @@ export default async function DonateCheckoutPage({
           tribute={parseTribute(params)}
           methods={methods}
         />
+        <LegalNote details={receiptDetails()} />
       </Section>
     </>
   );

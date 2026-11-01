@@ -27,7 +27,7 @@ export function PageHeader({ crumbs, title, description }: PageHeaderProps) {
   const trail: Crumb[] = [{ label: 'Home', href: '/' }, ...crumbs];
 
   return (
-    <header className="bg-secondary border-b border-neutral-300 py-8 lg:py-12">
+    <header className="border-primary-950/30 from-primary-900 to-primary-700 border-b bg-gradient-to-br py-10 lg:py-16">
       <JsonLd value={breadcrumbJsonLd(trail)} />
       <Container>
         <Breadcrumb>
@@ -38,11 +38,11 @@ export function PageHeader({ crumbs, title, description }: PageHeaderProps) {
                 <Fragment key={crumb.label}>
                   <BreadcrumbItem>
                     {last || !crumb.href ? (
-                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      <BreadcrumbPage className="text-primary-100/70">{crumb.label}</BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink
                         render={<Link href={crumb.href} />}
-                        className="inline-flex min-h-6 items-center underline underline-offset-4"
+                        className="text-primary-200 inline-flex min-h-6 items-center underline underline-offset-4 hover:text-white"
                       >
                         {crumb.label}
                       </BreadcrumbLink>
@@ -54,9 +54,9 @@ export function PageHeader({ crumbs, title, description }: PageHeaderProps) {
             })}
           </BreadcrumbList>
         </Breadcrumb>
-        <h1 className="font-heading mt-4">{title}</h1>
+        <h1 className="font-heading mt-4 tracking-tight text-white">{title}</h1>
         {description ? (
-          <p className="text-body-l mt-3 max-w-2xl text-neutral-600">{description}</p>
+          <p className="text-body-l text-primary-100 mt-3 max-w-2xl">{description}</p>
         ) : null}
       </Container>
     </header>

@@ -39,8 +39,8 @@ export function ProfileView({ person }: { person: Alumnus }) {
       </Link>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
-        <article className="overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-sm">
-          <div className="border-b border-neutral-200 bg-neutral-100/60 p-6 md:p-8">
+        <article className="shadow-card overflow-hidden rounded-2xl border border-neutral-300/80 bg-white">
+          <div className="from-primary-100/60 border-b border-neutral-200/80 bg-linear-to-b via-neutral-100/40 to-white p-6 md:p-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
               {person.photoUrl ? (
                 <Image
@@ -49,30 +49,34 @@ export function ProfileView({ person }: { person: Alumnus }) {
                   width={96}
                   height={96}
                   unoptimized
-                  className="size-24 shrink-0 rounded-full border border-neutral-300 object-cover"
+                  className="size-24 shrink-0 rounded-full border-2 border-white object-cover shadow-sm ring-1 ring-neutral-300/60"
                 />
               ) : (
-                <InitialsAvatar name={person.fullName} size="lg" className="size-24 text-3xl" />
+                <InitialsAvatar
+                  name={person.fullName}
+                  size="lg"
+                  className="size-24 text-3xl shadow-sm ring-1 ring-neutral-300/60"
+                />
               )}
 
               <div className="min-w-0">
-                <p className="text-primary-700 text-sm font-medium">
+                <p className="text-primary-700 text-sm font-semibold tracking-wide">
                   {person.programme}, batch {person.batchYear}
                 </p>
                 {person.currentPosition ? (
-                  <h2 className="font-heading text-primary-900 text-h3 lg:text-h3-lg mt-1 font-semibold">
+                  <h2 className="font-heading text-primary-900 text-h3 lg:text-h3-lg mt-1 font-semibold tracking-tight">
                     {person.currentPosition}
                   </h2>
                 ) : null}
                 {person.organisation ? (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-600">
-                    <Briefcase aria-hidden="true" className="size-4 shrink-0 text-neutral-600" />
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm text-neutral-600">
+                    <Briefcase aria-hidden="true" className="size-4 shrink-0 text-neutral-500" />
                     {person.organisation}
                   </p>
                 ) : null}
                 {place ? (
                   <p className="mt-2 flex items-center gap-1.5 text-sm text-neutral-600">
-                    <MapPin aria-hidden="true" className="size-4 shrink-0 text-neutral-600" />
+                    <MapPin aria-hidden="true" className="size-4 shrink-0 text-neutral-500" />
                     {place}
                   </p>
                 ) : null}
@@ -80,7 +84,7 @@ export function ProfileView({ person }: { person: Alumnus }) {
                   <p className="mt-1.5 flex items-start gap-1.5 text-sm text-neutral-600">
                     <GraduationCap
                       aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-neutral-600"
+                      className="mt-0.5 size-4 shrink-0 text-neutral-500"
                     />
                     <span>
                       {copy.further}: {person.furtherStudies}
@@ -91,11 +95,11 @@ export function ProfileView({ person }: { person: Alumnus }) {
             </div>
 
             {person.expertise?.length ? (
-              <ul aria-label={copy.expertise} className="mt-5 flex flex-wrap gap-2">
+              <ul aria-label={copy.expertise} className="mt-6 flex flex-wrap gap-2">
                 {person.expertise.map((area) => (
                   <li
                     key={area}
-                    className="bg-primary-100 text-primary-900 rounded-full px-3 py-1 text-xs font-medium"
+                    className="bg-primary-100 text-primary-900 border-primary-200/60 rounded-full border px-3 py-1 text-xs font-semibold shadow-2xs"
                   >
                     {area}
                   </li>

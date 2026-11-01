@@ -27,7 +27,11 @@ export default async function SignInPage({ searchParams }: PageProps<'/sign-in'>
 
   return (
     <Container className="py-12 lg:py-16">
-      <div className="mx-auto max-w-md rounded-xl border border-neutral-300 bg-white p-6 shadow-sm md:p-8">
+      <div className="card-lift shadow-card mx-auto max-w-md rounded-xl border border-neutral-300 bg-white p-6 ring-1 ring-neutral-200/60 md:p-8">
+        <div
+          aria-hidden="true"
+          className="from-primary-700 to-primary-500 -mx-6 -mt-6 mb-6 h-1 rounded-t-xl bg-gradient-to-r md:-mx-8 md:-mt-8"
+        />
         <h1 className="font-heading text-primary-900 text-2xl font-semibold">{signInPage.title}</h1>
         <p className="mt-2 text-sm text-neutral-600">{signInPage.description}</p>
 

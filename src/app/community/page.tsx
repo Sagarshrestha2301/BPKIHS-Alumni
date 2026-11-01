@@ -4,12 +4,10 @@ import { Suspense } from 'react';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
-import { buttonVariants } from '@/components/ui/button';
 import { communityPage } from '@/content/community';
 import { CommunityFeed } from '@/features/community/community-feed';
 import { getCommunityPosts } from '@/features/community/get-community-data';
 import { ShareGate } from '@/features/community/share-gate';
-import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: communityPage.title,
@@ -46,17 +44,15 @@ export default async function CommunityPage() {
             </div>
           </div>
 
-          <aside>
-            <div className="border-primary-100 bg-primary-100/50 rounded-xl border p-5">
-              <h2 className="font-heading text-primary-900 text-xl font-semibold">
-                Stay in the loop
-              </h2>
-              <p className="mt-1 text-sm text-neutral-600">
+          <aside className="sticky top-24">
+            <div className="from-primary-900 to-primary-700 rounded-xl border-none bg-gradient-to-br p-5 text-white shadow-md">
+              <h2 className="font-heading text-xl font-semibold text-white">Stay in the loop</h2>
+              <p className="text-primary-100 mt-1 text-sm">
                 Get a short alumni digest by email. No account needed.
               </p>
               <Link
                 href="/community/newsletter"
-                className={cn(buttonVariants({ variant: 'outline' }), 'mt-4 h-10 bg-white')}
+                className="text-primary-900 hover:bg-primary-100 mt-4 inline-flex h-10 items-center rounded-lg bg-white px-4 text-sm font-semibold"
               >
                 Newsletter
               </Link>

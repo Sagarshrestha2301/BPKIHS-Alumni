@@ -43,12 +43,18 @@ describe('CommunityPostsView', () => {
     expect(image?.getAttribute('alt')).toBe('');
   });
 
-  it('keeps the media height with a type panel when there is no photo', () => {
+  it('uses the selected Alumni News images when a post has no photo', () => {
+    const { container } = render(<CommunityPostsView posts={[post('a'), post('b')]} />);
+    const images = [...container.querySelectorAll('img')].map((image) => image.getAttribute('src'));
+    expect(images).toEqual(communityPosts.fallbackImageUrls);
+  });
+
+  it('keeps the media height with a type panel after the fallback photos', () => {
     const { container } = render(
-      <CommunityPostsView posts={[post('a', { type: 'achievement' })]} />,
+      <CommunityPostsView posts={[post('a'), post('b'), post('c', { type: 'achievement' })]} />,
     );
-    expect(container.querySelector('img')).toBeNull();
-    expect(container.querySelector('[data-slot="post-media"]')).not.toBeNull();
+    expect(container.querySelector('#c img')).toBeNull();
+    expect(container.querySelector('#c [data-slot="post-media"]')).not.toBeNull();
   });
 
   it('links to the full community page', () => {

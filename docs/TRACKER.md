@@ -191,10 +191,11 @@ touching checkout or the security headers.
       share %, period, sort order) through `/api/v1/admin/content/funds`. Shares are refused
       past 100%, a partial plan shows the remainder as an unallocated line, and
       `/donate/transparency` shows an empty state instead of an empty donut.
-- [x] **C13. No way for non-members to write in.** *(26 Oct 2026)* `POST /api/v1/contact` and a
-      separate no-account form on `/support` (name, email, organisation, subject, message) reach
-      the same ticket queue as the helpdesk, so the office answers in one place. Same-origin and
-      the `support` rate limit (5/min) apply; no session is needed.
+- [x] **C13. No way for non-members to write in.** *(26 Oct 2026, closed for good 30 Oct 2026)*
+      The helpdesk already serves every visitor: a guest writes the whole message and is asked
+      for an account only when they press Send. The separate no-account form and
+      `POST /api/v1/contact` route built on 26 October duplicated it and were removed on 30 Oct;
+      the `general` helpdesk topic covers institutional enquiries.
 - [x] **C14. Staff posts and member photos.** *(26 Oct 2026)* `/admin/posts` gained a composer
       that publishes news, notices, events and announcements straight to the feed (POST/PATCH/DELETE
       beside the untouched moderation queue), and the member "Share an update" form takes an
@@ -272,7 +273,17 @@ touching checkout or the security headers.
       `user.two_factor_enabled`. A lost device is recovered with a backup code, or with
       `ADMIN_RESET_2FA=true npm run db:admin` on the host. Enrolment is optional per account,
       so existing sessions and tests are unaffected until an admin turns it on.
-- [ ] **E2. Breached-password lookup** on sign-up and password change.
+- [x] **E2. Breached-password lookup.** *(31 Oct 2026)* Choosing a password (sign-up,
+      change-password, the emailed reset link) is checked against Have I Been Pwned's range API
+      in the k-anonymity shape: the password is hashed locally and only a five-character hash
+      prefix is sent, so the secret never leaves the process. `PASSWORD_BREACH_MIN_OCCURRENCES`
+      published appearances refuse the password with clear wording; sign-in is never checked, so
+      the endpoint cannot confirm a guess. The check fails open when the service is unreachable,
+      is capped by `PASSWORD_BREACH_LOOKUPS_PER_HOUR` and has a timeout; answers are cached per
+      prefix bucket with a one-hour expiry. Coded in `src/server/auth/breaches.ts` and
+      `password-set-guard.ts`; wired in the auth route handler before Better Auth. Sixteen new
+      unit tests cover thresholds, fail-open paths, the budget, prefix-only upload and the
+      oracle-free treatment of sign-in.
 - [ ] **E3. Shared rate limiting** if the app ever runs more than one instance. The current
       limiter is one in-process map and is documented as such in
       `src/server/http/rate-limit.ts`.
@@ -284,8 +295,11 @@ touching checkout or the security headers.
       production host, copy backups off-box and point an uptime monitor at the endpoint. That
       needs the host, so it stays open until launch.
 - [ ] **E5. Dependency audit.** The 4 moderate findings come from `drizzle-kit`'s dev-only
-      esbuild chain. Re-check when a fix ships; never use `npm audit fix --force` (it would
-      install `drizzle-kit@0.18.1`, a breaking downgrade).
+      esbuild chain (esbuild ≤ 0.24.2 dev-server exposure). Re-checked 31 Oct 2026: unchanged.
+      `drizzle-kit@0.31.11` is already the newest, and it is only a dev dependency (an optional
+      peer of better-auth) used by the migration CLI, so no runtime path touches it. Wait for a
+      fixed chain to ship; never `npm audit fix --force` (it would install
+      `drizzle-kit@0.18.1`, a breaking downgrade).
 - [x] **E6. Dropped `vite-tsconfig-paths`.** *(25 Oct 2026)* Vite 8 reads
       `compilerOptions.paths` itself, so `vitest.config.mts` sets `resolve.tsconfigPaths: true`
       and the plugin dependency is gone. All 317 unit tests pass on the built-in resolver.

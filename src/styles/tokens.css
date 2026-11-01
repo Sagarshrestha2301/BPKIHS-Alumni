@@ -38,10 +38,28 @@
 
   /* layout */
   --container-page: 75rem;
-  --spacing-section: 3rem;
-  --spacing-section-lg: 6rem;
+  --spacing-section: 3.5rem;
+  --spacing-section-lg: 6.5rem;
 
-  /* elevation */
-  --shadow-card: 0 1px 2px rgb(22 32 43 / 0.06);
-  --shadow-card-hover: 0 4px 12px rgb(22 32 43 / 0.1);
+  /* corner hierarchy: distinct radii per component role */
+  --radius-button: 0.5rem; /* 8px - crisp, responsive */
+  --radius-card: 0.75rem; /* 12px - balanced container */
+  --radius-floating: 1rem; /* 16px - elevated popovers and sheets */
+  --radius-featured: 1.125rem; /* 18px - featured editorial media */
+  --radius-hero: 1.25rem; /* 20px - primary landmark framing */
+
+  /* elevation: layered physical shadows (ambient + contact) */
+  --shadow-xs: 0 1px 2px rgb(11 42 74 / 0.04);
+  --shadow-card: 0 1px 3px rgb(11 42 74 / 0.05), 0 1px 2px -1px rgb(11 42 74 / 0.03);
+  --shadow-card-hover: 0 10px 25px -5px rgb(11 42 74 / 0.08), 0 4px 6px -2px rgb(11 42 74 / 0.03);
+  --shadow-floating: 0 16px 32px -6px rgb(11 42 74 / 0.1), 0 6px 12px -3px rgb(11 42 74 / 0.05);
+  --shadow-glow-warm: 0 4px 16px -2px rgb(180 83 42 / 0.25);
+  --shadow-glow-primary: 0 4px 16px -2px rgb(18 70 122 / 0.2);
+
+  /* motion timing and easing: Apple / Linear spring curves */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-press: 120ms;
+  --duration-hover: 180ms;
+  --duration-micro: 240ms;
+  --duration-page: 300ms;
 }

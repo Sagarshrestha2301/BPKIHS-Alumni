@@ -80,9 +80,10 @@ async function upsertAccount(sql: postgres.Sql, account: SeedAccount): Promise<s
  * The content the public pages need to render their real state.
  *
  * The application ships with an empty database, so a fresh one would otherwise show empty
- * states and the home-page specs would fail. Three active goals, three upcoming events and
- * three published posts is exactly what those pages display; the ids are stable so a rerun
- * updates the same rows instead of piling new ones up.
+ * states and the home-page specs would fail. Three goals on the home band (the fourth sits
+ * below the fold on /donate by sort order), three upcoming events and three published posts
+ * is exactly what those pages display; the ids are stable so a rerun updates the same rows
+ * instead of piling new ones up.
  */
 async function seedContent(sql: postgres.Sql): Promise<void> {
   const goals = [
@@ -93,7 +94,8 @@ async function seedContent(sql: postgres.Sql): Promise<void> {
       25000000,
       6000000,
       1,
-    ],
+      75,
+    ] as const,
     [
       'goal-hostel',
       'Hostel repairs',
@@ -101,20 +103,34 @@ async function seedContent(sql: postgres.Sql): Promise<void> {
       40000000,
       12500000,
       2,
-    ],
+      120,
+    ] as const,
+    [
+      'goal-health-camps',
+      'Community health camps',
+      'Screening camps in rural Jhapa and Morang: blood pressure, blood sugar and eye checks,\nwith medicine and a referral note for anyone who needs follow-up care. Each camp costs about NPR 150,000 and reaches around 300 people.',
+      18000000,
+      15000000,
+      3,
+      21,
+    ] as const,
   ] as const;
 
-  for (const [id, title, description, target, raised, order] of goals) {
+  for (const [id, title, description, target, raised, order, days] of goals) {
     await sql`
       insert into donation_goals (
-        id, title, description, target_minor, raised_minor, currency, active, sort_order,
-        created_at, updated_at
+        id, title, description, target_minor, raised_minor, currency, deadline, active,
+        sort_order, created_at, updated_at
       )
-      values (${id}, ${title}, ${description}, ${target}, ${raised}, 'NPR', true, ${order}, now(), now())
+      values (
+        ${id}, ${title}, ${description}, ${target}, ${raised}, 'NPR',
+        now() + (${days} * interval '1 day'), true, ${order}, now(), now()
+      )
       on conflict (id) do update
       set title = excluded.title,
           description = excluded.description,
           target_minor = excluded.target_minor,
+          deadline = excluded.deadline,
           active = true,
           updated_at = now()
     `;
@@ -270,8 +286,8 @@ export async function seedFixtures(): Promise<void> {
     // The goal has to be open so checkout is allowed to start against it.
     await sql`
       insert into donation_goals (
-        id, title, description, target_minor, raised_minor, currency, active, sort_order,
-        created_at, updated_at
+        id, title, description, target_minor, raised_minor, currency, deadline, active,
+        sort_order, created_at, updated_at
       )
       values (
         ${SCHOLARSHIP_GOAL_ID},
@@ -280,6 +296,7 @@ export async function seedFixtures(): Promise<void> {
         500000000,
         125000000,
         'NPR',
+        now() + (180 * interval '1 day'),
         true,
         0,
         now(),
@@ -289,11 +306,42 @@ export async function seedFixtures(): Promise<void> {
       set title = excluded.title,
           description = excluded.description,
           target_minor = excluded.target_minor,
+          deadline = excluded.deadline,
           active = true,
           updated_at = now()
     `;
 
     await seedContent(sql);
+
+    // Narrative progress updates, so a reviewed goal detail page shows the section donors
+    // would read. Fixed ids keep reruns idempotent. They are written after the content seed
+    // because their goal rows must already exist for the foreign key to accept them.
+    await sql`
+      insert into donation_goal_updates (id, goal_id, body, created_at)
+      values
+        (
+          'fixture-update-scholarship-2',
+          ${SCHOLARSHIP_GOAL_ID},
+          'The second round has opened. Seven students who were not awarded in the first round have been shortlisted, and two of them start this month. We will publish their introductions once the college confirms registration.',
+          now() - interval '2 days'
+        ),
+        (
+          'fixture-update-scholarship-1',
+          ${SCHOLARSHIP_GOAL_ID},
+          'The first five scholarship students have completed their first term. Four passed every paper; one is repeating a pharmacology module and stays in the programme. Fees and hostel costs for the term were settled directly with the college.',
+          now() - interval '40 days'
+        ),
+        (
+          'fixture-update-health-camps-1',
+          'goal-health-camps',
+          'Three camps ran in October: two in Jhapa and one in Biratchok. Around 900 people were seen altogether, 61 were referred for further care, and the eye-check partner has offered a fourth camp at cost if the funds hold.',
+          now() - interval '1 day'
+        )
+      on conflict (id) do update
+      set goal_id = excluded.goal_id,
+          body = excluded.body,
+          created_at = excluded.created_at
+    `;
 
     // An approved alumnus with expertise, so /account and the directory have a real member.
     await sql`

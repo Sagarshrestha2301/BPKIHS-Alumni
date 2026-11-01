@@ -19,13 +19,19 @@ export function SiteFooter() {
 
   return (
     <footer className="pb-14 lg:pb-0">
-      <section aria-labelledby="newsletter-heading" className="bg-primary-100 py-10">
+      <section
+        aria-labelledby="newsletter-heading"
+        className="from-primary-100/90 via-primary-100/50 to-primary-100/70 border-primary-200/50 border-t bg-linear-to-b py-12"
+      >
         <Container className="grid gap-6 lg:grid-cols-2 lg:items-center">
           <div>
-            <h2 id="newsletter-heading" className="text-2xl">
+            <h2
+              id="newsletter-heading"
+              className="font-heading text-primary-900 text-2xl font-bold tracking-tight"
+            >
               Stay in touch
             </h2>
-            <p className="mt-2 text-neutral-600">
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-600">
               News, events and stories from the BPKIHS alumni community. Unsubscribe any time.
             </p>
           </div>

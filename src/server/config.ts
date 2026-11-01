@@ -106,6 +106,25 @@ export const config = {
     maxLength: integer('PASSWORD_MAX_LENGTH', 128, 64, 256),
     /** Lifetime of an emailed password-reset link. */
     resetTokenMinutes: integer('PASSWORD_RESET_TOKEN_MINUTES', 30, 5, 120),
+    /**
+     * tracker E2: breached-password check. When a password a member is choosing has already
+     * appeared in a public data leak, refuse it. Never invoked on sign-in itself, only on
+     * sign-up, change-password and reset-password. Defaults near the HaveIBeenPwned guidance.
+     */
+    breachedPasswordLookup: {
+      /** Set PASSWORD_BREACH_LOOKUP=false only for an offline or air-gapped deployment. */
+      enabled: boolean('PASSWORD_BREACH_LOOKUP', true),
+      /** Refuse at or above this many occurrences in known public leaks. */
+      minimumAppearances: integer('PASSWORD_BREACH_MIN_OCCURRENCES', 1, 1, 1000),
+      /**
+       * The lookup is an outbound call per password chosen; cap it per process per hour so a
+       * script cannot spend the server's bandwidth. When the budget is empty, the lookup fails
+       * open and lets the form continue.
+       */
+      lookupsPerHour: integer('PASSWORD_BREACH_LOOKUPS_PER_HOUR', 60, 1, 100_000),
+      /** Cap round-trip latency risk against slow reachability from Nepal. */
+      timeoutMs: integer('PASSWORD_BREACH_TIMEOUT_MS', 2_000, 250, 15_000),
+    },
   },
 
   auth: {

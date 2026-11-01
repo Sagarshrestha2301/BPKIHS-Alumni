@@ -29,13 +29,16 @@ interface ErrorEnvelope {
   message?: string;
 }
 
-/** Better Auth's one-time-code failures, in words a member can act on. */
+/** Better Auth's one-time-code failures, in words a member can act on. PASSWORD_BREACHED is
+ *  raised by our own breach guard, not by Better Auth; it lands in this map so the /api
+ *  wrapper and the provider errors both surface the same wording. */
 const AUTH_CODE_MESSAGES: Record<string, string> = {
   INVALID_OTP: accountPage.verification.failed,
   OTP_EXPIRED: accountPage.verification.expired,
   TOO_MANY_ATTEMPTS: accountPage.verification.tooMany,
   INVALID_PASSWORD: accountPage.password.wrongCurrent,
   INVALID_TOKEN: resetPasswordPage.invalid,
+  PASSWORD_BREACHED: accountPage.password.breached,
 };
 
 function query(params: Record<string, string | number | boolean | undefined>): string {
@@ -192,8 +195,6 @@ export const httpAdapter: ApiClient = {
   /* support */
   listFaq: () => request('/api/v1/faq'),
   submitSupportTicket: (input) => request('/api/v1/support', body(input)),
-  submitContactMessage: (input, options) =>
-    request('/api/v1/contact', { ...body(input), headers: botHeaders(options) }),
 
   /* account */
   updateMyProfile: (input) =>

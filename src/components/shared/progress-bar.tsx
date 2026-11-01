@@ -38,14 +38,14 @@ export function ProgressBar({
         aria-valuemax={100}
         aria-valuenow={percent}
         aria-valuetext={`${percent}% of goal`}
-        className="bg-primary-100 mt-2 h-2.5 w-full overflow-hidden rounded-full"
+        className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-neutral-200/80 shadow-inner"
       >
         <div
-          className="bg-primary-700 h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none"
+          className="from-primary-700 via-primary-600 to-primary-500 h-full rounded-full bg-linear-to-r shadow-xs transition-[width] duration-500 motion-reduce:transition-none"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-xs font-medium text-neutral-600">
         {percent}% funded
         {supporters !== undefined ? ` · ${supporters} supporters` : ''}
       </p>

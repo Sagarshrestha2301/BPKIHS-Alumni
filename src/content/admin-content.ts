@@ -3,10 +3,11 @@
 export const adminContentPage = {
   title: 'Content',
   description:
-    'Edit the events, giving goals, funds breakdown, board, FAQ and welcome message shown on the site.',
+    'Edit the events, giving goals, progress updates, funds breakdown, board, FAQ and welcome message shown on the site.',
   tabs: {
     events: 'Events',
     goals: 'Giving goals',
+    updates: 'Progress updates',
     funds: 'Funds breakdown',
     board: 'Board',
     faq: 'FAQ',
@@ -31,6 +32,7 @@ export const adminContentPage = {
   empty: {
     events: 'No events yet. Add the first one.',
     goals: 'No giving goals yet. Add the first one.',
+    updates: 'No progress updates yet. Add the first one for the goal that needs an update.',
     funds: 'No fund categories yet. Add the first one; the shares should add up to 100%.',
     board: 'No board members yet. Add the first one.',
     faq: 'No FAQ entries yet. Add the first one.',
@@ -39,6 +41,7 @@ export const adminContentPage = {
   sections: {
     events: 'Upcoming and past events',
     goals: 'Giving goals and their totals',
+    updates: "Narrative updates donors read on a goal's own page",
     funds: 'How the money raised is allocated on the transparency page',
     board: 'Current and former board members',
     faq: 'Questions shown on the support page',
@@ -65,6 +68,8 @@ export const adminContentPage = {
     deadline: 'Deadline (Nepal time, optional)',
     active: 'Active',
     sortOrder: 'Sort order',
+    updateGoal: 'Giving goal',
+    updateBody: 'What donors should know now',
     name: 'Name',
     role: 'Role',
     term: 'Term',

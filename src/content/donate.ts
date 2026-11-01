@@ -20,6 +20,8 @@ export const donatePage = {
     description:
       'The amounts shown here are the allocation plan applied to confirmed online gifts. They are not a record of expenditure.',
     link: 'Open the transparency page',
+    /** Shown inside the muted section when no allocation plan rows exist yet. */
+    empty: 'The Association has not published an allocation plan yet.',
   },
   tribute: {
     title: 'Give in honour or in memory',
@@ -29,6 +31,79 @@ export const donatePage = {
   },
   paymentNote:
     'Payment is completed on the provider’s secure page. Enter wallet or card details only there, never on this site.',
+  /** Status chip words, by the helper key in goal-summary.ts. */
+  goalStatus: {
+    reached: 'Target reached',
+    ended: 'Closed',
+    closing: 'Closing soon',
+    open: 'Open for giving',
+  },
+  /** Live labels for the numbers shown on a goal card and the goal detail page. */
+  goalStats: {
+    gifts: 'Confirmed gifts',
+    average: 'Average gift',
+    latest: 'Latest gift',
+    remaining: 'Still needed',
+    share: 'Share of confirmed online giving',
+    shareNote: 'All confirmed gifts through this site are the denominator, general fund included.',
+    emptyLatest: 'None recorded yet',
+    /** The progress sentence: "NPR 12,000 raised of NPR 50,000 target". */
+    raisedOf: 'raised of',
+    targetWord: 'target',
+  },
+  /** Countdown words, assembled after the pure goalTimeLeft computation. */
+  goalTimeWords: {
+    prefix: 'Closes in',
+    today: 'Closes today',
+    tomorrow: 'Closes tomorrow',
+    day: 'day',
+    days: 'days',
+    month: 'month',
+    months: 'months',
+    /** Past a deadline. A goal past its date shows its close day instead of a countdown. */
+    ended: 'Closed on',
+  },
+  /** Labels for the per-goal page at /donate/goals/[id]. */
+  goalDetail: {
+    give: 'Give to this goal',
+    deadline: 'Closes',
+    statsTitle: 'This goal in numbers',
+    recentTitle: 'Gifts toward this goal',
+    recentNote:
+      'Confirmed through this site, newest first. Anonymous donors appear without a name.',
+    anonymous: 'Anonymous donor',
+    empty: 'No confirmed gifts toward this goal yet. The first one will appear here.',
+    transparencyLink: 'See all recent gifts',
+    backToGoals: 'Back to all giving goals',
+    updatesTitle: 'Progress updates',
+    updatesNote:
+      'Written by the Association as the work proceeds, newest first. Dates show when each update was published.',
+  },
+  /**
+    Offline giving, shown only when the office has configured a bank account in the
+    environment. A hidden section beats a placeholder account number.
+  */
+  offline: {
+    title: 'Give by bank transfer or cheque',
+    intro:
+      'Most alumni give online. If a bank transfer or a cheque suits you better, use the Association’s account below and tell the office afterwards so the gift can be matched and receipted.',
+    labels: {
+      bank: 'Bank',
+      accountName: 'Account name',
+      accountNumber: 'Account number',
+    },
+    reportTitle: 'After you pay',
+    reportText:
+      'Email the transfer reference, or post a short note, with your name and the goal the gift supports. The office verifies it, records it and issues your receipt.',
+    contactLabel: 'Email the office',
+  },
+  /** Receipt and legal identifiers, rendered only when configured in the environment. */
+  legal: {
+    title: 'Receipts',
+    note: 'A receipt is emailed after the payment provider confirms your gift. The Association’s registration number and PAN appear on it and here:',
+    registration: 'Registration number',
+    pan: 'PAN',
+  },
   trust: {
     title: 'What you can expect',
     items: [
@@ -127,6 +202,13 @@ export const thankYouPage = {
   failedTitle: 'Your gift was not completed',
   failedNote:
     'The payment provider did not confirm this gift, so it has not been recorded as a donation. You can try again or choose another payment method.',
+  labels: {
+    goal: 'Goal',
+    amount: 'Amount',
+    method: 'Method',
+    reference: 'Reference',
+  },
+  backToGoals: 'Back to all giving goals',
   nextSteps: [
     { label: 'See the transparency page', href: '/donate/transparency' },
     { label: 'Find alumni in the directory', href: '/directory' },

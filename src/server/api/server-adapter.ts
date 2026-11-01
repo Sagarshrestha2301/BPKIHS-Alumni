@@ -68,9 +68,6 @@ export function createServerAdapter(viewer: Viewer = ANONYMOUS_VIEWER): ApiClien
 
     listFaq,
     submitSupportTicket,
-    submitContactMessage: async () => {
-      throw new ApiError('not_implemented', 'Contact messages are sent from the browser.');
-    },
 
     updateMyProfile: async () => {
       throw new ApiError('not_implemented', 'Profile changes happen in the browser.');

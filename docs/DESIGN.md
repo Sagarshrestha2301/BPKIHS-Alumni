@@ -135,7 +135,10 @@ Body never below 16 px on mobile. Max line length ~70 characters.
 
 ### 5.3 Interaction and motion
 
-- Transitions 150–200 ms ease-out; hover lifts of 2 px on cards.
+- Transitions 150–200 ms ease-out; hover lifts of 2 px on interactive cards only (`.card-lift`):
+  a lift promises a click, so static panels (board ledgers, contact details without links) stay still.
+- Card links nudge their trailing arrow 2 px right on hover; post photos zoom 3% within the
+  clipped corners. Both are `motion-safe:` so reduced-motion users keep the colour/shadow cue.
 - Count-up on stats once when visible.
 - Honour `prefers-reduced-motion`: remove count-up and lifts.
 - No auto-playing carousels. Any carousel needs pause controls and arrow buttons.

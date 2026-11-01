@@ -100,6 +100,16 @@ export const adminGoalInputSchema = z.object({
 });
 export type AdminGoalInput = z.infer<typeof adminGoalInputSchema>;
 
+/**
+ * A narrative progress update posted on a goal's detail page. It is bound to a goal by id,
+ * so an update can never float free of the cause it describes.
+ */
+export const adminGoalUpdateInputSchema = z.object({
+  goalId: requiredText('Choose the goal this update belongs to.', 100),
+  body: z.string().trim().min(20, 'Write at least 20 characters.').max(4000, TOO_LONG),
+});
+export type AdminGoalUpdateInput = z.infer<typeof adminGoalUpdateInputSchema>;
+
 export const adminBoardInputSchema = z.object({
   name: requiredText('Enter a name.', 100),
   role: requiredText('Enter a role.', 80),

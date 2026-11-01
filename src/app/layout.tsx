@@ -8,6 +8,7 @@ import { BottomBar } from '@/components/layout/bottom-bar';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { JsonLd } from '@/components/shared/json-ld';
+import { ToastProvider } from '@/components/ui/toast';
 import { hero } from '@/content/home';
 import { site } from '@/content/site';
 import { SessionProvider } from '@/features/auth/session-provider';
@@ -108,33 +109,35 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <SessionProvider>
-          <JsonLd value={organizationJsonLd({ name: site.name, logoUrl: site.logo.src })} />
-          <a
-            href="#main-content"
-            className="focus:text-primary-900 focus:outline-primary-700 sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:shadow-md focus:outline-2"
-          >
-            Skip to main content
-          </a>
-          <Suspense
-            fallback={
-              <div
-                className="h-16 border-b border-neutral-300 bg-white lg:h-24"
-                aria-hidden="true"
-              />
-            }
-          >
-            <SiteHeader />
-          </Suspense>
-          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
-            {children}
-          </main>
-          {/* The footer hides itself on /admin, so it reads the path like the header does. */}
-          <Suspense fallback={null}>
-            <SiteFooter />
-          </Suspense>
-          <Suspense fallback={null}>
-            <BottomBar />
-          </Suspense>
+          <ToastProvider>
+            <JsonLd value={organizationJsonLd({ name: site.name, logoUrl: site.logo.src })} />
+            <a
+              href="#main-content"
+              className="focus:text-primary-900 focus:outline-primary-700 sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:shadow-md focus:outline-2"
+            >
+              Skip to main content
+            </a>
+            <Suspense
+              fallback={
+                <div
+                  className="h-16 border-b border-neutral-300 bg-white lg:h-24"
+                  aria-hidden="true"
+                />
+              }
+            >
+              <SiteHeader />
+            </Suspense>
+            <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+              {children}
+            </main>
+            {/* The footer hides itself on /admin, so it reads the path like the header does. */}
+            <Suspense fallback={null}>
+              <SiteFooter />
+            </Suspense>
+            <Suspense fallback={null}>
+              <BottomBar />
+            </Suspense>
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>

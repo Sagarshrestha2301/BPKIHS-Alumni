@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { MIN_DONATION_MINOR, PROGRAMMES } from '@/lib/constants/domain';
 
 import {
-  contactMessageSchema,
   donationSchema,
   helpdeskSchema,
   loginSchema,
@@ -261,28 +260,6 @@ describe('memberPostSchema', () => {
     expect(memberPostSchema.safeParse({ ...valid, imageUrl: '//evil.example/a.jpg' }).success).toBe(
       false,
     );
-  });
-});
-
-describe('contactMessageSchema', () => {
-  const valid = {
-    name: 'Biratnagar Hospital',
-    email: 'office@hospital.example',
-    organisation: 'Biratnagar Hospital',
-    subject: 'Partnership enquiry',
-    message: 'We would like to discuss a collaboration with the Association.',
-  };
-
-  it('accepts a general enquiry without an organisation', () => {
-    expect(contactMessageSchema.safeParse({ ...valid, organisation: undefined }).success).toBe(
-      true,
-    );
-    expect(contactMessageSchema.safeParse({ ...valid, organisation: '' }).success).toBe(true);
-  });
-
-  it('rejects a short message or an invalid address', () => {
-    expect(contactMessageSchema.safeParse({ ...valid, message: 'Hi' }).success).toBe(false);
-    expect(contactMessageSchema.safeParse({ ...valid, email: 'not-an-email' }).success).toBe(false);
   });
 });
 

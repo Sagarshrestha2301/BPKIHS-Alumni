@@ -72,10 +72,10 @@ export function AdminNav({ counts }: { counts: AdminNavCounts }) {
                     href={item.href}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
+                      'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-180',
                       active
-                        ? 'bg-primary-100 text-primary-900 font-semibold'
-                        : 'hover:text-primary-900 font-medium text-neutral-700 hover:bg-neutral-100',
+                        ? 'bg-primary-100 text-primary-900 font-semibold shadow-xs'
+                        : 'hover:text-primary-900 font-medium text-neutral-700 hover:bg-neutral-200/60',
                     )}
                   >
                     <Icon

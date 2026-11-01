@@ -16,6 +16,9 @@ export const DEVELOPMENT_ORIGIN = 'http://localhost:3000';
  */
 export const NAVY = '#0b2a4a';
 
+/** Page surface white, for the manifest and anywhere metadata needs it outside a stylesheet. */
+export const WHITE = '#ffffff';
+
 /**
  * Absolute public origin, with no trailing slash, for canonical URLs, the sitemap and
  * structured data. Built from `NEXT_PUBLIC_SITE_URL` so the browser bundle and the server

@@ -21,9 +21,11 @@ describe('getApiClient', () => {
 });
 
 describe('adapter shape', () => {
-  it('lists 36 methods', () => {
-    expect(API_METHOD_NAMES).toHaveLength(36);
-    expect(new Set(API_METHOD_NAMES).size).toBe(36);
+  it('lists 35 methods', () => {
+    // 35 since 30 Oct 2026: the no-account contact submission left with the duplicate
+    // enquiry form on /support; the helpdesk covers it.
+    expect(API_METHOD_NAMES).toHaveLength(35);
+    expect(new Set(API_METHOD_NAMES).size).toBe(35);
   });
 
   it('has exactly the contract methods', () => {

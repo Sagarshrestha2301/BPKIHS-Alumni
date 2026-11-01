@@ -1,3 +1,5 @@
+import { ChevronRight } from 'lucide-react';
+
 import { InitialsAvatar } from '@/components/shared/initials-avatar';
 import type { BoardMember } from '@/lib/api/types';
 
@@ -13,9 +15,11 @@ export function BoardMemberCard({ member, onSelect }: BoardMemberCardProps) {
       type="button"
       aria-haspopup="dialog"
       onClick={() => onSelect(member)}
-      className="hover:border-primary-700 flex min-h-11 w-full items-center gap-4 rounded-xl border border-neutral-300 bg-white p-5 text-left shadow-sm"
+      className="group card-lift hover:border-primary-300 hover:shadow-card-hover flex min-h-11 w-full items-center gap-4 rounded-xl border border-neutral-300 bg-white p-5 text-left shadow-sm"
     >
-      <InitialsAvatar name={member.name} />
+      <div className="transition-transform duration-240 ease-out group-hover:scale-105">
+        <InitialsAvatar name={member.name} />
+      </div>
       <span className="min-w-0">
         <span className="font-heading text-primary-900 block text-lg leading-snug font-semibold">
           {member.name}
@@ -25,6 +29,10 @@ export function BoardMemberCard({ member, onSelect }: BoardMemberCardProps) {
           <span className="block text-sm text-neutral-600">{member.batch}</span>
         ) : null}
       </span>
+      <ChevronRight
+        aria-hidden="true"
+        className="group-hover:text-primary-600 size-4 shrink-0 text-neutral-400 transition-transform duration-180 group-hover:translate-x-0.5"
+      />
     </button>
   );
 }

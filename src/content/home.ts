@@ -1,6 +1,8 @@
 /** Home page copy; the Association can revise it in the content manager as its priorities change. */
 export const hero = {
   eyebrow: 'BPKIHS Alumni Association',
+  /** Devanagari companion to the eyebrow. Factual place names only, so it is safe copy that needs no sign-off. */
+  locationNe: 'धरान, नेपाल',
   title: 'Connected by BPKIHS. Wherever life takes us.',
   mission:
     'A place to find old classmates, hear what alumni are doing and stay connected with the institute in Dharan.',
@@ -77,6 +79,11 @@ export const communityPosts = {
   eyebrow: 'Alumni news',
   title: 'What classmates are up to',
   description: 'Notes, milestones and news shared by BPKIHS graduates.',
+  /** Editorial fallbacks keep the first two news cards visual until authors add their own photos. */
+  fallbackImageUrls: [
+    'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=1200&q=80',
+  ],
   allLabel: 'Read more posts',
   allHref: '/community',
 } as const;
@@ -84,6 +91,21 @@ export const communityPosts = {
 export const welcomeSection = {
   eyebrow: 'A word from us',
   title: 'A message from the Association',
+} as const;
+
+export const noticeBoard = {
+  eyebrow: 'Notices',
+  title: 'Notice board',
+  /** Devanagari companion, after the government notice boards the panel imitates. */
+  titleNe: 'सूचना',
+  /** The floating button that reopens the panel after it has been dismissed. */
+  openLabel: 'Notices',
+  closeLabel: 'Dismiss the notice board',
+  popupTitle: 'Latest notice',
+  popupCloseLabel: 'Dismiss this notice',
+  readLabel: 'Read the notice',
+  allLabel: 'All posts',
+  allHref: '/community',
 } as const;
 
 export const boardPreview = {

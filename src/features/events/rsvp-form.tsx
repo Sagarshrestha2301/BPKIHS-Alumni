@@ -81,8 +81,11 @@ export function RsvpForm({
 
   if (status === 'done' || status === 'waitlisted') {
     return (
-      <div role="status" className="border-success-600/30 bg-success-600/5 rounded-xl border p-6">
-        <p className="text-primary-900 text-lg font-semibold">
+      <div
+        role="status"
+        className="border-success-600/30 bg-success-600/10 motion-safe:animate-in motion-safe:fade-in rounded-2xl border p-7 shadow-xs"
+      >
+        <p className="font-heading text-primary-900 text-lg font-semibold tracking-tight">
           {status === 'done' ? copy.success : copy.waitlist}
         </p>
       </div>
@@ -93,10 +96,12 @@ export function RsvpForm({
     <form
       onSubmit={onSubmit}
       noValidate
-      className="rounded-xl border border-neutral-300 bg-white p-6 shadow-sm"
+      className="shadow-card rounded-2xl border border-neutral-300/80 bg-white p-7 lg:sticky lg:top-24"
     >
-      <h2 className="font-heading text-primary-900 text-2xl font-semibold">{copy.rsvpTitle}</h2>
-      <p className="mt-2 text-sm text-neutral-600">{copy.rsvpIntro}</p>
+      <h2 className="font-heading text-primary-900 text-2xl font-bold tracking-tight">
+        {copy.rsvpTitle}
+      </h2>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600">{copy.rsvpIntro}</p>
 
       <div className="mt-5 grid gap-4">
         <FormField label={copy.fields.name} error={errors.name} required>

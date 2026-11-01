@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { mainNav, signInHref, signInLabel, site, utilityNav } from '@/content/site';
@@ -18,12 +19,29 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { status, session } = useSession();
   const signedIn = status === 'signed_in';
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // The dashboard has its own shell: no public banner above it.
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-300 bg-white">
+    <header
+      className={cn(
+        'sticky top-0 z-40 transition-all duration-200',
+        scrolled
+          ? 'border-b border-neutral-300/80 bg-white/95 shadow-xs backdrop-blur-md'
+          : 'border-b border-neutral-300 bg-white',
+      )}
+    >
       <div className="bg-primary-900 hidden text-sm text-white lg:block">
         <Container className="flex items-center justify-end gap-6 py-1.5">
           <a
@@ -60,13 +78,19 @@ export function SiteHeader() {
         </Container>
       </div>
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Link href="/" className={cn('flex items-center gap-3 rounded-lg', focusRing)}>
+        <Link
+          href="/"
+          className={cn(
+            'group flex items-center gap-3 rounded-lg transition-opacity hover:opacity-95',
+            focusRing,
+          )}
+        >
           <Image
             src={site.logo.src}
             alt=""
             width={site.logo.width}
             height={site.logo.height}
-            className="size-10"
+            className="size-10 transition-transform duration-200 group-hover:scale-105"
             priority
           />
           <span className="flex flex-col leading-tight">
@@ -77,7 +101,7 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav aria-label="Main" className="hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-1.5">
             {mainNav.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
@@ -102,7 +126,10 @@ export function SiteHeader() {
           {signedIn ? null : (
             <Link
               href="/register"
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-11 px-5 text-sm')}
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'h-10 px-4 text-sm font-medium',
+              )}
             >
               Register
             </Link>

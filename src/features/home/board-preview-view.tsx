@@ -24,14 +24,16 @@ export function BoardPreviewView({ members }: { members: BoardMember[] }) {
         {members.map((member) => (
           <li
             key={member.id}
-            className="flex items-center gap-4 rounded-xl border border-neutral-300 bg-white p-5 shadow-sm"
+            className="group card-lift hover:border-primary-700/40 relative flex items-center gap-4 rounded-xl border border-neutral-300/80 bg-white p-5 shadow-xs transition-all duration-180"
           >
-            <InitialsAvatar name={member.name} />
+            <div className="transition-transform duration-200 group-hover:scale-105">
+              <InitialsAvatar name={member.name} />
+            </div>
             <div className="min-w-0">
-              <h3 className="font-heading text-primary-900 text-lg leading-snug font-semibold">
+              <h3 className="font-heading text-primary-900 text-lg leading-snug font-semibold tracking-tight">
                 {member.name}
               </h3>
-              <p className="text-sm text-neutral-600">{member.role}</p>
+              <p className="text-sm font-medium text-neutral-600">{member.role}</p>
               {member.batch ? <p className="text-sm text-neutral-600">{member.batch}</p> : null}
             </div>
           </li>

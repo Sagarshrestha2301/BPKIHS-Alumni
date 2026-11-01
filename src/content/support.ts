@@ -31,23 +31,6 @@ export const supportPage = {
     subject: 'Subject',
     message: 'Message',
   },
-  contactForm: {
-    title: 'General and institutional enquiries',
-    description:
-      'For hospitals, partners, vendors, donors and anyone without an account. No sign-in is needed; the office replies to the email you give.',
-    fields: {
-      name: 'Your name',
-      email: 'Email address',
-      organisation: 'Organisation (optional)',
-      subject: 'Subject',
-      message: 'Message',
-    },
-    button: 'Send enquiry',
-    submitting: 'Sending…',
-    successTitle: 'Thank you. Your enquiry has been received.',
-    successBody: 'The Association will reply to the email address you gave.',
-    error: 'We could not send your enquiry. Please check the form and try again.',
-  },
   topics: {
     account: 'Account or sign-in',
     profile_verification: 'Profile verification',

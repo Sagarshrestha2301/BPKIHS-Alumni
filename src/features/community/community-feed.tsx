@@ -39,10 +39,10 @@ export function CommunityFeed({ posts, client }: { posts: FeedPost[]; client?: A
                 setVisible(PAGE_SIZE);
               }}
               className={cn(
-                'min-h-10 rounded-full border px-4 text-sm font-medium',
+                'btn-press min-h-10 cursor-pointer rounded-full border px-4 py-1.5 text-sm font-semibold shadow-xs transition-all duration-180',
                 active
-                  ? 'border-primary-700 bg-primary-700 text-white'
-                  : 'hover:bg-primary-100 border-neutral-500 text-neutral-900',
+                  ? 'border-primary-900 bg-primary-900 ring-primary-900/15 text-white shadow-sm ring-2'
+                  : 'hover:border-primary-700/60 hover:bg-primary-100/50 border-neutral-300 bg-white text-neutral-700',
               )}
             >
               {item.label}
@@ -52,9 +52,9 @@ export function CommunityFeed({ posts, client }: { posts: FeedPost[]; client?: A
       </div>
 
       {shown.length === 0 ? (
-        <p className="mt-8 rounded-xl border border-dashed border-neutral-300 bg-neutral-100 p-8 text-center text-neutral-600">
-          {copy.empty}
-        </p>
+        <div className="mt-8 rounded-2xl border border-neutral-300/80 bg-neutral-100/60 p-8 text-center text-neutral-600 shadow-xs">
+          <p className="font-heading text-primary-900 text-lg font-semibold">{copy.empty}</p>
+        </div>
       ) : (
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           {shown.map((post) => (
