@@ -34,7 +34,7 @@ describe('NoticeBoardView', () => {
   it('renders nothing when there are no notices', () => {
     render(<NoticeBoardView notices={[]} />);
     expect(screen.queryByRole('region', { name: noticeBoard.title })).toBeNull();
-    expect(screen.queryByRole('dialog', { name: noticeBoard.popupTitle })).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('shows a closable board with a link per notice', async () => {
@@ -51,7 +51,7 @@ describe('NoticeBoardView', () => {
     expect(screen.getByRole('link', { name: noticeBoard.allLabel })).toBeTruthy();
   });
 
-  it('closing the board hides it and offers a reopen button', async () => {
+  it('crossing the board hides it completely, without a floating reopen button', async () => {
     render(<NoticeBoardView notices={[notice('a', '2026-10-20T04:00:00Z')]} />);
     await waitFor(() =>
       expect(screen.getByRole('region', { name: noticeBoard.title })).toBeTruthy(),
@@ -59,20 +59,19 @@ describe('NoticeBoardView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: noticeBoard.closeLabel }));
     expect(screen.queryByRole('region', { name: noticeBoard.title })).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: new RegExp(`^${noticeBoard.openLabel}`) }),
-    ).toBeTruthy();
+    // No reopen affordance lingers in the corner: the board stays gone for the visit.
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
     expect(localStorage.getItem('bpkihs.homeNotices.panelClosed')).toBe('2026-10-20T04:00:00Z');
   });
 
-  it('a popup announces the newest unseen notice once and marks it seen on dismissal', async () => {
+  it('a large modal popup announces the newest unseen notice once and marks it seen', async () => {
     const notices = [notice('new', '2026-10-20T04:00:00Z'), notice('old', '2026-10-19T04:00:00Z')];
     const { unmount } = render(<NoticeBoardView notices={notices} />);
-    const dialog = await screen.findByRole('dialog', { name: noticeBoard.popupTitle });
-    expect(dialog.textContent).toContain('Notice new');
+    const dialog = await screen.findByRole('dialog', { name: /Notice new/ });
+    expect(dialog.textContent).toContain('A short excerpt.');
 
     fireEvent.click(screen.getByRole('button', { name: noticeBoard.popupCloseLabel }));
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(localStorage.getItem('bpkihs.homeNotices.seen')).toBe('2026-10-20T04:00:00Z');
     unmount();
 

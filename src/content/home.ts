@@ -98,8 +98,7 @@ export const noticeBoard = {
   title: 'Notice board',
   /** Devanagari companion, after the government notice boards the panel imitates. */
   titleNe: 'सूचना',
-  /** The floating button that reopens the panel after it has been dismissed. */
-  openLabel: 'Notices',
+  /** Crossing the board hides it completely, until a newer notice is published. */
   closeLabel: 'Dismiss the notice board',
   popupTitle: 'Latest notice',
   popupCloseLabel: 'Dismiss this notice',
