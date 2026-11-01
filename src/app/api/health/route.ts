@@ -15,38 +15,6 @@ async function checkDatabase(): Promise<ServiceStatus> {
   }
 }
 
-async function checkStorage(): Promise<ServiceStatus> {
-  const endpoint = process.env.AWS_ENDPOINT_URL_S3;
-  if (!endpoint) return { status: 'skipped', detail: 'AWS_ENDPOINT_URL_S3 not set' };
-  try {
-    const probeFile = new File([new Uint8Array([1, 2, 3])], 'probe.png', { type: 'image/png' });
-    // Use a tiny non-image? storeProfilePhoto validates image. Instead do raw S3 round-trip via dynamic import.
-    const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } =
-      await import('@aws-sdk/client-s3');
-    const client = new S3Client({
-      region: process.env.AWS_REGION,
-      endpoint,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-      forcePathStyle: true,
-    });
-    const key = `health-probe-${Date.now()}.txt`;
-    await client.send(
-      new PutObjectCommand({ Bucket: 'assets', Key: key, Body: 'ok', ContentType: 'text/plain' }),
-    );
-    const res = await client.send(new GetObjectCommand({ Bucket: 'assets', Key: key }));
-    const body = await res.Body?.transformToString();
-    await client.send(new DeleteObjectCommand({ Bucket: 'assets', Key: key }));
-    if (body !== 'ok') throw new Error('round-trip mismatch');
-    return { status: 'up' };
-  } catch (error) {
-    console.error('[health] storage check failed', error);
-    return { status: 'down', detail: String(error) };
-  }
-}
-
 async function checkFunctions(): Promise<ServiceStatus> {
   const url = process.env.NEON_FUNCTION_HELLO_BASE_URL;
   if (!url) return { status: 'skipped', detail: 'NEON_FUNCTION_HELLO_BASE_URL not set' };
@@ -89,22 +57,21 @@ async function checkRealtime(): Promise<ServiceStatus> {
 
 export async function GET() {
   await connection();
-  const [database, storage, functions, auth, realtime] = await Promise.all([
+  const [database, functions, auth, realtime] = await Promise.all([
     checkDatabase(),
-    checkStorage(),
     checkFunctions(),
     checkAuth(),
     checkRealtime(),
   ]);
 
-  const allUp = [database, storage, functions, auth, realtime].every(
+  const allUp = [database, functions, auth, realtime].every(
     (s) => s.status === 'up' || s.status === 'skipped',
   );
 
   return NextResponse.json(
     {
       status: allUp ? 'ok' : 'degraded',
-      services: { database, storage, functions, auth, realtime },
+      services: { database, functions, auth, realtime },
     },
     { status: allUp ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
   );

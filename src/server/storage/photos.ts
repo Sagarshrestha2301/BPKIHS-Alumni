@@ -1,13 +1,9 @@
 import 'server-only';
 
 import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
 import sharp, { type Metadata } from 'sharp';
 
 import { photoCopy } from '@/content/photo';
@@ -21,38 +17,48 @@ import { isStoredPhoto } from '@/lib/photo/url';
 
 import { config } from '../config';
 
-const BUCKET = 'assets';
-
-function s3Client(): S3Client {
-  const endpoint = process.env.AWS_ENDPOINT_URL_S3;
-  const region = process.env.AWS_REGION;
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  if (!endpoint || !region || !accessKeyId || !secretAccessKey) {
-    throw new ApiError('server', 'Neon Object Storage is not configured.');
-  }
-  return new S3Client({
-    region,
-    endpoint,
-    credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: true,
-  });
-}
+/**
+ * Profile photos live on the app server's disk, next to the Postgres deployment the project
+ * documents. They are never placed under `public/`: a file that anyone can guess or fetch
+ * without a database check would bypass profile privacy.
+ *
+ * `sharp` decodes the image, rejects anything that is not a real JPEG/PNG/WebP, crops a square
+ * and re-encodes it. Re-encoding is deliberate: it removes EXIF/GPS metadata, normalises the
+ * format, and destroys a file that is also a script or an archive.
+ */
 
 const STORED_FILE = new RegExp(
   `^${STORED_PHOTO_PREFIX}([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\\.${PHOTO_OUTPUT_EXTENSION}$`,
 );
 const ACCEPTED_FORMATS = new Set(['jpeg', 'png', 'webp']);
 
-function objectKeyFor(key: string): string | null {
+function photoDirectory(): string {
+  return path.resolve(process.cwd(), config.photos.directory);
+}
+
+/** Strictly maps a database key to a filename; anything else is treated as missing. */
+function fileNameFor(key: string): string | null {
   const match = STORED_FILE.exec(key);
   return match?.[1] ? `${match[1]}.${PHOTO_OUTPUT_EXTENSION}` : null;
+}
+
+function absoluteFileFor(key: string): string | null {
+  const fileName = fileNameFor(key);
+  if (!fileName) return null;
+  const directory = photoDirectory();
+  const file = path.resolve(directory, fileName);
+  // The regex already forbids separators; this keeps that guarantee true if it ever changes.
+  return path.dirname(file) === directory ? file : null;
 }
 
 function invalidImage(message: string): never {
   throw new ApiError('validation', message);
 }
 
+/**
+ * Validates and stores one uploaded file. Returns the private key for `alumni.photo_url`;
+ * the public URL is built later from the profile id, so a key cannot be fetched directly.
+ */
 export async function storeProfilePhoto(file: File): Promise<string> {
   if (file.size <= 0) invalidImage(photoCopy.errors.empty);
   if (file.size > config.photos.maxBytes) invalidImage(photoCopy.errors.size);
@@ -63,10 +69,11 @@ export async function storeProfilePhoto(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   let metadata: Metadata;
-  let output: Buffer;
   try {
     const image = sharp(buffer, {
       failOn: 'error',
+      // Bounds the decoded image as well as its dimensions, so a small "decompression bomb"
+      // cannot allocate gigabytes of memory.
       limitInputPixels: config.photos.maxDimension * config.photos.maxDimension,
       animated: false,
     });
@@ -90,8 +97,8 @@ export async function storeProfilePhoto(file: File): Promise<string> {
       invalidImage(photoCopy.errors.tooLarge);
     }
 
-    output = await image
-      .rotate()
+    const output = await image
+      .rotate() // Apply the camera orientation, then drop the EXIF tag that carried it.
       .resize({
         width: config.photos.outputSize,
         height: config.photos.outputSize,
@@ -102,54 +109,57 @@ export async function storeProfilePhoto(file: File): Promise<string> {
       .toBuffer();
 
     if (output.length > config.photos.maxBytes) invalidImage(photoCopy.errors.size);
+
+    const id = randomUUID();
+    const directory = photoDirectory();
+    const target = path.join(directory, `${id}.${PHOTO_OUTPUT_EXTENSION}`);
+    const temporary = path.join(directory, `.${id}.tmp`);
+
+    await mkdir(directory, { recursive: true, mode: config.photos.directoryMode });
+    try {
+      await writeFile(temporary, output, { mode: config.photos.fileMode });
+      await rename(temporary, target);
+    } catch (error) {
+      await rm(temporary, { force: true }).catch(() => undefined);
+      console.error('[photos] could not write a profile photo', error);
+      throw new ApiError('server', photoCopy.errors.upload);
+    }
+
+    return `${STORED_PHOTO_PREFIX}${id}.${PHOTO_OUTPUT_EXTENSION}`;
   } catch (error) {
     if (error instanceof ApiError) throw error;
+    // Sharp's messages include paths and implementation detail; the member gets the copy.
     console.error('[photos] rejected an uploaded image', error);
     invalidImage(photoCopy.errors.unreadable);
   }
-
-  const id = randomUUID();
-  const objectKey = `${id}.${PHOTO_OUTPUT_EXTENSION}`;
-  try {
-    await s3Client().send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: objectKey,
-        Body: output,
-        ContentType: 'image/webp',
-      }),
-    );
-  } catch (error) {
-    console.error('[photos] could not upload a profile photo', error);
-    throw new ApiError('server', photoCopy.errors.upload);
-  }
-
-  return `${STORED_PHOTO_PREFIX}${id}.${PHOTO_OUTPUT_EXTENSION}`;
 }
 
+/** Reads a stored key. Missing, malformed and unreadable files all become a 404. */
 export async function readStoredPhoto(key: string): Promise<Buffer> {
-  const objectKey = objectKeyFor(key);
-  if (!objectKey) throw new ApiError('not_found', photoCopy.errors.notFound);
+  const file = absoluteFileFor(key);
+  if (!file) throw new ApiError('not_found', photoCopy.errors.notFound);
 
   try {
-    const res = await s3Client().send(new GetObjectCommand({ Bucket: BUCKET, Key: objectKey }));
-    const bytes = await res.Body?.transformToByteArray();
-    if (!bytes) throw new Error('empty body');
-    return Buffer.from(bytes);
+    return await readFile(file);
   } catch (error) {
-    if (error instanceof ApiError) throw error;
-    console.error('[photos] could not read a profile photo', error);
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error('[photos] could not read a profile photo', error);
+    }
     throw new ApiError('not_found', photoCopy.errors.notFound);
   }
 }
 
+/**
+ * Best-effort removal. A database row must not keep pointing at a file that is gone, so a
+ * failure here is logged rather than thrown to the member; the row is cleared either way.
+ */
 export async function deleteStoredPhoto(key: string | null | undefined): Promise<void> {
   if (!isStoredPhoto(key)) return;
-  const objectKey = objectKeyFor(key as string);
-  if (!objectKey) return;
+  const file = absoluteFileFor(key);
+  if (!file) return;
 
   try {
-    await s3Client().send(new DeleteObjectCommand({ Bucket: BUCKET, Key: objectKey }));
+    await rm(file, { force: true });
   } catch (error) {
     console.error('[photos] could not delete a profile photo', error);
   }
