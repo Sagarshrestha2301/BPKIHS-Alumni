@@ -1,9 +1,8 @@
 import 'server-only';
 
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 
+import { eq } from 'drizzle-orm';
 import sharp, { type Metadata } from 'sharp';
 
 import { photoCopy } from '@/content/photo';
@@ -16,40 +15,22 @@ import {
 import { isStoredPhoto } from '@/lib/photo/url';
 
 import { config } from '../config';
+import { db } from '../db/client';
+import { profilePhotos } from '../db/schema';
 
 /**
- * Profile photos live on the app server's disk, next to the Postgres deployment the project
- * documents. They are never placed under `public/`: a file that anyone can guess or fetch
- * without a database check would bypass profile privacy.
+ * Profile photos are kept in Postgres rather than on the app server's disk. A serverless
+ * host (such as Vercel) has a read-only filesystem, and even a writable `/tmp` is not
+ * shared between the upload and the delivery functions. The database is the one store every
+ * function can reach, so the bytes live in `profile_photos` and `alumni.photo_url` keeps
+ * the private `photo:<uuid>.webp` key.
  *
- * `sharp` decodes the image, rejects anything that is not a real JPEG/PNG/WebP, crops a square
- * and re-encodes it. Re-encoding is deliberate: it removes EXIF/GPS metadata, normalises the
- * format, and destroys a file that is also a script or an archive.
+ * `sharp` decodes the image, rejects anything that is not a real JPEG/PNG/WebP, crops a
+ * square and re-encodes it. Re-encoding is deliberate: it removes EXIF/GPS metadata,
+ * normalises the format, and destroys a file that is also a script or an archive.
  */
 
-const STORED_FILE = new RegExp(
-  `^${STORED_PHOTO_PREFIX}([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\\.${PHOTO_OUTPUT_EXTENSION}$`,
-);
 const ACCEPTED_FORMATS = new Set(['jpeg', 'png', 'webp']);
-
-function photoDirectory(): string {
-  return path.resolve(process.cwd(), config.photos.directory);
-}
-
-/** Strictly maps a database key to a filename; anything else is treated as missing. */
-function fileNameFor(key: string): string | null {
-  const match = STORED_FILE.exec(key);
-  return match?.[1] ? `${match[1]}.${PHOTO_OUTPUT_EXTENSION}` : null;
-}
-
-function absoluteFileFor(key: string): string | null {
-  const fileName = fileNameFor(key);
-  if (!fileName) return null;
-  const directory = photoDirectory();
-  const file = path.resolve(directory, fileName);
-  // The regex already forbids separators; this keeps that guarantee true if it ever changes.
-  return path.dirname(file) === directory ? file : null;
-}
 
 function invalidImage(message: string): never {
   throw new ApiError('validation', message);
@@ -69,6 +50,7 @@ export async function storeProfilePhoto(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   let metadata: Metadata;
+  let output: Buffer;
   try {
     const image = sharp(buffer, {
       failOn: 'error',
@@ -97,7 +79,7 @@ export async function storeProfilePhoto(file: File): Promise<string> {
       invalidImage(photoCopy.errors.tooLarge);
     }
 
-    const output = await image
+    output = await image
       .rotate() // Apply the camera orientation, then drop the EXIF tag that carried it.
       .resize({
         width: config.photos.outputSize,
@@ -109,57 +91,54 @@ export async function storeProfilePhoto(file: File): Promise<string> {
       .toBuffer();
 
     if (output.length > config.photos.maxBytes) invalidImage(photoCopy.errors.size);
-
-    const id = randomUUID();
-    const directory = photoDirectory();
-    const target = path.join(directory, `${id}.${PHOTO_OUTPUT_EXTENSION}`);
-    const temporary = path.join(directory, `.${id}.tmp`);
-
-    await mkdir(directory, { recursive: true, mode: config.photos.directoryMode });
-    try {
-      await writeFile(temporary, output, { mode: config.photos.fileMode });
-      await rename(temporary, target);
-    } catch (error) {
-      await rm(temporary, { force: true }).catch(() => undefined);
-      console.error('[photos] could not write a profile photo', error);
-      throw new ApiError('server', photoCopy.errors.upload);
-    }
-
-    return `${STORED_PHOTO_PREFIX}${id}.${PHOTO_OUTPUT_EXTENSION}`;
   } catch (error) {
     if (error instanceof ApiError) throw error;
     // Sharp's messages include paths and implementation detail; the member gets the copy.
     console.error('[photos] rejected an uploaded image', error);
     invalidImage(photoCopy.errors.unreadable);
   }
-}
 
-/** Reads a stored key. Missing, malformed and unreadable files all become a 404. */
-export async function readStoredPhoto(key: string): Promise<Buffer> {
-  const file = absoluteFileFor(key);
-  if (!file) throw new ApiError('not_found', photoCopy.errors.notFound);
+  const id = randomUUID();
+  const key = `${STORED_PHOTO_PREFIX}${id}.${PHOTO_OUTPUT_EXTENSION}`;
 
   try {
-    return await readFile(file);
+    await db.insert(profilePhotos).values({ key, data: output.toString('base64') });
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      console.error('[photos] could not read a profile photo', error);
-    }
+    console.error('[photos] could not store a profile photo', error);
+    throw new ApiError('server', photoCopy.errors.upload);
+  }
+
+  return key;
+}
+
+/** Reads a stored key. Missing or unreadable rows become a 404. */
+export async function readStoredPhoto(key: string): Promise<Buffer> {
+  if (!isStoredPhoto(key)) throw new ApiError('not_found', photoCopy.errors.notFound);
+
+  const [row] = await db
+    .select({ data: profilePhotos.data })
+    .from(profilePhotos)
+    .where(eq(profilePhotos.key, key));
+
+  if (!row) throw new ApiError('not_found', photoCopy.errors.notFound);
+
+  try {
+    return Buffer.from(row.data, 'base64');
+  } catch (error) {
+    console.error('[photos] could not read a profile photo', error);
     throw new ApiError('not_found', photoCopy.errors.notFound);
   }
 }
 
 /**
- * Best-effort removal. A database row must not keep pointing at a file that is gone, so a
+ * Best-effort removal. A database row must not keep pointing at bytes that are gone, so a
  * failure here is logged rather than thrown to the member; the row is cleared either way.
  */
 export async function deleteStoredPhoto(key: string | null | undefined): Promise<void> {
   if (!isStoredPhoto(key)) return;
-  const file = absoluteFileFor(key);
-  if (!file) return;
 
   try {
-    await rm(file, { force: true });
+    await db.delete(profilePhotos).where(eq(profilePhotos.key, key));
   } catch (error) {
     console.error('[photos] could not delete a profile photo', error);
   }

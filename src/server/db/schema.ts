@@ -245,6 +245,17 @@ export const alumni = pgTable(
   ],
 );
 
+/**
+ * Profile photos are stored here as base64-encoded WebP bytes so the app does not depend on
+ * a writable local filesystem (which is read-only on serverless hosts such as Vercel). The
+ * `key` matches `alumni.photo_url` (`photo:<uuid>.webp`); a row is inserted when an upload
+ * succeeds and removed when the photo is deleted or replaced.
+ */
+export const profilePhotos = pgTable('profile_photos', {
+  key: text('key').primaryKey(),
+  data: text('data').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
 /* ------------------------------------------------------------------ */
 /* Donations                                                          */
 /* ------------------------------------------------------------------ */

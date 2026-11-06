@@ -7,11 +7,21 @@ export default defineConfig({
   },
   auth: true,
   functions: {
-    hello: { name: 'Hello World', source: './hello.ts' },
+    cleanup: {
+      name: 'Nightly cleanup + report',
+      // Runs at 03:30 UTC every day = 09:15 Nepal time (NPT = UTC+5:45).
+      // Declared on the production branch of the `post` project, so every query below
+      // lands on the same database the live Vercel app reads and writes.
+      source: './neon-functions/nightly-cleanup.ts',
+    },
   },
-  buckets: {
-    // "private" is the default; use "public_read" for anonymous reads
-    assets: { access: 'private' },
+  triggers: {
+    nightly: {
+      type: 'schedule',
+      function: 'cleanup',
+      cron: '30 3 * * *',
+      functionPath: '/',
+    },
   },
   // Branch policy: per-branch tuning
   branch: (branch) => {
