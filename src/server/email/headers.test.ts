@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeHeaderValue } from './index';
+import { sanitizeHeaderValue } from '@/lib/email-sanitize';
 
 describe('sanitizeHeaderValue', () => {
   it('flattens a newline so a value cannot add headers of its own', () => {

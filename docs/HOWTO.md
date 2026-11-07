@@ -17,7 +17,7 @@ mock mode, and no payment simulator.
 - Public pages read through Server Components and the services in `src/server/services`.
 - The browser calls the JSON API under `/api/v1` for writes.
 - `/admin` is a separate dashboard for Association administrators.
-- Payments go to eSewa or Khalti; email goes to Resend in production.
+- Payments go to eSewa or Khalti; email goes to Brevo in production.
 
 You need Node.js 20.9+ (22 LTS recommended), npm, git, and Postgres 16. Docker is optional and is
 the quickest way to get Postgres locally.
@@ -391,11 +391,11 @@ the stored donation.
 ## 6. Email
 
 - Locally, `EMAIL_TRANSPORT=console` prints every message to the terminal.
-- In production, set `EMAIL_TRANSPORT=resend`, `RESEND_API_KEY` and `EMAIL_FROM`.
+- In production, set `EMAIL_TRANSPORT=brevo`, `BREVO_API_KEY` and `BREVO_SENDER_EMAIL`.
 
-Verify the sending domain in Resend (SPF, DKIM and DMARC) before launch. Until the domain is
-verified, Resend rejects messages to anyone except the account owner. A failed receipt or
-notification is logged and never undoes a donation, RSVP or ticket.
+Verify a sender in Brevo before launch. Without a verified sender, Brevo only delivers to
+the account owner. A failed receipt or notification is logged and never undoes a donation,
+RSVP or ticket.
 
 Messages currently sent:
 
@@ -636,9 +636,10 @@ ESEWA_SECRET_KEY=...
 ESEWA_GATEWAY_URL=https://epay.esewa.com.np/api/epay/main/v2/form
 KHALTI_SECRET_KEY=...
 KHALTI_BASE_URL=https://khalti.com/api/v2
-EMAIL_TRANSPORT=resend
-RESEND_API_KEY=re_...
-EMAIL_FROM="BPKIHS Alumni Association <no-reply@your-domain.org>"
+EMAIL_TRANSPORT=brevo
+BREVO_API_KEY=keyserver_...
+BREVO_SENDER_EMAIL="BPKIHS Alumni Association <no-reply@your-domain.org>"
+BREVO_SENDER_NAME="BPKIHS Alumni Association"
 CONTACT_EMAIL=office@your-domain.org
 TRUST_PROXY=true
 PHOTO_UPLOAD_DIR=/var/lib/bpkihs-alumni/photos
@@ -884,7 +885,7 @@ doing it.
 | 403 "That request came from another site"             | `Origin` does not match `APP_URL` / `NEXT_PUBLIC_SITE_URL`. Fix the origin, not the code. |
 | 429 "Too many attempts"                              | Rate limiter. Wait for the `Retry-After` seconds. Raise the limit only if the traffic is legitimate. |
 | Everyone is rate-limited together                     | `TRUST_PROXY` is false behind a proxy, or nginx does not set `X-Real-IP`. Fix the proxy headers. |
-| No emails                                            | Check `EMAIL_TRANSPORT`, `RESEND_API_KEY`, the verified domain, and the server log. A failed email never rolls back a record. |
+| No emails                                            | Check `EMAIL_TRANSPORT`, `BREVO_API_KEY`, the verified sender, and the server log. A failed email never rolls back a record. |
 | Payment returns "failed"                              | Check the gateway keys and the registered return URL, then the server log. Donations stay in the ledger as `failed`. |
 | Build fails with `ECONNREFUSED 5433`                  | Postgres is not running. `npm run db:up`, then rebuild.                         |
 | e2e setup fails with `sign in as … expected 200, received 429` | Better Auth allows five sign-ins per minute per IP. Wait a minute and rerun; the setup reuses its stored sessions, so this only happens after repeated runs. |
@@ -923,7 +924,7 @@ src/server/
   storage/          profile-photo validation, re-encoding and disk storage
   http/             error envelope, CSRF, rate limiting, multipart reader, admin guard
   payments/         eSewa, Khalti and ConnectIPS adapters (Fonepay pending)
-  email/            Resend and console transports
+  email/            Brevo and console transports
 src/proxy.ts        CSRF cookie and request security headers
 docs/               this guide, backend, security, deployment, design
 drizzle/            SQL migrations; never edit an applied migration
@@ -1076,7 +1077,7 @@ npm run analyze    # Next's Turbopack analyser, served at http://localhost:4000
 
 The analyser is interactive: it shows a treemap per route and the module a byte belongs to. A
 production build of this app ships **348.1 kB of JavaScript gzipped across 34 client chunks**
-and contains no server-only package : `drizzle-orm`, `postgres`, `better-auth` and the Resend
+and contains no server-only package : `drizzle-orm`, `postgres`, `better-auth` and the Brevo
 client stay on the server, which is worth re-checking whenever a new import lands in a client
 component. Two weights dominate: React and the router (framework), then `zod`, which the forms
 use to validate before submitting.
@@ -1093,7 +1094,9 @@ Measure the production build, not the dev server: dev output is unminified and n
 npm run build
 APP_URL=http://localhost:3100 \
 NEXT_PUBLIC_SITE_URL=http://localhost:3100 \
-EMAIL_FROM="BPKIHS Alumni Association <no-reply@alumni.example.com>" \
+EMAIL_TRANSPORT=brevo \
+BREVO_API_KEY=keyserver_... \
+BREVO_SENDER_EMAIL="BPKIHS Alumni Association <no-reply@alumni.example.com>" \
 CONTACT_EMAIL="office@alumni.example.com" \
 PORT=3100 npm run start
 
@@ -1102,7 +1105,7 @@ npx lighthouse@12 http://localhost:3100/ --output=json --output-path=lh-home.jso
   --chrome-flags="--headless=new --no-sandbox"
 ```
 
-`EMAIL_FROM` and `CONTACT_EMAIL` are overridden only because production validation rejects
+`BREVO_SENDER_EMAIL` and `CONTACT_EMAIL` are overridden only because production validation rejects
 `.local` addresses; nothing is sent by a build or a Lighthouse run.
 
 Scores on 25 October 2026, mobile preset (throttled, 4× CPU):

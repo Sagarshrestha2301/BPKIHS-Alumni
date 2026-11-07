@@ -162,19 +162,21 @@ export function productionEnvProblems(
   // Bot protection (Cloudflare Turnstile) is optional: when its keys are absent the
   // public forms skip the human check (see src/server/bot/turnstile.ts). Set both
   // keys to turn it on.
-  if (value('EMAIL_TRANSPORT') !== 'resend') {
-    problems.push('EMAIL_TRANSPORT must be "resend" in production.');
+  if (value('EMAIL_TRANSPORT') !== 'brevo') {
+    problems.push('EMAIL_TRANSPORT must be "brevo" in production.');
   }
-  if (!value('RESEND_API_KEY')) {
-    problems.push('RESEND_API_KEY is required to send receipts and notifications.');
+  if (!value('BREVO_API_KEY')) {
+    problems.push('BREVO_API_KEY is required to send receipts and notifications.');
   }
-  const from = value('EMAIL_FROM');
+  const from = value('BREVO_SENDER_EMAIL');
   if (!from) {
-    problems.push('EMAIL_FROM is required (a verified sender, e.g. "Alumni <no-reply@domain>").');
+    problems.push(
+      'BREVO_SENDER_EMAIL is required (a verified Brevo sender, e.g. "Alumni <no-reply@domain>").',
+    );
   } else if (/\.local\b|\.example\b/i.test(from)) {
-    problems.push('EMAIL_FROM must use a real verified domain, not .local or .example.');
+    problems.push('BREVO_SENDER_EMAIL must use a real verified domain, not .local or .example.');
   } else if (!/^[^<]*<[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>$/.test(from)) {
-    problems.push('EMAIL_FROM must look like "Name <no-reply@your-domain>".');
+    problems.push('BREVO_SENDER_EMAIL must look like "Name <no-reply@your-domain>".');
   }
 
   const contact = value('CONTACT_EMAIL');

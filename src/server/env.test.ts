@@ -14,9 +14,9 @@ function validEnv(
     ESEWA_PRODUCT_CODE: 'ESEWA-MERCHANT',
     ESEWA_SECRET_KEY: 'gateway-secret',
     ESEWA_GATEWAY_URL: 'https://epay.esewa.com.np/api/epay/main/v2/form',
-    EMAIL_TRANSPORT: 'resend',
-    RESEND_API_KEY: 're_test_key',
-    EMAIL_FROM: 'BPKIHS Alumni <no-reply@alumni.org>',
+    EMAIL_TRANSPORT: 'brevo',
+    BREVO_API_KEY: 'keyserver_...',
+    BREVO_SENDER_EMAIL: 'BPKIHS Alumni <no-reply@alumni.org>',
     CONTACT_EMAIL: 'office@alumni.org',
     TURNSTILE_SECRET_KEY: 'turnstile-secret',
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'turnstile-site-key',
@@ -44,7 +44,9 @@ describe('productionEnvProblems', () => {
       expect.stringContaining('EMAIL_TRANSPORT'),
     );
     expect(
-      productionEnvProblems(validEnv({ EMAIL_FROM: 'Alumni <no-reply@bpkihs-alumni.local>' })),
+      productionEnvProblems(
+        validEnv({ BREVO_SENDER_EMAIL: 'Alumni <no-reply@bpkihs-alumni.local>' }),
+      ),
     ).toContainEqual(expect.stringContaining('verified domain'));
   });
 

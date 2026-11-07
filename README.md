@@ -95,9 +95,10 @@ Copy [`.env.example`](./.env.example) for the full list. The ones that matter:
 | `NEXT_PUBLIC_SITE_URL`           | Canonical links and metadata (build time)       | yes                                        |
 | `PAYMENT_MODE`                   | `sandbox` or `live` : no simulator              | yes                                        |
 | `ESEWA_*`, `KHALTI_*`            | Gateway merchant credentials                    | at least one gateway                       |
-| `EMAIL_TRANSPORT`                | `resend` in production, `console` locally       | yes                                        |
-| `RESEND_API_KEY`                 | Resend API key                                  | in production                              |
-| `EMAIL_FROM`                     | Verified sender address                         | yes                                        |
+| `EMAIL_TRANSPORT`                | `brevo` in production, `console` locally        | yes                                        |
+| `BREVO_API_KEY`                  | Brevo API key                                   | in production                              |
+| `BREVO_SENDER_EMAIL`             | Verified Brevo sender address                   | yes                                        |
+| `BREVO_SENDER_NAME`              | Brevo sender display name                       | yes                                        |
 | `CONTACT_EMAIL`                  | Public office address shown on `/support`       | in production                              |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Turnstile site key for the public forms         | in production (build time)                 |
 | `TURNSTILE_SECRET_KEY`           | Turnstile secret verified on the server         | in production                              |

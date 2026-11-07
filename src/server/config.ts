@@ -215,7 +215,8 @@ export const config = {
   },
 
   newsletter: {
-    /** Messages per provider request. Resend accepts up to 100. */
+    /** Messages per provider batch. Brevo's transactional endpoint takes one recipient per
+     * call; this controls how many sequential API calls a campaign makes before pausing. */
     batchSize: integer('NEWSLETTER_BATCH_SIZE', 50, 1, 100),
     /** Hard stop so one browser request cannot try to mail an unbounded list. */
     maxRecipients: integer('NEWSLETTER_MAX_RECIPIENTS', 2000, 1, 10_000),
@@ -228,8 +229,6 @@ export const config = {
 
   email: {
     timeoutMs: integer('EMAIL_TIMEOUT_MS', 15_000, 1_000, 60_000),
-    apiUrl: 'https://api.resend.com/emails',
-    batchApiUrl: 'https://api.resend.com/emails/batch',
   },
 
   payments: {
